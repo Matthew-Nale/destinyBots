@@ -116,6 +116,7 @@ async def on_ready():
     except Exception as e:
         log.write(f'Rhulk, Disciple of the Witness on_ready error: \n{e}\n\n')
     log.close()
+    cleanMemoriesRhulk.start()
 
 
 # Slash command for text-to-speech for Rhulk
@@ -285,13 +286,14 @@ async def on_ready():
         log.write(f'Setting up context memory for server: {server.id} ({server.name})\n')
         calus_messages[server.id] = [{"role": "system", "content": calusChatPrompt}]
         last_calus_interactions[server.id] = datetime.now()
-    log.write(f'{cBot.user} has connected to Discord!')
+    log.write(f'{cBot.user} has connected to Discord!\n\n')
     try:
         synced = await cBot.tree.sync()
         log.write(f'Synced {len(synced)} commands for Emperor Calus!\n\n')
     except Exception as e:
         log.write(f'Emperor Calus on_ready error: \n{e}\n\n')
     log.close()
+    cleanMemoriesCalus.start()
 
 
 # Slash command for text-to-speech for Calus
@@ -388,25 +390,31 @@ async def reset_rhulk(interaction: discord.Interaction):
 #? Memory Cleaning function
 #?
 #?
-@tasks.loop(minutes=30)
-async def cleanMemories():
+@tasks.loop(hours = 6)
+async def cleanMemoriesRhulk():
     log = open("log.txt", "a")
     currentTime = datetime.now()
     for server in rBot.guilds:
-        rhulk_diff = last_rhulk_interactions[server.id] - currentTime
-        if rhulk_diff.day > 0 or rhulk_diff.hour > 6:
-            log.write(f'No interaction for Rhulk in {server.name}, clearing the memory.\n\n')
+        rhulk_diff = currentTime - last_rhulk_interactions[server.id]
+        if rhulk_diff.days > 0 or (rhulk_diff.seconds / 3600) >= 6:
+            log.write(f'No interaction for Rhulk in {server.name} during past 6 hours, clearing the memory.\n\n')
             rhulk_messages[server.id] = [{"role": "system", "content": rhulkChatPrompt}]
             last_rhulk_interactions[server.id] = datetime.now()
-    for server in cBot.guilds:
-        calus_diff = last_calus_interactions[server.id] - currentTime
-        if calus_diff.day > 0 or calus_diff.hour > 6:
-            log.write(f'No interaction for Calus in {server.name}, clearing the memory.\n\n')
-            calus_messages[server.id] = [{"role": "system", "content": calusChatPrompt}]
-            last_calus_interactions[server.id] = datetime.now()
-    log.write(f'Checked memories for Rhulk in {len(rBot.guilds)} servers, and Calus in {len(cBot.guilds)} servers.\n\n')
+    log.write(f'Checked memories for Rhulk in {len(rBot.guilds)} servers.\n\n')
     log.close()
 
+@tasks.loop(hours = 6)
+async def cleanMemoriesCalus():
+    log = open("log.txt", "a")
+    currentTime = datetime.now()
+    for server in cBot.guilds:
+        calus_diff = currentTime - last_calus_interactions[server.id]
+        if calus_diff.days > 0 or (calus_diff.seconds / 3600) >= 6:
+            log.write(f'No interaction for Calus in {server.name} during past 6 hours, clearing the memory.\n\n')
+            calus_messages[server.id] = [{"role": "system", "content": calusChatPrompt}]
+            last_calus_interactions[server.id] = datetime.now()
+    log.write(f'Checked memories for Calus in {len(cBot.guilds)} servers.\n\n')
+    log.close()
 
 #? Running bots
 #?
