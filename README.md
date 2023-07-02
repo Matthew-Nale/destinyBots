@@ -22,7 +22,7 @@ And for all the available commands for the bots:
 
 
 
-## **Rhulk, Disciple of the Witness**
+## * *Rhulk, Disciple of the Witness* *
 
 ### /speak_rhulk
 
@@ -51,7 +51,7 @@ And for all the available commands for the bots:
 
 
 
-## **Emperor Calus**
+## * *Emperor Calus* *
 
 ### /speak_calus
 
