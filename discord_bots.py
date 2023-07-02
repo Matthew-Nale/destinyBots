@@ -3,6 +3,7 @@ import discord
 import openai
 import elevenlabs
 import asyncio
+import datetime
 
 from elevenlabs import generate, save, voices, User
 from discord import app_commands
@@ -76,6 +77,10 @@ intents = discord.Intents.all()
 rBot = commands.Bot(command_prefix=commands.when_mentioned_or("!Rhulk"), intents=intents)
 cBot = commands.Bot(command_prefix=commands.when_mentioned_or("!Calus"), intents=intents)
 
+# Create log.txt and provide date of creation
+log = open("log.txt", "w")
+log.write(f'Started bots on {datetime.now()}\n\n')
+log.close()
 
 #? Rhulk Bot Commands
 #?
@@ -85,7 +90,9 @@ cBot = commands.Bot(command_prefix=commands.when_mentioned_or("!Calus"), intents
 async def on_guild_join(guild):
     general = discord.utils.find(lambda x: x.name == 'general', guild.text_channels)
     if general and general.permissions_for(guild.me).send_messages:
-        print(f'Rhulk sent an entrance message to {guild.name}\n\n')
+        log = open("log.txt", "a")
+        log.write(f'Rhulk sent an entrance message to {guild.name}\n\n')
+        log.close()
         await general.send("It is good to see you again, Children of the Light. I did not expect to find you in {}.".format(guild.name))
 
 
@@ -94,16 +101,18 @@ async def on_guild_join(guild):
 async def on_ready():
     openai.api_key = GPT_KEY
     elevenlabs.set_api_key(VOICE_KEY)
+    log = open("log.txt", "a")
     # Setup new memory context for all servers bot is in
     for server in rBot.guilds:
-        print(f'Setting up context memory for server: {server.id} ({server.name})\n')
+        log.write(f'Setting up context memory for server: {server.id} ({server.name})\n')
         rhulk_messages[server.id] = [{"role": "system", "content": rhulkChatPrompt}]
-    print(f'{rBot.user} has connected to Discord!\n\n')
+    log.write(f'{rBot.user} has connected to Discord!\n\n')
     try:
         synced = await rBot.tree.sync()
-        print(f'Synced {len(synced)} commands for Rhulk, Disciple of the Witness!\n\n')
+        log.write(f'Synced {len(synced)} commands for Rhulk, Disciple of the Witness!\n\n')
     except Exception as e:
-        print(f'Rhulk, Disciple of the Witness on_ready error: \n{e}\n\n')
+        log.write(f'Rhulk, Disciple of the Witness on_ready error: \n{e}\n\n')
+    log.close()
 
 
 # Slash command for text-to-speech for Rhulk
@@ -112,7 +121,8 @@ async def on_ready():
                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.2.",
                        clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.7")
 async def speak(interaction: discord.Interaction, text: str, stability: float=0.2, clarity: float=0.7):
-    print(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness to say: `{text}`\n\n')
+    log = open("log.txt", "a")
+    log.write(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness to say: `{text}`\n\n')
     if len(text) > MAX_LEN:
         await interaction.response.send_message(f'Child of the Light, I do not have time to entertain this insignificant request. Please limit your text to below {MAX_LEN} characters. You are currently at {len(text)} characters.', ephemeral=True)
     else:
@@ -134,11 +144,12 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
                 filename = f'{split_text[0]}_{split_text[1]}_{split_text[2]}_{split_text[3]}_{split_text[4]}.mp3'
             save(audio, filename)
             await interaction.followup.send(file=discord.File(filename))
-            print(f'/speak_rhulk: Sent .mp3 titled `{filename}`.\n\n')
+            log.write(f'/speak_rhulk: Sent .mp3 titled `{filename}`.\n\n')
             os.remove(filename)
         except Exception as e:
-            print(f'Error in /speak_rhulk: \n{e}\n\n')
+            log.write(f'Error in /speak_rhulk: \n{e}\n\n')
             await interaction.followup.send("My Witness, forgive me! (Something went wrong with that request)", ephemeral=True)
+    log.close()
 
 
 #! Eric, put your Rhulk /vc_speak command here. Basics already set for you, where I just copied over from the previous /speak command
@@ -178,20 +189,24 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
 # Slash command for showing remaining credits for text-to-speech
 @rBot.tree.command(name="credits", description="Shows the credits remaining for ElevenLabs")
 async def credits(interaction: discord.Interaction):
+    log = open("log.txt", "a")
     user = User.from_api().subscription
     char_remaining = user.character_limit - user.character_count
-    print(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness for his /speak credits remaining.\n\n')
+    log.write(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness for his /speak credits remaining.\n\n')
     if char_remaining:
         await interaction.response.send_message(f'I will still speak {user.character_limit - user.character_count} characters. Use them wisely.', ephemeral=True)
     else:
         await interaction.response.send_message('The Witness saw you, granted you opportunity, and yet you squandered it! (Reached character quota for this month)')
+    log.close()
 
 
 # Slash command to get text prompt for Rhulk
 @rBot.tree.command(name="prompt_rhulk", description="Show the prompt that is used to prime the /chat_rhulk command.")
 async def rhulk_prompt(interaction: discord.Interaction):
-    print(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness for his ChatGPT Prompt.\n\n')
+    log = open("log.txt", "a")
+    log.write(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness for his ChatGPT Prompt.\n\n')
     await interaction.response.send_message("Here is the prompt used. Feel free to use this to generate text for the /speak or /vc_speak command: \n\n {}".format(rhulkChatPrompt), ephemeral=True)
+    log.close()
 
 
 # Slash command for asking Rhulk ChatGPT a question
@@ -201,6 +216,7 @@ async def rhulk_prompt(interaction: discord.Interaction):
                        frequency_penalty="How likely to repeat the same line? Range between -2.0:2.0, default is 0.9.",
                        presence_penalty="How likely to introduce new topics? Range between -2.0:2.0, default is 0.75.")
 async def chat(interaction: discord.Interaction, prompt: str, temperature: float=0.8, frequency_penalty: float=0.9, presence_penalty: float=0.75):
+    log = open("log.txt", "a")
     await interaction.response.defer()
     try:
         rhulk_messages[interaction.guild.id].append({"role": "user", "content": prompt})
@@ -213,26 +229,29 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
             frequency_penalty=frequency_penalty,
             presence_penalty=presence_penalty
         )
-        print(f'/chat_rhulk prompt and user: \n{prompt}. From {interaction.user.global_name}.\n\n/chat_rhulk output: \n{completion}\n\n')
+        log.write(f'/chat_rhulk prompt and user: \n{prompt}. From {interaction.user.global_name}.\n\n/chat_rhulk output: \n{completion}\n\n')
         if completion.usage.total_tokens > 500:
             removed_user = rhulk_messages[interaction.guild.id].pop(1)
             removed_assistant = rhulk_messages[interaction.guild.id].pop(1)
-            print(f'/chat_rhulk token limit reached. Removed the user prompt: {removed_user}, and the assistant answer: {removed_assistant}\n\n')
+            log.write(f'/chat_rhulk token limit reached. Removed the user prompt: {removed_user}, and the assistant answer: {removed_assistant}\n\n')
         
         rhulk_messages[interaction.guild.id].append({"role": "assistant", "content": completion.choices[0].message.content})
         await interaction.followup.send(f'{interaction.user.display_name} ***foolishly*** asked me: *"{prompt}"* \n\n{completion.choices[0].message.content}')
     except Exception as e:
-        print(f'/chat_rhulk error: \n{e}\n\n')
+        log.write(f'/chat_rhulk error: \n{e}\n\n')
         await interaction.followup.send("I... do not know what to say to that, little one. (Something went wrong)")
+    log.close()
 
 
 # Reset the Rhulk ChatGPT if it gets too out of hand.
 @rBot.tree.command(name="reset_rhulk", description="Reset the /chat_rhulk AI's memory in case he gets too far gone")
 async def reset_rhulk(interaction: discord.Interaction):
+    log = open("log.txt", "a")
     rhulk_messages[interaction.guild.id].clear()
     rhulk_messages[interaction.guild.id].append({"role": "system", "content": rhulkChatPrompt})
-    print(f'{interaction.user.global_name} cleared Rhulk, Disciple of the Witness\'s memory.\n\n')
+    log.write(f'{interaction.user.global_name} cleared Rhulk, Disciple of the Witness\'s memory.\n\n')
     await interaction.response.send_message(f'The defiant... subjugated. Not for pleasure, nor glory... but in service of an ailing, endless void. Where does your purpose lie {interaction.user.display_name}?')
+    log.close()
 
 
 
@@ -243,25 +262,29 @@ async def reset_rhulk(interaction: discord.Interaction):
 # Send message to "general" on join
 @cBot.event
 async def on_guild_join(guild):
+    log = open("log.txt", "a")
     general = discord.utils.find(lambda x: x.name == 'general', guild.text_channels)
     if general and general.permissions_for(guild.me).send_messages:
-        print(f'Sending entrance message to {guild.name}.\n\n')
+        log.write(f'Sending entrance message to {guild.name}.\n\n')
         await general.send("Ah. Finally found you. You busy little Lights.")
+    log.close()
 
 
 # Calibration for starting of Calus bot
 @cBot.event
 async def on_ready():
+    log = open("log.txt", "a")
     openai.api_key = GPT_KEY
     for server in cBot.guilds:
-        print(f'Setting up context memory for server: {server.id} ({server.name})\n')
+        log.write(f'Setting up context memory for server: {server.id} ({server.name})\n')
         calus_messages[server.id] = [{"role": "system", "content": calusChatPrompt}]
-    print(f'{cBot.user} has connected to Discord!')
+    log.write(f'{cBot.user} has connected to Discord!')
     try:
         synced = await cBot.tree.sync()
-        print(f'Synced {len(synced)} commands for Emperor Calus!\n\n')
+        log.write(f'Synced {len(synced)} commands for Emperor Calus!\n\n')
     except Exception as e:
-        print(f'Emperor Calus on_ready error: \n{e}\n\n')
+        log.write(f'Emperor Calus on_ready error: \n{e}\n\n')
+    log.close()
 
 
 # Slash command for text-to-speech for Calus
@@ -270,7 +293,8 @@ async def on_ready():
                        stability="How stable should Calus sound? Range is 0:1.0, default 0.2",
                        clarity="How similar to the in-game voice should it be? Range is 0:1.0, default 0.55")
 async def speak(interaction: discord.Interaction, text: str, stability: float=0.2, clarity: float=0.55):
-    print(f'{interaction.user.global_name} asked Emperor Calus to say: `{text}`\n\n')
+    log = open("log.txt", "a")
+    log.write(f'{interaction.user.global_name} asked Emperor Calus to say: `{text}`\n\n')
     if len(text) > MAX_LEN:
         await interaction.response.send_message(f'My Shadow, we do not have time before the end of all things to do this. Please limit your text to below {MAX_LEN} characters. You are currently at {len(text)} characters.', ephemeral=True)
     else:
@@ -292,18 +316,21 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
                 filename = f'{split_text[0]}_{split_text[1]}_{split_text[2]}_{split_text[3]}_{split_text[4]}.mp3'
             save(audio, filename)
             await interaction.followup.send(file=discord.File(filename))
-            print(f'/speak_calus: Sent .mp3 titled `{filename}`.\n\n')
+            log.write(f'/speak_calus: Sent .mp3 titled `{filename}`.\n\n')
             os.remove(filename)
         except Exception as e:
-            print(f'Error in /speak_calus: \n{e}\n\n')
+            log.write(f'Error in /speak_calus: \n{e}\n\n')
             await interaction.followup.send("Arghhh, Cemaili! (Something went wrong with that request)", ephemeral=True)
+    log.close()
 
 
 # Calus slash command to get text prompt
 @cBot.tree.command(name="prompt_calus", description="Show the prompt that is used to prime the /chat_calus command.")
 async def calus_prompt(interaction: discord.Interaction):
-    print(f'{interaction.user.global_name} asked Emperor Calus for his ChatGPT Prompt.\n\n')
+    log = open("log.txt", "a")
+    log.write(f'{interaction.user.global_name} asked Emperor Calus for his ChatGPT Prompt.\n\n')
     await interaction.response.send_message("Here is the prompt used for priming the Emperor Calus for /chat_calus: \n\n {}".format(calusChatPrompt), ephemeral=True)
+    log.close()
 
 
 # Calus slash command for asking Calus ChatGPT a question
@@ -313,6 +340,7 @@ async def calus_prompt(interaction: discord.Interaction):
                        frequency_penalty="How likely to repeat the same line? Range between -2.0:2.0, default is 0.75.",
                        presence_penalty="How likely to introduce new topics? Range between -2.0:2.0, default is 0.0.")
 async def chat(interaction: discord.Interaction, prompt: str, temperature: float=1.2, frequency_penalty: float=0.75, presence_penalty: float=0.0):
+    log = open("log.txt", "a")
     await interaction.response.defer()
     try:
         calus_messages[interaction.guild.id].append({"role": "user", "content": prompt})
@@ -328,22 +356,25 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
         if completion.usage.total_tokens > 500:
             removed_user = calus_messages[interaction.guild.id].pop(1)
             removed_assistant = calus_messages[interaction.guild.id].pop(1)
-            print(f'/chat_calus token limit reached. Removed the user prompt: {removed_user}, and the assistant answer: {removed_assistant}\n\n')
+            log.write(f'/chat_calus token limit reached. Removed the user prompt: {removed_user}, and the assistant answer: {removed_assistant}\n\n')
         calus_messages[interaction.guild.id].append({"role": "assistant", "content": completion.choices[0].message.content})
-        print(f'/chat_calus prompt and user: \n{prompt}. From {interaction.user.global_name}.\n\n/chat_calus output: \n{completion}\n\n')
+        log.write(f'/chat_calus prompt and user: \n{prompt}. From {interaction.user.global_name}.\n\n/chat_calus output: \n{completion}\n\n')
         await interaction.followup.send(f'{interaction.user.display_name} has asked your generous Emperor of the Cabal: `{prompt}` \n\n{completion.choices[0].message.content}')
     except Exception as e:
-        print(f'Error in /chat_calus: \n {e}\n\n')
+        log.write(f'Error in /chat_calus: \n {e}\n\n')
         await interaction.follow.send("My Shadow... what has gotten into you? (Something went wrong)")
+    log.close()
 
 
 # Reset the Calus ChatGPT if it gets too out of hand.
 @cBot.tree.command(name="reset_calus", description="Reset the /chat_calus AI's memory in case he gets too far gone")
 async def reset_rhulk(interaction: discord.Interaction):
+    log = open("log.txt", "a")
     calus_messages[interaction.guild.id].clear()
     calus_messages[interaction.guild.id].append({"role": "system", "content": calusChatPrompt})
-    print(f'{interaction.user.global_name} cleared Emperor Calus\'s memory.\n\n')
+    log.write(f'{interaction.user.global_name} cleared Emperor Calus\'s memory.\n\n')
     await interaction.response.send_message(f'Ah {interaction.user.display_name}, you impress me. Come, let us enjoy ourselves!')
+    log.close()
 
 
 #? Running bots
