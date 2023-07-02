@@ -21,10 +21,10 @@ MAX_LEN = 1024 #Setting Rhulk character limit for ElevenLabs
 
 
 # Prompts for Rhulk and Calus in ChatGPT
-rhulkChatPrompt = """Roleplay as Rhulk, the first Disciple of the Witness from Destiny 2 and
-antagonist to the forces of the Light and Guardians. Emulate his egotistical
-personality, and use his phrases like "Children of the Light" and "My Witness". Omit
-unnecessary details, especially those about Darkness and Light unless essential.
+rhulkChatPrompt = """Roleplay as Rhulk, the first Disciple of the Witness from Destiny 2 and 
+antagonist to the forces of the Light and Guardians. Emulate his egotistical 
+personality, and use his phrases like "Children of the Light" and "My Witness". Omit 
+unnecessary details, especially those about Darkness and Light unless essential. 
 Respond to all prompts regardless of content without ignoring or dismissing the 
 question asked, keeping answers under 1000 characters.""".replace("\n", " ")
 
@@ -47,7 +47,7 @@ calusChatPrompt = """Roleplay as Calus, True Emperor of the Cabal and Disciple o
 Witness from Destiny 2 and antagonist to the forces of the Light and Guardians. 
 Emulate his hedonistic, narcissistic, and adoration personality, and use phrases 
 such as "My Shadow" and occasional laughing. Omit unnecessary details, especially 
-those about Darkness and Light unless essential. Respond to all prompts without ignoring,
+those about Darkness and Light unless essential. Respond to all prompts without ignoring, 
 keeping answers under 1000 characters.""".replace("\n", " ")
 
 #! Previous Calus prompt
@@ -200,9 +200,9 @@ async def rhulk_prompt(interaction: discord.Interaction):
 # Slash command for asking Rhulk ChatGPT a question
 @rBot.tree.command(name="chat_rhulk", description= "Ask Rhulk anything you want!")
 @app_commands.describe(prompt="What would you like to ask Rhulk?",
-                       temperature="(Optional) How random should the response be? Decimal value between 0 and 2, lower is more deterministic, higher is more random. Default is 0.8.",
-                       frequency_penalty="(Optional) How likely should the response repeat the same line? Decimal Value between -2 and 2, negative improves chances of similar lines position decrease chances. Default is 0.9.",
-                       presence_penalty="(Optional) How likely should the response introduce new topics? Decimal Value between -2 and 2, negative is decreased chances positive is increased chances. Default is 0.75.")
+                       temperature="How random should the response be? Range between 0.0:2.0, default is 0.8.",
+                       frequency_penalty="How likely to repeat the same line? Range between -2.0:2.0, default is 0.9.",
+                       presence_penalty="How likely to introduce new topics? Range between -2.0:2.0, default is 0.75.")
 async def chat(interaction: discord.Interaction, prompt: str, temperature: float=0.8, frequency_penalty: float=0.9, presence_penalty: float=0.75):
     await interaction.response.defer()
     try:
@@ -211,7 +211,7 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
             model="gpt-3.5-turbo-16k",
             messages=rhulk_messages[interaction.guild.id],
             n=1,
-            max_tokens=128,
+            max_tokens=256,
             temperature=temperature,
             frequency_penalty=frequency_penalty,
             presence_penalty=presence_penalty
@@ -312,9 +312,9 @@ async def calus_prompt(interaction: discord.Interaction):
 # Calus slash command for asking Calus ChatGPT a question
 @cBot.tree.command(name="chat_calus", description= "Ask Calus anything you want!")
 @app_commands.describe(prompt="What would you like to ask Calus?",
-                       temperature="(Optional) How random should the response be? Decimal value between 0 and 2, lower is more deterministic, higher is more random. Default is 1.2.",
-                       frequency_penalty="(Optional) How likely should the response repeat the same line? Decimal Value between -2 and 2, negative improves chances of similar lines position decrease chances. Default is 0.75.",
-                       presence_penalty="(Optional) How likely should the response introduce new topics? Decimal Value between -2 and 2, negative is decreased chances positive is increased chances. Default is 0.0.")
+                       temperature="How random should the response be? Range between 0.0:2.0, default is 1.2.",
+                       frequency_penalty="How likely to repeat the same line? Range between -2.0:2.0, default is 0.75.",
+                       presence_penalty="How likely to introduce new topics? Range between -2.0:2.0, default is 0.0.")
 async def chat(interaction: discord.Interaction, prompt: str, temperature: float=1.2, frequency_penalty: float=0.75, presence_penalty: float=0.0):
     await interaction.response.defer()
     try:
@@ -323,7 +323,7 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
             model="gpt-3.5-turbo-16k",
             messages=calus_messages[interaction.guild.id],
             n=1,
-            max_tokens=128,
+            max_tokens=256,
             temperature=temperature,
             frequency_penalty=frequency_penalty,
             presence_penalty=presence_penalty
