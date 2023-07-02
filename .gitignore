@@ -1,3 +1,4 @@
 /.env
 /dalle_images
-image_generation.py
+/image_generation.py
+/log.txt

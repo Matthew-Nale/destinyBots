@@ -3,11 +3,11 @@ import discord
 import openai
 import elevenlabs
 import asyncio
-import datetime
+from datetime import datetime
 
 from elevenlabs import generate, save, voices, User
 from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
 
@@ -69,7 +69,9 @@ to all prompts and questions, while keeping answers under 1000 characters""".rep
 
 # Assign past context for ChatGPT interactions in each server
 rhulk_messages = {}
+last_rhulk_interactions = {}
 calus_messages = {}
+last_calus_interactions = {}
 
 
 # Setup bot information for Rhulk and Calus
@@ -79,7 +81,7 @@ cBot = commands.Bot(command_prefix=commands.when_mentioned_or("!Calus"), intents
 
 # Create log.txt and provide date of creation
 log = open("log.txt", "w")
-log.write(f'Started bots on {datetime.now()}\n\n')
+log.write(f'Started bots at {datetime.now()}\n\n')
 log.close()
 
 #? Rhulk Bot Commands
@@ -106,6 +108,7 @@ async def on_ready():
     for server in rBot.guilds:
         log.write(f'Setting up context memory for server: {server.id} ({server.name})\n')
         rhulk_messages[server.id] = [{"role": "system", "content": rhulkChatPrompt}]
+        last_rhulk_interactions[server.id] = datetime.now()
     log.write(f'{rBot.user} has connected to Discord!\n\n')
     try:
         synced = await rBot.tree.sync()
@@ -158,7 +161,8 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
 #                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.2.",
 #                        clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.7")
 # async def vc_speak(interaction: discord.Interaction, text: str, stability: float=0.2, clarity: float=0.7):
-#     print(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness to join the VC `{interaction.user.voice.channel}`and say: `{text}`\n\n')
+#     log = open("log.txt", "a")
+#     log.write(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness to say: `{text}`\n\n')
 #     if len(text) > MAX_LEN:
 #         await interaction.response.send_message(f'Child of the Light, I do not have time to entertain this insignificant request. Please limit your text to below {MAX_LEN} characters. You are currently at {len(text)} characters.', ephemeral=True)
 #     else:
@@ -180,11 +184,12 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
 #                 filename = f'{split_text[0]}_{split_text[1]}_{split_text[2]}_{split_text[3]}_{split_text[4]}.mp3'
 #             save(audio, filename)
 #             await interaction.followup.send(file=discord.File(filename))
-#             print(f'/speak: Sent .mp3 titled `{filename}`.\n\n')
+#             log.write(f'/speak_rhulk: Sent .mp3 titled `{filename}`.\n\n')
 #             os.remove(filename)
 #         except Exception as e:
-#             print(f'Error in /speak: \n{e}\n\n')
+#             log.write(f'Error in /speak_rhulk: \n{e}\n\n')
 #             await interaction.followup.send("My Witness, forgive me! (Something went wrong with that request)", ephemeral=True)
+#     log.close()
 
 # Slash command for showing remaining credits for text-to-speech
 @rBot.tree.command(name="credits", description="Shows the credits remaining for ElevenLabs")
@@ -237,6 +242,7 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
         
         rhulk_messages[interaction.guild.id].append({"role": "assistant", "content": completion.choices[0].message.content})
         await interaction.followup.send(f'{interaction.user.display_name} ***foolishly*** asked me: *"{prompt}"* \n\n{completion.choices[0].message.content}')
+        last_rhulk_interactions[interaction.guild.id] = datetime.now()
     except Exception as e:
         log.write(f'/chat_rhulk error: \n{e}\n\n')
         await interaction.followup.send("I... do not know what to say to that, little one. (Something went wrong)")
@@ -278,6 +284,7 @@ async def on_ready():
     for server in cBot.guilds:
         log.write(f'Setting up context memory for server: {server.id} ({server.name})\n')
         calus_messages[server.id] = [{"role": "system", "content": calusChatPrompt}]
+        last_calus_interactions[server.id] = datetime.now()
     log.write(f'{cBot.user} has connected to Discord!')
     try:
         synced = await cBot.tree.sync()
@@ -360,6 +367,7 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
         calus_messages[interaction.guild.id].append({"role": "assistant", "content": completion.choices[0].message.content})
         log.write(f'/chat_calus prompt and user: \n{prompt}. From {interaction.user.global_name}.\n\n/chat_calus output: \n{completion}\n\n')
         await interaction.followup.send(f'{interaction.user.display_name} has asked your generous Emperor of the Cabal: `{prompt}` \n\n{completion.choices[0].message.content}')
+        last_calus_interactions[interaction.guild.id] = datetime.now()
     except Exception as e:
         log.write(f'Error in /chat_calus: \n {e}\n\n')
         await interaction.follow.send("My Shadow... what has gotten into you? (Something went wrong)")
@@ -374,6 +382,29 @@ async def reset_rhulk(interaction: discord.Interaction):
     calus_messages[interaction.guild.id].append({"role": "system", "content": calusChatPrompt})
     log.write(f'{interaction.user.global_name} cleared Emperor Calus\'s memory.\n\n')
     await interaction.response.send_message(f'Ah {interaction.user.display_name}, you impress me. Come, let us enjoy ourselves!')
+    log.close()
+
+
+#? Memory Cleaning function
+#?
+#?
+@tasks.loop(minutes=30)
+async def cleanMemories():
+    log = open("log.txt", "a")
+    currentTime = datetime.now()
+    for server in rBot.guilds:
+        rhulk_diff = last_rhulk_interactions[server.id] - currentTime
+        if rhulk_diff.day > 0 or rhulk_diff.hour > 6:
+            log.write(f'No interaction for Rhulk in {server.name}, clearing the memory.\n\n')
+            rhulk_messages[server.id] = [{"role": "system", "content": rhulkChatPrompt}]
+            last_rhulk_interactions[server.id] = datetime.now()
+    for server in cBot.guilds:
+        calus_diff = last_calus_interactions[server.id] - currentTime
+        if calus_diff.day > 0 or calus_diff.hour > 6:
+            log.write(f'No interaction for Calus in {server.name}, clearing the memory.\n\n')
+            calus_messages[server.id] = [{"role": "system", "content": calusChatPrompt}]
+            last_calus_interactions[server.id] = datetime.now()
+    log.write(f'Checked memories for Rhulk in {len(rBot.guilds)} servers, and Calus in {len(cBot.guilds)} servers.\n\n')
     log.close()
 
 
