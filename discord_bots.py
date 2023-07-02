@@ -145,7 +145,7 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
 
 
 #! Eric, put your Rhulk /vc_speak command here. Basics already set for you, where I just copied over from the previous /speak command
-# @rBot.tree.command(name="vc_speak", description="Text=to-speech to have Rhulk read some text, and say it in the VC you are connected to!")
+# @rBot.tree.command(name="vc_speak_rhulk", description="Text=to-speech to have Rhulk read some text, and say it in the VC you are connected to!")
 # @app_commands.describe(text="What should Rhulk say?",
 #                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.2.",
 #                        clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.7")
@@ -191,7 +191,7 @@ async def credits(interaction: discord.Interaction):
 
 
 # Slash command to get text prompt for Rhulk
-@rBot.tree.command(name="rhulk_prompt", description="Show the prompt that is used to prime the /chat_rhulk command.")
+@rBot.tree.command(name="prompt_rhulk", description="Show the prompt that is used to prime the /chat_rhulk command.")
 async def rhulk_prompt(interaction: discord.Interaction):
     print(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness for his ChatGPT Prompt.\n\n')
     await interaction.response.send_message("Here is the prompt used. Feel free to use this to generate text for the /speak or /vc_speak command: \n\n {}".format(rhulkChatPrompt), ephemeral=True)
@@ -303,7 +303,7 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
 
 
 # Calus slash command to get text prompt
-@cBot.tree.command(name="calus_prompt", description="Show the prompt that is used to prime the /chat_calus command.")
+@cBot.tree.command(name="prompt_calus", description="Show the prompt that is used to prime the /chat_calus command.")
 async def calus_prompt(interaction: discord.Interaction):
     print(f'{interaction.user.global_name} asked Emperor Calus for his ChatGPT Prompt.\n\n')
     await interaction.response.send_message("Here is the prompt used for priming the Emperor Calus for /chat_calus: \n\n {}".format(calusChatPrompt), ephemeral=True)
