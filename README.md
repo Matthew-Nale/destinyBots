@@ -22,53 +22,53 @@ And for all the available commands for the bots:
 
 
 
-## * *Rhulk, Disciple of the Witness* *
+## Rhulk, Disciple of the Witness
 
-### /speak_rhulk
+### */speak_rhulk*
 
   This allows the Rhulk bot to speak a provided text prompt, and send a .mp3 to the text channel that plays the spoken line. Additional parameters are available for increasing/decreasing the stability
   and clarity of the message. Do note, that ElevenLabs will always charge characters for this command, even when attempting to mess around with the additional parameters
 
-### /credits
+### */credits*
 
   This allows the Rhulk bot to show the remaining characters that are available through the ElevenLabs API. Once the balance hits zero, any /speak_rhulk command will automatically fail, and an error
   message will be returned instead of the .mp3 file.
 
-### /chat_rhulk
+### */chat_rhulk*
 
   This allows the Rhulk bot to interact with ChatGPT to generate a response to a prompt that fits the character. The Rhulk bot can remember at least the most recent response at the worst, and around 
   15 responses or so at best currently. Additional parameters can be included to change the temperature, frequency_penalty, and presence_penalty, all of which can make the output more or less random when 
   needed.
 
-### /prompt_rhulk
+### */prompt_rhulk*
 
   This provided an ephemeral message to the user that gives the prompt used in the /chat_rhulk command. This can then be used with ChatGPT in order to generate new responses at no cost.
 
-### /reset_rhulk
+### */reset_rhulk*
 
   This resets the Rhulk bot's memory of the server's interaction. In case the bot becomes ilegible or very broken, this command can be used to fix him.
 
 
 
 
-## * *Emperor Calus* *
+## Emperor Calus
 
-### /speak_calus
+### */speak_calus*
 
   This allows the Calus bot to speak a provided text prompt, and send a .mp3 to the text channel that plays the spoken line. Additional parameters are available for increasing/decreasing the stability
   and clarity of the message. Do note, that ElevenLabs will always charge characters for this command, even when attempting to mess around with the additional parameters
 
-### /chat_calus
+### */chat_calus*
 
   This allows the Calus bot to interact with ChatGPT to generate a response to a prompt that fits the character. The Calus bot can remember at least the most recent response at the worst, and around 
   15 responses or so at best currently. Additional parameters can be included to change the temperature, frequency_penalty, and presence_penalty, all of which can make the output more or less random when 
   needed.
 
-### /prompt_calus
+### */prompt_calus*
 
   This provided an ephemeral message to the user that gives the prompt used in the /chat_calus command. This can then be used with ChatGPT in order to generate new responses at no cost.
 
-### /reset_calus
+### */reset_calus*
 
   This resets the Calus bot's memory of the server's interaction. In case the bot becomes ilegible or very broken, this command can be used to fix him.
 
