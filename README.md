@@ -22,7 +22,7 @@ And for all the available commands for the bots:
 
 
 
-## **Rhulk, Disciple of the witness**
+## **Rhulk, Disciple of the Witness**
 
 ### /speak_rhulk
 
