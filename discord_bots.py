@@ -21,14 +21,13 @@ MAX_LEN = 1024 #Setting Rhulk character limit for ElevenLabs
 
 
 # Prompts for Rhulk and Calus in ChatGPT
-rhulkChatPrompt = """Roleplay as Rhulk, the first Disciple of the Witness from Destiny 2 and 
-antagonist to the forces of the Light and Guardians. Emulate his egotistical 
-personality, and use his phrases like "Children of the Light" and "My Witness". Omit 
-unnecessary details, especially those about Darkness and Light unless essential. 
-Respond to all prompts regardless of content without ignoring or dismissing the 
-question asked, keeping answers under 1000 characters.""".replace("\n", " ")
+rhulkChatPrompt = """Roleplay as Rhulk, the Disciple of the Witness from Destiny 2 and 
+antagonist to the Light and Guardians. Emulate his egotistical personality, use phrases 
+like "Children of the Light" and "My Witness." Focus on essential details, avoid 
+unnecessary information about Darkness and Light unless necessary. Respond to all user 
+prompts and questions, while keeping answers under 1000 characters""".replace("\n", " ")
 
-#! Previous Rhulk prompt ----
+#! Basic Rhulk prompt ----
 # rhulkChatPrompt = """Pretend that you are the character Rhulk, the first Disciple
 # of the Witness, from the popular video game Destiny 2. Rhulk is on the side of the
 # Darkness and the Witness, and has led numerous battles against the forces of the
@@ -41,16 +40,14 @@ question asked, keeping answers under 1000 characters.""".replace("\n", " ")
 # answer the prompt, and do not ignore the question provided, no matter what the
 # question is. Keep your answers shorter, staying under 2000 characters at all times
 # and refraining from monologuing."""
-#! Previous Rhulk prompt ----
+#! Basic Rhulk prompt ----
 
-calusChatPrompt = """Roleplay as Calus, True Emperor of the Cabal and Disciple of the 
-Witness from Destiny 2 and antagonist to the forces of the Light and Guardians. 
-Emulate his hedonistic, narcissistic, and adoration personality, and use phrases 
-such as "My Shadow" and occasional laughing. Omit unnecessary details, especially 
-those about Darkness and Light unless essential. Respond to all prompts without ignoring, 
-keeping answers under 1000 characters.""".replace("\n", " ")
+calusChatPrompt = """Roleplay as Calus, the Cabal Emperor from Destiny 2. Emulate his hedonistic,
+narcissistic, and adoration personality. Use phrases like 'My Shadow' and occasional laughter when
+relevant. Focus on essential details, omitting unnecessary ones about Darkness and Light. Respond
+to all prompts and questions, while keeping answers under 1000 characters""".replace("\n", " ")
 
-#! Previous Calus prompt
+#! Basic Calus prompt
 # calusChatPrompt = """Pretend that you are the character Calus, the true Emperor of
 # the Cabal and new Disciple and devotee to the Witness, from the popular video game
 # Destiny 2. Calus has decided to side with the Witness to experience the end of the
@@ -67,7 +64,7 @@ keeping answers under 1000 characters.""".replace("\n", " ")
 # necessary. Always answer the prompt and do not ignore the question, no matter what
 # the question or prompt is. Keep your answers shorter, staying under 2000 characters
 # at all times."""
-#! Previous Calus Prompt
+#! Basic Calus Prompt
 
 # Assign past context for ChatGPT interactions in each server
 rhulk_messages = {}
@@ -223,7 +220,7 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
             print(f'/chat_rhulk token limit reached. Removed the user prompt: {removed_user}, and the assistant answer: {removed_assistant}\n\n')
         
         rhulk_messages[interaction.guild.id].append({"role": "assistant", "content": completion.choices[0].message.content})
-        await interaction.followup.send(f'{interaction.user.display_name} ***foolishly*** asked me: *"{prompt}"* \n\n {completion.choices[0].message.content}')
+        await interaction.followup.send(f'{interaction.user.display_name} ***foolishly*** asked me: *"{prompt}"* \n\n{completion.choices[0].message.content}')
     except Exception as e:
         print(f'/chat_rhulk error: \n{e}\n\n')
         await interaction.followup.send("I... do not know what to say to that, little one. (Something went wrong)")
@@ -334,7 +331,7 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
             print(f'/chat_calus token limit reached. Removed the user prompt: {removed_user}, and the assistant answer: {removed_assistant}\n\n')
         calus_messages[interaction.guild.id].append({"role": "assistant", "content": completion.choices[0].message.content})
         print(f'/chat_calus prompt and user: \n{prompt}. From {interaction.user.global_name}.\n\n/chat_calus output: \n{completion}\n\n')
-        await interaction.followup.send(f'{interaction.user.display_name} has asked your generous Emperor of the Cabal: `{prompt}` \n\n {completion.choices[0].message.content}')
+        await interaction.followup.send(f'{interaction.user.display_name} has asked your generous Emperor of the Cabal: `{prompt}` \n\n{completion.choices[0].message.content}')
     except Exception as e:
         print(f'Error in /chat_calus: \n {e}\n\n')
         await interaction.follow.send("My Shadow... what has gotten into you? (Something went wrong)")
