@@ -318,8 +318,8 @@ async def on_ready():
 # Slash command for text-to-speech for Calus
 @cBot.tree.command(name="speak_calus", description="Text=to-speech to have Calus read some text!")
 @app_commands.describe(text="What should Calus say?",
-                       stability="How stable should Calus sound? Range is 0:1.0, default 0.5",
-                       clarity="How similar to the in-game voice should it be? Range is 0:1.0, default 0.5")
+                       stability="How stable should Calus sound? Range is 0:1.0, default 0.2",
+                       clarity="How similar to the in-game voice should it be? Range is 0:1.0, default 0.8")
 async def speak(interaction: discord.Interaction, text: str, stability: float=0.5, clarity: float=0.5):
     log = open("log.txt", "a")
     log.write(f'{interaction.user.global_name} asked Emperor Calus to say: `{text}`\n\n')
