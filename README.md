@@ -29,7 +29,7 @@ And for all the available commands for the bots:
   This allows the Rhulk bot to speak a provided text prompt, and send a .mp3 to the text channel that plays the spoken line. Additional parameters are available for increasing/decreasing the stability
   and clarity of the message. Do note, that ElevenLabs will always charge characters for this command, even when attempting to mess around with the additional parameters
 
-### */credits*
+### */credits_rhulk*
 
   This allows the Rhulk bot to show the remaining characters that are available through the ElevenLabs API. Once the balance hits zero, any /speak_rhulk command will automatically fail, and an error
   message will be returned instead of the .mp3 file.
@@ -57,6 +57,11 @@ And for all the available commands for the bots:
 
   This allows the Calus bot to speak a provided text prompt, and send a .mp3 to the text channel that plays the spoken line. Additional parameters are available for increasing/decreasing the stability
   and clarity of the message. Do note, that ElevenLabs will always charge characters for this command, even when attempting to mess around with the additional parameters
+
+### */credits_calus*
+
+  This allows the Calus bot to show the remaining characters that are available through the ElevenLabs API. Once the balance hits zero, any /speak_calus command will automatically fail, and an error
+  message will be returned instead of the .mp3 file.
 
 ### */chat_calus*
 
