@@ -203,9 +203,10 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
 
 
 # Slash command for showing remaining credits for text-to-speech
-@rBot.tree.command(name="credits_rhulk", description="Shows the credits remaining for ElevenLabs")
+@rBot.tree.command(name="credits_rhulk", description="Shows the credits remaining for ElevenLabs for Rhulk, Disciple of the Witness")
 async def credits_rhulk(interaction: discord.Interaction):
     log = open("log.txt", "a")
+    elevenlabs.set_api_key(RHULK_VOICE_KEY)
     user = User.from_api().subscription
     char_remaining = user.character_limit - user.character_count
     log.write(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness for his /speak credits remaining.\n\n')
