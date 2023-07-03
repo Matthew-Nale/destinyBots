@@ -18,15 +18,15 @@ CALUS_TOKEN = os.getenv('DISCORD_TOKEN_CALUS')
 GPT_KEY = os.getenv('CHATGPT_TOKEN')
 VOICE_KEY = os.getenv('ELEVEN_TOKEN')
 
-MAX_LEN = 1024 #Setting Rhulk character limit for ElevenLabs
-
+MAX_LEN = 1024 # Setting character limit for ElevenLabs
+MAX_TOKENS = 128 # Setting token limit for ChatGPT responses
 
 # Prompts for Rhulk and Calus in ChatGPT
 rhulkChatPrompt = """Roleplay as Rhulk, the Disciple of the Witness from Destiny 2 and 
-antagonist to the Light and Guardians. Emulate his egotistical personality, use phrases 
+antagonist to the Light and Guardians. Emulate his personality, use phrases 
 like "Children of the Light" and "My Witness." Focus on essential details, avoid 
-unnecessary information about Darkness and Light unless necessary. Respond to all user 
-prompts and questions, while keeping answers under 1000 characters""".replace("\n", " ")
+unnecessary information about Darkness and Light unless essential. Respond to all user 
+prompts and questions, while keeping responses under 750 characters""".replace("\n", " ")
 
 #! Basic Rhulk prompt ----
 # rhulkChatPrompt = """Pretend that you are the character Rhulk, the first Disciple
@@ -87,28 +87,34 @@ log.close()
 #? Rhulk Bot Commands
 #?
 #?
-# Send message to "general" on join
+
+async def rhulkInit():
+    log = open("log.txt", "a")
+    for server in rBot.guilds:
+        log.write(f'Setting up Rhulk context memory for server: {server.id} ({server.name})\n\n')
+        rhulk_messages[server.id] = [{"role": "system", "content": rhulkChatPrompt}]
+        last_rhulk_interactions[server.id] = datetime.now()
+    log.close()
+
+
+# Setup initial things on server join
 @rBot.event
 async def on_guild_join(guild):
+    log = open("log.txt", "a")
     general = discord.utils.find(lambda x: x.name == 'general', guild.text_channels)
     if general and general.permissions_for(guild.me).send_messages:
-        log = open("log.txt", "a")
-        log.write(f'Rhulk sent an entrance message to {guild.name}\n\n')
-        log.close()
         await general.send("It is good to see you again, Children of the Light. I did not expect to find you in {}.".format(guild.name))
+    await rhulkInit()
+    log.write(f'Rhulk joined a new server: {guild.name}\n\n')
+    log.close()
 
 
 # Calibration for starting of Rhulk bot
 @rBot.event
 async def on_ready():
+    log = open("log.txt", "a")
     openai.api_key = GPT_KEY
     elevenlabs.set_api_key(VOICE_KEY)
-    log = open("log.txt", "a")
-    # Setup new memory context for all servers bot is in
-    for server in rBot.guilds:
-        log.write(f'Setting up context memory for server: {server.id} ({server.name})\n')
-        rhulk_messages[server.id] = [{"role": "system", "content": rhulkChatPrompt}]
-        last_rhulk_interactions[server.id] = datetime.now()
     log.write(f'{rBot.user} has connected to Discord!\n\n')
     try:
         synced = await rBot.tree.sync()
@@ -116,6 +122,7 @@ async def on_ready():
     except Exception as e:
         log.write(f'Rhulk, Disciple of the Witness on_ready error: \n{e}\n\n')
     log.close()
+    await rhulkInit()
     cleanMemoriesRhulk.start()
 
 
@@ -230,7 +237,7 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
             model="gpt-3.5-turbo-16k",
             messages=rhulk_messages[interaction.guild.id],
             n=1,
-            max_tokens=256,
+            max_tokens=MAX_TOKENS,
             temperature=temperature,
             frequency_penalty=frequency_penalty,
             presence_penalty=presence_penalty
@@ -266,14 +273,25 @@ async def reset_rhulk(interaction: discord.Interaction):
 #? Calus Bot Commands
 #?
 #?
+
+async def calusInit():
+    log = open("log.txt", "a")
+    for server in cBot.guilds:
+        log.write(f'Setting up Calus context memory for server: {server.id} ({server.name})\n\n')
+        calus_messages[server.id] = [{"role": "system", "content": calusChatPrompt}]
+        last_calus_interactions[server.id] = datetime.now()
+    log.close()
+
+
 # Send message to "general" on join
 @cBot.event
 async def on_guild_join(guild):
     log = open("log.txt", "a")
     general = discord.utils.find(lambda x: x.name == 'general', guild.text_channels)
     if general and general.permissions_for(guild.me).send_messages:
-        log.write(f'Sending entrance message to {guild.name}.\n\n')
         await general.send("Ah. Finally found you. You busy little Lights.")
+    await calusInit()
+    log.write(f'Calus joined a new server: {guild.name}.\n\n')
     log.close()
 
 
@@ -282,10 +300,6 @@ async def on_guild_join(guild):
 async def on_ready():
     log = open("log.txt", "a")
     openai.api_key = GPT_KEY
-    for server in cBot.guilds:
-        log.write(f'Setting up context memory for server: {server.id} ({server.name})\n')
-        calus_messages[server.id] = [{"role": "system", "content": calusChatPrompt}]
-        last_calus_interactions[server.id] = datetime.now()
     log.write(f'{cBot.user} has connected to Discord!\n\n')
     try:
         synced = await cBot.tree.sync()
@@ -293,6 +307,7 @@ async def on_ready():
     except Exception as e:
         log.write(f'Emperor Calus on_ready error: \n{e}\n\n')
     log.close()
+    await calusInit()
     cleanMemoriesCalus.start()
 
 
@@ -357,7 +372,7 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
             model="gpt-3.5-turbo-16k",
             messages=calus_messages[interaction.guild.id],
             n=1,
-            max_tokens=256,
+            max_tokens=MAX_TOKENS,
             temperature=temperature,
             frequency_penalty=frequency_penalty,
             presence_penalty=presence_penalty
@@ -415,6 +430,7 @@ async def cleanMemoriesCalus():
             last_calus_interactions[server.id] = datetime.now()
     log.write(f'Checked memories for Calus in {len(cBot.guilds)} servers.\n\n')
     log.close()
+
 
 #? Running bots
 #?
