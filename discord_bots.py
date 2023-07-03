@@ -16,7 +16,8 @@ load_dotenv()
 RHULK_TOKEN = os.getenv('DISCORD_TOKEN_RHULK')
 CALUS_TOKEN = os.getenv('DISCORD_TOKEN_CALUS')
 GPT_KEY = os.getenv('CHATGPT_TOKEN')
-VOICE_KEY = os.getenv('ELEVEN_TOKEN')
+RHULK_VOICE_KEY = os.getenv('ELEVEN_TOKEN_RHULK')
+CALUS_VOICE_KEY = os.getenv('ELEVEN_TOKEN_CALUS')
 
 MAX_LEN = 1024 # Setting character limit for ElevenLabs
 MAX_TOKENS = 128 # Setting token limit for ChatGPT responses
@@ -114,7 +115,6 @@ async def on_guild_join(guild):
 async def on_ready():
     log = open("log.txt", "a")
     openai.api_key = GPT_KEY
-    elevenlabs.set_api_key(VOICE_KEY)
     log.write(f'{rBot.user} has connected to Discord!\n\n')
     try:
         synced = await rBot.tree.sync()
@@ -139,6 +139,7 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
     else:
         await interaction.response.defer()
         try:
+            elevenlabs.set_api_key(RHULK_VOICE_KEY)
             rhulk_voice = voices()[-1]
             rhulk_voice.settings.stability = stability
             rhulk_voice.settings.similarity_boost = clarity
@@ -176,6 +177,7 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
 #     else:
 #         await interaction.response.defer()
 #         try:
+#             elevenlabs.set_api_key(RHULK_VOICE_KEY)
 #             rhulk_voice = voices()[-1]
 #             rhulk_voice.settings.stability = stability
 #             rhulk_voice.settings.similarity_boost = clarity
@@ -199,9 +201,10 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
 #             await interaction.followup.send("My Witness, forgive me! (Something went wrong with that request)", ephemeral=True)
 #     log.close()
 
+
 # Slash command for showing remaining credits for text-to-speech
-@rBot.tree.command(name="credits", description="Shows the credits remaining for ElevenLabs")
-async def credits(interaction: discord.Interaction):
+@rBot.tree.command(name="credits_rhulk", description="Shows the credits remaining for ElevenLabs")
+async def credits_rhulk(interaction: discord.Interaction):
     log = open("log.txt", "a")
     user = User.from_api().subscription
     char_remaining = user.character_limit - user.character_count
@@ -314,9 +317,9 @@ async def on_ready():
 # Slash command for text-to-speech for Calus
 @cBot.tree.command(name="speak_calus", description="Text=to-speech to have Calus read some text!")
 @app_commands.describe(text="What should Calus say?",
-                       stability="How stable should Calus sound? Range is 0:1.0, default 0.2",
-                       clarity="How similar to the in-game voice should it be? Range is 0:1.0, default 0.55")
-async def speak(interaction: discord.Interaction, text: str, stability: float=0.2, clarity: float=0.55):
+                       stability="How stable should Calus sound? Range is 0:1.0, default 0.45",
+                       clarity="How similar to the in-game voice should it be? Range is 0:1.0, default 0.7")
+async def speak(interaction: discord.Interaction, text: str, stability: float=0.45, clarity: float=0.7):
     log = open("log.txt", "a")
     log.write(f'{interaction.user.global_name} asked Emperor Calus to say: `{text}`\n\n')
     if len(text) > MAX_LEN:
@@ -324,7 +327,8 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
     else:
         await interaction.response.defer()
         try:
-            calus_voice = voices()[-2]
+            elevenlabs.set_api_key(CALUS_VOICE_KEY)
+            calus_voice = voices()[-1]
             calus_voice.settings.stability = stability
             calus_voice.settings.similarity_boost = clarity
             audio = generate(
@@ -345,6 +349,21 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
         except Exception as e:
             log.write(f'Error in /speak_calus: \n{e}\n\n')
             await interaction.followup.send("Arghhh, Cemaili! (Something went wrong with that request)", ephemeral=True)
+    log.close()
+
+
+# Slash command for showing remaining credits for text-to-speech for Calus
+@cBot.tree.command(name="credits_calus", description="Shows the credits remaining for ElevenLabs for Emperor Calus")
+async def credits_calus(interaction: discord.Interaction):
+    log = open("log.txt", "a")
+    elevenlabs.set_api_key(CALUS_VOICE_KEY)
+    user = User.from_api().subscription
+    char_remaining = user.character_limit - user.character_count
+    log.write(f'{interaction.user.global_name} asked Emperor Calus for his /speak credits remaining.\n\n')
+    if char_remaining:
+        await interaction.response.send_message(f'I will still speak {user.character_limit - user.character_count} characters. Use them wisely.', ephemeral=True)
+    else:
+        await interaction.response.send_message('When the end comes, I reserve the right to be the last. (Reached character quota for this month)')
     log.close()
 
 
