@@ -89,6 +89,7 @@ log.close()
 #?
 #?
 
+# Function for Rhulk Initialization
 async def rhulkInit():
     log = open("log.txt", "a")
     for server in rBot.guilds:
@@ -127,7 +128,7 @@ async def on_ready():
 
 
 # Slash command for text-to-speech for Rhulk
-@rBot.tree.command(name="speak_rhulk", description="Text=to-speech to have Rhulk read some text!")
+@rBot.tree.command(name="speak_rhulk", description="Text-to-speech to have Rhulk speak some text!")
 @app_commands.describe(text="What should Rhulk say?",
                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.2.",
                        clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.7")
@@ -164,42 +165,51 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
     log.close()
 
 
-#! Eric, put your Rhulk /vc_speak command here. Basics already set for you, where I just copied over from the previous /speak command
-# @rBot.tree.command(name="vc_speak_rhulk", description="Text=to-speech to have Rhulk read some text, and say it in the VC you are connected to!")
-# @app_commands.describe(text="What should Rhulk say?",
-#                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.2.",
-#                        clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.7")
-# async def vc_speak(interaction: discord.Interaction, text: str, stability: float=0.2, clarity: float=0.7):
-#     log = open("log.txt", "a")
-#     log.write(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness to say: `{text}`\n\n')
-#     if len(text) > MAX_LEN:
-#         await interaction.response.send_message(f'Child of the Light, I do not have time to entertain this insignificant request. Please limit your text to below {MAX_LEN} characters. You are currently at {len(text)} characters.', ephemeral=True)
-#     else:
-#         await interaction.response.defer()
-#         try:
-#             elevenlabs.set_api_key(RHULK_VOICE_KEY)
-#             rhulk_voice = voices()[-1]
-#             rhulk_voice.settings.stability = stability
-#             rhulk_voice.settings.similarity_boost = clarity
-#             audio = generate(
-#                 text=text,
-#                 voice=rhulk_voice,
-#                 model="eleven_monolingual_v1"
-#             )
-#             filename = f'{text.split()[0]}.mp3'
-#             split_text = text.split()
-#             if len(split_text) < 5:
-#                 filename = f'{split_text[0]}.mp3'
-#             else:
-#                 filename = f'{split_text[0]}_{split_text[1]}_{split_text[2]}_{split_text[3]}_{split_text[4]}.mp3'
-#             save(audio, filename)
-#             await interaction.followup.send(file=discord.File(filename))
-#             log.write(f'/speak_rhulk: Sent .mp3 titled `{filename}`.\n\n')
-#             os.remove(filename)
-#         except Exception as e:
-#             log.write(f'Error in /speak_rhulk: \n{e}\n\n')
-#             await interaction.followup.send("My Witness, forgive me! (Something went wrong with that request)", ephemeral=True)
-#     log.close()
+# Slash command for Rhulk VC text-to-speech
+@rBot.tree.command(name="vc_speak_rhulk", description="Text-to-speech to have Rhulk speak some text, and say it in the VC you are connected to!")
+@app_commands.describe(text="What should Rhulk say in the VC?",
+                       stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.2.",
+                       clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.7")
+async def vc_speak_rhulk(interaction: discord.Interaction, text: str, stability: float=0.2, clarity: float=0.7):
+    log = open("log.txt", "a")
+    log.write(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness to say in the VC: `{text}`\n\n')
+    if len(text) > MAX_LEN:
+        await interaction.response.send_message(f'Child of the Light, I do not have time to entertain this insignificant request. Please limit your text to below {MAX_LEN} characters. You are currently at {len(text)} characters.', ephemeral=True)
+    else:
+        await interaction.response.defer()
+        if interaction.user.voice is None:
+            await interaction.followup.send(f'{interaction.user.display_name}, do not waste my time if you are not here. (Must be in a VC)', ephemeral=True)
+        try:
+            elevenlabs.set_api_key(RHULK_VOICE_KEY)
+            rhulk_voice = voices()[-1]
+            rhulk_voice.settings.stability = stability
+            rhulk_voice.settings.similarity_boost = clarity
+            audio = generate(
+                text=text,
+                voice=rhulk_voice,
+                model="eleven_monolingual_v1"
+            )
+            filename = f'{text.split()[0]}.mp3'
+            split_text = text.split()
+            if len(split_text) < 5:
+                filename = f'{split_text[0]}.mp3'
+            else:
+                filename = f'{split_text[0]}_{split_text[1]}_{split_text[2]}_{split_text[3]}_{split_text[4]}.mp3'
+            save(audio, filename)
+            channel = interaction.user.voice.channel
+            vc = await channel.connect()
+            vc.play(discord.FFmpegPCMAudio(executable="F:/ffmpeg-2023-07-02-git-50f34172e0-full_build/bin/ffmpeg.exe", source=filename))
+            while vc.is_playing():
+                await asyncio.sleep(1)
+            vc.stop()
+            await vc.disconnect()
+            await interaction.followup.send(file=discord.File(filename))
+            log.write(f'/vc_speak_rhulk: Sent .mp3 titled `{filename}`.\n\n')
+            os.remove(filename)
+        except Exception as e:
+            log.write(f'Error in /vc_speak_rhulk: \n{e}\n\n')
+            await interaction.followup.send("My Witness, forgive me! (Something went wrong with that request)", ephemeral=True)
+    log.close()
 
 
 # Slash command for showing remaining credits for text-to-speech
@@ -278,6 +288,8 @@ async def reset_rhulk(interaction: discord.Interaction):
 #?
 #?
 
+
+# Function for Calus Initialization
 async def calusInit():
     log = open("log.txt", "a")
     for server in cBot.guilds:
@@ -316,11 +328,11 @@ async def on_ready():
 
 
 # Slash command for text-to-speech for Calus
-@cBot.tree.command(name="speak_calus", description="Text=to-speech to have Calus read some text!")
+@cBot.tree.command(name="speak_calus", description="Text-to-speech to have Calus speak some text!")
 @app_commands.describe(text="What should Calus say?",
-                       stability="How stable should Calus sound? Range is 0:1.0, default 0.2",
-                       clarity="How similar to the in-game voice should it be? Range is 0:1.0, default 0.8")
-async def speak(interaction: discord.Interaction, text: str, stability: float=0.5, clarity: float=0.5):
+                       stability="How stable should Calus sound? Range is 0:1.0, default 0.4",
+                       clarity="How similar to the in-game voice should it be? Range is 0:1.0, default 0.85")
+async def speak(interaction: discord.Interaction, text: str, stability: float=0.4, clarity: float=0.85):
     log = open("log.txt", "a")
     log.write(f'{interaction.user.global_name} asked Emperor Calus to say: `{text}`\n\n')
     if len(text) > MAX_LEN:
@@ -349,6 +361,53 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
             os.remove(filename)
         except Exception as e:
             log.write(f'Error in /speak_calus: \n{e}\n\n')
+            await interaction.followup.send("Arghhh, Cemaili! (Something went wrong with that request)", ephemeral=True)
+    log.close()
+    
+
+# Slash command for Calus VC text-to-speech
+@cBot.tree.command(name="vc_speak_calus", description="Text-to-speech to have Calus speak some text, and say it in the VC you are connected to!")
+@app_commands.describe(text="What should Calus say in the VC?",
+                       stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.4.",
+                       clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.85")
+async def vc_speak_calus(interaction: discord.Interaction, text: str, stability: float=0.4, clarity: float=0.85):
+    log = open("log.txt", "a")
+    log.write(f'{interaction.user.global_name} asked Emperor Calus to say in the VC: `{text}`\n\n')
+    if len(text) > MAX_LEN:
+        await interaction.response.send_message(f'My Shadow, we do not have time before the end of all things to do this. Please limit your text to below {MAX_LEN} characters. You are currently at {len(text)} characters.', ephemeral=True)
+    else:
+        await interaction.response.defer()
+        if interaction.user.voice is None:
+            await interaction.followup.send(f'{interaction.user.display_name}, let us relax in the Pleasure Gardens instead. (Must be in a VC)', ephemeral=True)
+        try:
+            elevenlabs.set_api_key(CALUS_VOICE_KEY)
+            calus_voice = voices()[-1]
+            calus_voice.settings.stability = stability
+            calus_voice.settings.similarity_boost = clarity
+            audio = generate(
+                text=text,
+                voice=calus_voice,
+                model="eleven_monolingual_v1"
+            )
+            filename = f'{text.split()[0]}.mp3'
+            split_text = text.split()
+            if len(split_text) < 5:
+                filename = f'{split_text[0]}.mp3'
+            else:
+                filename = f'{split_text[0]}_{split_text[1]}_{split_text[2]}_{split_text[3]}_{split_text[4]}.mp3'
+            save(audio, filename)
+            channel = interaction.user.voice.channel
+            vc = await channel.connect()
+            vc.play(discord.FFmpegPCMAudio(executable="F:/ffmpeg-2023-07-02-git-50f34172e0-full_build/bin/ffmpeg.exe", source=filename))
+            while vc.is_playing():
+                await asyncio.sleep(1)
+            vc.stop()
+            await vc.disconnect()
+            await interaction.followup.send(file=discord.File(filename))
+            log.write(f'/vc_speak_calus: Sent .mp3 titled `{filename}`.\n\n')
+            os.remove(filename)
+        except Exception as e:
+            log.write(f'Error in /vc_speak_rhulk: \n{e}\n\n')
             await interaction.followup.send("Arghhh, Cemaili! (Something went wrong with that request)", ephemeral=True)
     log.close()
 
