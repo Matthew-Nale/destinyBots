@@ -176,39 +176,42 @@ async def vc_speak_rhulk(interaction: discord.Interaction, text: str, stability:
     if len(text) > MAX_LEN:
         await interaction.response.send_message(f'Child of the Light, I do not have time to entertain this insignificant request. Please limit your text to below {MAX_LEN} characters. You are currently at {len(text)} characters.', ephemeral=True)
     else:
-        await interaction.response.defer()
         if interaction.user.voice is None:
-            await interaction.followup.send(f'{interaction.user.display_name}, do not waste my time if you are not here. (Must be in a VC)', ephemeral=True)
-        try:
-            elevenlabs.set_api_key(RHULK_VOICE_KEY)
-            rhulk_voice = voices()[-1]
-            rhulk_voice.settings.stability = stability
-            rhulk_voice.settings.similarity_boost = clarity
-            audio = generate(
-                text=text,
-                voice=rhulk_voice,
-                model="eleven_monolingual_v1"
-            )
-            filename = f'{text.split()[0]}.mp3'
-            split_text = text.split()
-            if len(split_text) < 5:
-                filename = f'{split_text[0]}.mp3'
-            else:
-                filename = f'{split_text[0]}_{split_text[1]}_{split_text[2]}_{split_text[3]}_{split_text[4]}.mp3'
-            save(audio, filename)
-            channel = interaction.user.voice.channel
-            vc = await channel.connect()
-            vc.play(discord.FFmpegPCMAudio(executable="F:/ffmpeg-2023-07-02-git-50f34172e0-full_build/bin/ffmpeg.exe", source=filename))
-            while vc.is_playing():
-                await asyncio.sleep(1)
-            vc.stop()
-            await vc.disconnect()
-            await interaction.followup.send(file=discord.File(filename))
-            log.write(f'/vc_speak_rhulk: Sent .mp3 titled `{filename}`.\n\n')
-            os.remove(filename)
-        except Exception as e:
-            log.write(f'Error in /vc_speak_rhulk: \n{e}\n\n')
-            await interaction.followup.send("My Witness, forgive me! (Something went wrong with that request)", ephemeral=True)
+            log.write(f'{interaction.user.global_name} was not in the VC, could not send message.\n\n')
+            await interaction.response.send_message(f'{interaction.user.display_name}, do not waste my time if you are not here. (Must be in a VC)', ephemeral=True)
+        else:
+            await interaction.response.defer()
+            try:
+                elevenlabs.set_api_key(RHULK_VOICE_KEY)
+                rhulk_voice = voices()[-1]
+                rhulk_voice.settings.stability = stability
+                rhulk_voice.settings.similarity_boost = clarity
+                audio = generate(
+                    text=text,
+                    voice=rhulk_voice,
+                    model="eleven_monolingual_v1"
+                )
+                filename = f'{text.split()[0]}.mp3'
+                split_text = text.split()
+                if len(split_text) < 5:
+                    filename = f'{split_text[0]}.mp3'
+                else:
+                    filename = f'{split_text[0]}_{split_text[1]}_{split_text[2]}_{split_text[3]}_{split_text[4]}.mp3'
+                save(audio, filename)
+                channel = interaction.user.voice.channel
+                vc = await channel.connect()
+                vc.play(discord.FFmpegPCMAudio(source=filename))
+                while vc.is_playing():
+                    await asyncio.sleep(1)
+                vc.stop()
+                await vc.disconnect()
+                await interaction.followup.send(file=discord.File(filename))
+                log.write(f'/vc_speak_rhulk: Sent .mp3 titled `{filename}`.\n\n')
+                os.remove(filename)
+            except Exception as e:
+                log.write(f'Error in /vc_speak_rhulk: \n{e}\n\n')
+                await vc.disconnect()
+                await interaction.followup.send("My Witness, forgive me! (Something went wrong with that request)", ephemeral=True)
     log.close()
 
 
@@ -376,39 +379,42 @@ async def vc_speak_calus(interaction: discord.Interaction, text: str, stability:
     if len(text) > MAX_LEN:
         await interaction.response.send_message(f'My Shadow, we do not have time before the end of all things to do this. Please limit your text to below {MAX_LEN} characters. You are currently at {len(text)} characters.', ephemeral=True)
     else:
-        await interaction.response.defer()
         if interaction.user.voice is None:
-            await interaction.followup.send(f'{interaction.user.display_name}, let us relax in the Pleasure Gardens instead. (Must be in a VC)', ephemeral=True)
-        try:
-            elevenlabs.set_api_key(CALUS_VOICE_KEY)
-            calus_voice = voices()[-1]
-            calus_voice.settings.stability = stability
-            calus_voice.settings.similarity_boost = clarity
-            audio = generate(
-                text=text,
-                voice=calus_voice,
-                model="eleven_monolingual_v1"
-            )
-            filename = f'{text.split()[0]}.mp3'
-            split_text = text.split()
-            if len(split_text) < 5:
-                filename = f'{split_text[0]}.mp3'
-            else:
-                filename = f'{split_text[0]}_{split_text[1]}_{split_text[2]}_{split_text[3]}_{split_text[4]}.mp3'
-            save(audio, filename)
-            channel = interaction.user.voice.channel
-            vc = await channel.connect()
-            vc.play(discord.FFmpegPCMAudio(executable="F:/ffmpeg-2023-07-02-git-50f34172e0-full_build/bin/ffmpeg.exe", source=filename))
-            while vc.is_playing():
-                await asyncio.sleep(1)
-            vc.stop()
-            await vc.disconnect()
-            await interaction.followup.send(file=discord.File(filename))
-            log.write(f'/vc_speak_calus: Sent .mp3 titled `{filename}`.\n\n')
-            os.remove(filename)
-        except Exception as e:
-            log.write(f'Error in /vc_speak_rhulk: \n{e}\n\n')
-            await interaction.followup.send("Arghhh, Cemaili! (Something went wrong with that request)", ephemeral=True)
+            log.write(f'{interaction.user.global_name} was not in the VC, could not send message.\n\n')
+            await interaction.response.send_message(f'{interaction.user.display_name}, let us relax in the Pleasure Gardens instead. (Must be in a VC)', ephemeral=True)
+        else:
+            await interaction.response.defer()
+            try:
+                elevenlabs.set_api_key(CALUS_VOICE_KEY)
+                calus_voice = voices()[-1]
+                calus_voice.settings.stability = stability
+                calus_voice.settings.similarity_boost = clarity
+                audio = generate(
+                    text=text,
+                    voice=calus_voice,
+                    model="eleven_monolingual_v1"
+                )
+                filename = f'{text.split()[0]}.mp3'
+                split_text = text.split()
+                if len(split_text) < 5:
+                    filename = f'{split_text[0]}.mp3'
+                else:
+                    filename = f'{split_text[0]}_{split_text[1]}_{split_text[2]}_{split_text[3]}_{split_text[4]}.mp3'
+                save(audio, filename)
+                channel = interaction.user.voice.channel
+                vc = await channel.connect()
+                vc.play(discord.FFmpegPCMAudio(source=filename))
+                while vc.is_playing():
+                    await asyncio.sleep(1)
+                vc.stop()
+                await vc.disconnect()
+                await interaction.followup.send(file=discord.File(filename))
+                log.write(f'/vc_speak_calus: Sent .mp3 titled `{filename}`.\n\n')
+                os.remove(filename)
+            except Exception as e:
+                log.write(f'Error in /vc_speak_rhulk: \n{e}\n\n')
+                await vc.disconnect()
+                await interaction.followup.send("Arghhh, Cemaili! (Something went wrong with that request)", ephemeral=True)
     log.close()
 
 
