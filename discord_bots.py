@@ -200,9 +200,10 @@ async def vc_speak_rhulk(interaction: discord.Interaction, text: str, stability:
                 save(audio, filename)
                 channel = interaction.user.voice.channel
                 vc = await channel.connect()
+                await asyncio.sleep(1)
                 vc.play(discord.FFmpegPCMAudio(source=filename))
                 while vc.is_playing():
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(2.5)
                 vc.stop()
                 await vc.disconnect()
                 await interaction.followup.send(file=discord.File(filename))
@@ -403,9 +404,10 @@ async def vc_speak_calus(interaction: discord.Interaction, text: str, stability:
                 save(audio, filename)
                 channel = interaction.user.voice.channel
                 vc = await channel.connect()
+                await asyncio.sleep(1)
                 vc.play(discord.FFmpegPCMAudio(source=filename))
                 while vc.is_playing():
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(2.5)
                 vc.stop()
                 await vc.disconnect()
                 await interaction.followup.send(file=discord.File(filename))
