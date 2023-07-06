@@ -334,9 +334,9 @@ async def on_ready():
 # Slash command for text-to-speech for Calus
 @cBot.tree.command(name="speak_calus", description="Text-to-speech to have Calus speak some text!")
 @app_commands.describe(text="What should Calus say?",
-                       stability="How stable should Calus sound? Range is 0:1.0, default 0.4",
-                       clarity="How similar to the in-game voice should it be? Range is 0:1.0, default 0.85")
-async def speak(interaction: discord.Interaction, text: str, stability: float=0.4, clarity: float=0.85):
+                       stability="How stable should Calus sound? Range is 0:1.0, default 0.3",
+                       clarity="How similar to the in-game voice should it be? Range is 0:1.0, default 0.8")
+async def speak(interaction: discord.Interaction, text: str, stability: float=0.3, clarity: float=0.8):
     log = open("log.txt", "a")
     log.write(f'{interaction.user.global_name} asked Emperor Calus to say: `{text}`\n\n')
     if len(text) > MAX_LEN:
@@ -348,6 +348,7 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
             calus_voice = voices()[-1]
             calus_voice.settings.stability = stability
             calus_voice.settings.similarity_boost = clarity
+            text = text.replace(" ", '\n')
             audio = generate(
                 text=text,
                 voice=calus_voice,
@@ -374,7 +375,7 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
 @app_commands.describe(text="What should Calus say in the VC?",
                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.4.",
                        clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.85")
-async def vc_speak_calus(interaction: discord.Interaction, text: str, stability: float=0.4, clarity: float=0.85):
+async def vc_speak_calus(interaction: discord.Interaction, text: str, stability: float=0.3, clarity: float=0.8):
     log = open("log.txt", "a")
     log.write(f'{interaction.user.global_name} asked Emperor Calus to say in the VC: `{text}`\n\n')
     if len(text) > MAX_LEN:
@@ -390,6 +391,7 @@ async def vc_speak_calus(interaction: discord.Interaction, text: str, stability:
                 calus_voice = voices()[-1]
                 calus_voice.settings.stability = stability
                 calus_voice.settings.similarity_boost = clarity
+                text = text.replace(" ", '\n')
                 audio = generate(
                     text=text,
                     voice=calus_voice,
