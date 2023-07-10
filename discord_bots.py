@@ -168,19 +168,30 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
 # Slash command for Rhulk VC text-to-speech
 @rBot.tree.command(name="vc_speak_rhulk", description="Text-to-speech to have Rhulk speak some text, and say it in the VC you are connected to!")
 @app_commands.describe(text="What should Rhulk say in the VC?",
+                       vc="(Optional) What VC to join?",
                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.2.",
                        clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.7")
-async def vc_speak_rhulk(interaction: discord.Interaction, text: str, stability: float=0.2, clarity: float=0.7):
+async def vc_speak_rhulk(interaction: discord.Interaction, text: str, vc: str="", stability: float=0.2, clarity: float=0.7):
     log = open("log.txt", "a")
     log.write(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness to say in the VC: `{text}`\n\n')
+    await interaction.response.defer()
     if len(text) > MAX_LEN:
-        await interaction.response.send_message(f'Child of the Light, I do not have time to entertain this insignificant request. Please limit your text to below {MAX_LEN} characters. You are currently at {len(text)} characters.', ephemeral=True)
+        await interaction.followup.send(f'Child of the Light, I do not have time to entertain this insignificant request. Please limit your text to below {MAX_LEN} characters. You are currently at {len(text)} characters.', ephemeral=True)
     else:
+        channel = None
         if interaction.user.voice is None:
-            log.write(f'{interaction.user.global_name} was not in the VC, could not send message.\n\n')
-            await interaction.response.send_message(f'{interaction.user.display_name}, do not waste my time if you are not here. (Must be in a VC)', ephemeral=True)
+            if vc == "":
+                log.write(f'{interaction.user.global_name} was not in the VC, could not send message.\n\n')
+                await interaction.followup.send(f'{interaction.user.display_name}, do not waste my time if you are not here. (Must be in a VC or specify a valid VC)', ephemeral=True)
+            else:
+                for c in interaction.guild.voice_channels:
+                    if c.name == vc:
+                        log.write("Found a valid voice channel to speak in.\n\n")
+                        channel = rBot.get_channel(c.id)
         else:
-            await interaction.response.defer()
+            channel = interaction.user.voice.channel
+            
+        if channel != None:
             try:
                 elevenlabs.set_api_key(RHULK_VOICE_KEY)
                 rhulk_voice = voices()[-1]
@@ -198,7 +209,6 @@ async def vc_speak_rhulk(interaction: discord.Interaction, text: str, stability:
                 else:
                     filename = f'{split_text[0]}_{split_text[1]}_{split_text[2]}_{split_text[3]}_{split_text[4]}.mp3'
                 save(audio, filename)
-                channel = interaction.user.voice.channel
                 vc = await channel.connect()
                 await asyncio.sleep(1)
                 vc.play(discord.FFmpegPCMAudio(source=filename))
@@ -213,6 +223,8 @@ async def vc_speak_rhulk(interaction: discord.Interaction, text: str, stability:
                 log.write(f'Error in /vc_speak_rhulk: \n{e}\n\n')
                 await vc.disconnect()
                 await interaction.followup.send("My Witness, forgive me! (Something went wrong with that request)", ephemeral=True)
+        else:
+            await interaction.followup.send("My Witness, forgive me! (Something went wrong with that request)", ephemeral=True)
     log.close()
 
 
@@ -373,19 +385,30 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
 # Slash command for Calus VC text-to-speech
 @cBot.tree.command(name="vc_speak_calus", description="Text-to-speech to have Calus speak some text, and say it in the VC you are connected to!")
 @app_commands.describe(text="What should Calus say in the VC?",
+                       vc="(Optional) What VC to join?",
                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.4.",
                        clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.85")
-async def vc_speak_calus(interaction: discord.Interaction, text: str, stability: float=0.3, clarity: float=0.8):
+async def vc_speak_calus(interaction: discord.Interaction, text: str, vc: str="", stability: float=0.3, clarity: float=0.8):
     log = open("log.txt", "a")
     log.write(f'{interaction.user.global_name} asked Emperor Calus to say in the VC: `{text}`\n\n')
+    await interaction.response.defer()
     if len(text) > MAX_LEN:
         await interaction.response.send_message(f'My Shadow, we do not have time before the end of all things to do this. Please limit your text to below {MAX_LEN} characters. You are currently at {len(text)} characters.', ephemeral=True)
     else:
+        channel = None
         if interaction.user.voice is None:
-            log.write(f'{interaction.user.global_name} was not in the VC, could not send message.\n\n')
-            await interaction.response.send_message(f'{interaction.user.display_name}, let us relax in the Pleasure Gardens instead. (Must be in a VC)', ephemeral=True)
+            if vc == "":
+                log.write(f'{interaction.user.global_name} was not in the VC, could not send message.\n\n')
+                await interaction.response.send_message(f'{interaction.user.display_name}, let us relax in the Pleasure Gardens instead. (Must be in a VC)', ephemeral=True)
+            else:
+                for c in interaction.guild.voice_channels:
+                    if c.name == vc:
+                        log.write("Found a valid voice channel to speak in.\n\n")
+                        channel = cBot.get_channel(c.id)
         else:
-            await interaction.response.defer()
+            channel = interaction.user.voice.channel
+        
+        if channel != None:
             try:
                 elevenlabs.set_api_key(CALUS_VOICE_KEY)
                 calus_voice = voices()[-1]
@@ -404,7 +427,6 @@ async def vc_speak_calus(interaction: discord.Interaction, text: str, stability:
                 else:
                     filename = f'{split_text[0]}_{split_text[1]}_{split_text[2]}_{split_text[3]}_{split_text[4]}.mp3'
                 save(audio, filename)
-                channel = interaction.user.voice.channel
                 vc = await channel.connect()
                 await asyncio.sleep(1)
                 vc.play(discord.FFmpegPCMAudio(source=filename))
@@ -419,6 +441,8 @@ async def vc_speak_calus(interaction: discord.Interaction, text: str, stability:
                 log.write(f'Error in /vc_speak_rhulk: \n{e}\n\n')
                 await vc.disconnect()
                 await interaction.followup.send("Arghhh, Cemaili! (Something went wrong with that request)", ephemeral=True)
+        else:
+            await interaction.followup.send("My Witness, forgive me! (Something went wrong with that request)", ephemeral=True)
     log.close()
 
 
