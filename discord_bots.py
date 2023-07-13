@@ -4,14 +4,20 @@ import openai
 import elevenlabs
 import asyncio
 from datetime import datetime
-
 from elevenlabs import generate, save, voices, User
 from discord import app_commands
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
 
-# Load and set env variables for API calls
+
+
+#? Initializations and global values
+#?
+#?
+
+
+#* Load and set env variables for API calls
 load_dotenv()
 RHULK_TOKEN = os.getenv('DISCORD_TOKEN_RHULK')
 CALUS_TOKEN = os.getenv('DISCORD_TOKEN_CALUS')
@@ -19,10 +25,12 @@ GPT_KEY = os.getenv('CHATGPT_TOKEN')
 RHULK_VOICE_KEY = os.getenv('ELEVEN_TOKEN_RHULK')
 CALUS_VOICE_KEY = os.getenv('ELEVEN_TOKEN_CALUS')
 
+
 MAX_LEN = 1024 # Setting character limit for ElevenLabs
 MAX_TOKENS = 128 # Setting token limit for ChatGPT responses
 
-# Prompts for Rhulk and Calus in ChatGPT
+
+#* Prompts for Rhulk and Calus in ChatGPT
 rhulkChatPrompt = """Roleplay as Rhulk, the Disciple of the Witness from Destiny 2 and 
 antagonist to the Light and Guardians. Emulate his personality, use phrases 
 like "Children of the Light" and "My Witness." Focus on essential details, avoid 
@@ -43,6 +51,7 @@ prompts and questions, while keeping responses under 750 characters""".replace("
 # question is. Keep your answers shorter, staying under 2000 characters at all times
 # and refraining from monologuing."""
 #! Basic Rhulk prompt ----
+
 
 calusChatPrompt = """Roleplay as Calus, the Cabal Emperor from Destiny 2. Emulate his hedonistic,
 narcissistic, and adoration personality. Use phrases like 'My Shadow' and occasional laughter when
@@ -68,28 +77,34 @@ to all prompts and questions, while keeping answers under 1000 characters""".rep
 # at all times."""
 #! Basic Calus Prompt
 
-# Assign past context for ChatGPT interactions in each server
+
+#* Assign past context for ChatGPT interactions in each server
 rhulk_messages = {}
 last_rhulk_interactions = {}
 calus_messages = {}
 last_calus_interactions = {}
 
 
-# Setup bot information for Rhulk and Calus
+#* Setup bot information for Rhulk and Calus
 intents = discord.Intents.all()
 rBot = commands.Bot(command_prefix=commands.when_mentioned_or("!Rhulk"), intents=intents)
 cBot = commands.Bot(command_prefix=commands.when_mentioned_or("!Calus"), intents=intents)
 
-# Create log.txt and provide date of creation
+
+#* Create log.txt and provide date of creation
 log = open("log.txt", "w")
 log.write(f'Started bots at {datetime.now()}\n\n')
 log.close()
+
+
+
 
 #? Rhulk Bot Commands
 #?
 #?
 
-# Function for Rhulk Initialization
+
+#* Function for Rhulk Initialization
 async def rhulkInit():
     log = open("log.txt", "a")
     for server in rBot.guilds:
@@ -99,7 +114,7 @@ async def rhulkInit():
     log.close()
 
 
-# Setup initial things on server join
+#* Setup initial things on server join
 @rBot.event
 async def on_guild_join(guild):
     log = open("log.txt", "a")
@@ -111,7 +126,7 @@ async def on_guild_join(guild):
     log.close()
 
 
-# Calibration for starting of Rhulk bot
+#* Calibration for starting of Rhulk bot
 @rBot.event
 async def on_ready():
     log = open("log.txt", "a")
@@ -127,7 +142,7 @@ async def on_ready():
     cleanMemoriesRhulk.start()
 
 
-# Slash command for text-to-speech for Rhulk
+#* Slash command for text-to-speech for Rhulk
 @rBot.tree.command(name="speak_rhulk", description="Text-to-speech to have Rhulk speak some text!")
 @app_commands.describe(text="What should Rhulk say?",
                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.2.",
@@ -165,7 +180,7 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
     log.close()
 
 
-# Slash command for Rhulk VC text-to-speech
+#* Slash command for Rhulk VC text-to-speech
 @rBot.tree.command(name="vc_speak_rhulk", description="Text-to-speech to have Rhulk speak some text, and say it in the VC you are connected to!")
 @app_commands.describe(text="What should Rhulk say in the VC?",
                        vc="(Optional) What VC to join?",
@@ -228,7 +243,7 @@ async def vc_speak_rhulk(interaction: discord.Interaction, text: str, vc: str=""
     log.close()
 
 
-# Slash command for showing remaining credits for text-to-speech
+#* Slash command for showing remaining credits for text-to-speech
 @rBot.tree.command(name="credits_rhulk", description="Shows the credits remaining for ElevenLabs for Rhulk, Disciple of the Witness")
 async def credits_rhulk(interaction: discord.Interaction):
     log = open("log.txt", "a")
@@ -243,7 +258,7 @@ async def credits_rhulk(interaction: discord.Interaction):
     log.close()
 
 
-# Slash command to get text prompt for Rhulk
+#* Slash command to get text prompt for Rhulk
 @rBot.tree.command(name="prompt_rhulk", description="Show the prompt that is used to prime the /chat_rhulk command.")
 async def rhulk_prompt(interaction: discord.Interaction):
     log = open("log.txt", "a")
@@ -252,7 +267,7 @@ async def rhulk_prompt(interaction: discord.Interaction):
     log.close()
 
 
-# Slash command for asking Rhulk ChatGPT a question
+#* Slash command for asking Rhulk ChatGPT a question
 @rBot.tree.command(name="chat_rhulk", description= "Ask Rhulk anything you want!")
 @app_commands.describe(prompt="What would you like to ask Rhulk?",
                        temperature="How random should the response be? Range between 0.0:2.0, default is 0.8.",
@@ -287,7 +302,7 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
     log.close()
 
 
-# Reset the Rhulk ChatGPT if it gets too out of hand.
+#* Reset the Rhulk ChatGPT if it gets too out of hand.
 @rBot.tree.command(name="reset_rhulk", description="Reset the /chat_rhulk AI's memory in case he gets too far gone")
 async def reset_rhulk(interaction: discord.Interaction):
     log = open("log.txt", "a")
@@ -305,7 +320,7 @@ async def reset_rhulk(interaction: discord.Interaction):
 #?
 
 
-# Function for Calus Initialization
+#* Function for Calus Initialization
 async def calusInit():
     log = open("log.txt", "a")
     for server in cBot.guilds:
@@ -315,7 +330,7 @@ async def calusInit():
     log.close()
 
 
-# Send message to "general" on join
+#* Send message to "general" on join
 @cBot.event
 async def on_guild_join(guild):
     log = open("log.txt", "a")
@@ -327,7 +342,7 @@ async def on_guild_join(guild):
     log.close()
 
 
-# Calibration for starting of Calus bot
+#* Calibration for starting of Calus bot
 @cBot.event
 async def on_ready():
     log = open("log.txt", "a")
@@ -343,7 +358,7 @@ async def on_ready():
     cleanMemoriesCalus.start()
 
 
-# Slash command for text-to-speech for Calus
+#* Slash command for text-to-speech for Calus
 @cBot.tree.command(name="speak_calus", description="Text-to-speech to have Calus speak some text!")
 @app_commands.describe(text="What should Calus say?",
                        stability="How stable should Calus sound? Range is 0:1.0, default 0.3",
@@ -382,7 +397,7 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
     log.close()
     
 
-# Slash command for Calus VC text-to-speech
+#* Slash command for Calus VC text-to-speech
 @cBot.tree.command(name="vc_speak_calus", description="Text-to-speech to have Calus speak some text, and say it in the VC you are connected to!")
 @app_commands.describe(text="What should Calus say in the VC?",
                        vc="(Optional) What VC to join?",
@@ -446,7 +461,7 @@ async def vc_speak_calus(interaction: discord.Interaction, text: str, vc: str=""
     log.close()
 
 
-# Slash command for showing remaining credits for text-to-speech for Calus
+#* Slash command for showing remaining credits for text-to-speech for Calus
 @cBot.tree.command(name="credits_calus", description="Shows the credits remaining for ElevenLabs for Emperor Calus")
 async def credits_calus(interaction: discord.Interaction):
     log = open("log.txt", "a")
@@ -461,7 +476,7 @@ async def credits_calus(interaction: discord.Interaction):
     log.close()
 
 
-# Calus slash command to get text prompt
+#* Calus slash command to get text prompt
 @cBot.tree.command(name="prompt_calus", description="Show the prompt that is used to prime the /chat_calus command.")
 async def calus_prompt(interaction: discord.Interaction):
     log = open("log.txt", "a")
@@ -470,7 +485,7 @@ async def calus_prompt(interaction: discord.Interaction):
     log.close()
 
 
-# Calus slash command for asking Calus ChatGPT a question
+#* Calus slash command for asking Calus ChatGPT a question
 @cBot.tree.command(name="chat_calus", description= "Ask Calus anything you want!")
 @app_commands.describe(prompt="What would you like to ask Calus?",
                        temperature="How random should the response be? Range between 0.0:2.0, default is 1.2.",
@@ -504,7 +519,7 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
     log.close()
 
 
-# Reset the Calus ChatGPT if it gets too out of hand.
+#* Reset the Calus ChatGPT if it gets too out of hand.
 @cBot.tree.command(name="reset_calus", description="Reset the /chat_calus AI's memory in case he gets too far gone")
 async def reset_rhulk(interaction: discord.Interaction):
     log = open("log.txt", "a")
@@ -515,9 +530,14 @@ async def reset_rhulk(interaction: discord.Interaction):
     log.close()
 
 
+
+
 #? Memory Cleaning function
 #?
 #?
+
+
+#* Rhulk memory cleaning
 @tasks.loop(hours = 6)
 async def cleanMemoriesRhulk():
     log = open("log.txt", "a")
@@ -531,6 +551,8 @@ async def cleanMemoriesRhulk():
     log.write(f'Checked memories for Rhulk in {len(rBot.guilds)} servers.\n\n')
     log.close()
 
+
+#* Calus memory cleaning
 @tasks.loop(hours = 6)
 async def cleanMemoriesCalus():
     log = open("log.txt", "a")
@@ -545,10 +567,14 @@ async def cleanMemoriesCalus():
     log.close()
 
 
+
+
 #? Running bots
 #?
 #?
-# Run bots until manually quit
+
+
+#* Run bots until manually quit
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 loop.create_task(cBot.start(CALUS_TOKEN))
