@@ -27,12 +27,13 @@ And for all the available commands for the bots:
 ### */speak_rhulk*
 
   This allows the Rhulk bot to speak a provided text prompt, and send a .mp3 to the text channel that plays the spoken line. Additional parameters are available for increasing/decreasing the stability
-  and clarity of the message. Do note, that ElevenLabs will always charge characters for this command, even when attempting to mess around with the additional parameters
+  and clarity of the message. Do note, that ElevenLabs will always charge characters for this command, even when attempting to mess around with the additional parameters.
 
 ### */vc_speak_rhulk*
 
-  This allows the Rhulk bot to join the voice channel you are currently connected to, and play the .mp3 file in realtime. The same parameters for /speak_rhulk apply here as well, and the spoken line will
-  also be sent to the voice channel in case you wish to save he voice. Currently, you MUST be in a voice channel, with the future possibility for an additional parameter to specify the exact VC to speak in
+  This allows the Rhulk bot to join a voice channel, play a .mp3 similar to the /speak_rhulk command, then diconnect and send the same .mp3 to the text chat for future use. By default, this command assumes
+  that the user is in a voice chat, and will join the same one as the user. If not, an optional "vc" parameter is available, which allows you to specify a voice channel for the bot to join and perform it's
+  operations.
 
 ### */credits_rhulk*
 
@@ -61,12 +62,13 @@ And for all the available commands for the bots:
 ### */speak_calus*
 
   This allows the Calus bot to speak a provided text prompt, and send a .mp3 to the text channel that plays the spoken line. Additional parameters are available for increasing/decreasing the stability
-  and clarity of the message. Do note, that ElevenLabs will always charge characters for this command, even when attempting to mess around with the additional parameters
+  and clarity of the message. Do note, that ElevenLabs will always charge characters for this command, even when attempting to mess around with the additional parameters.
 
-### */vc_speak_rhulk*
+### */vc_speak_calus*
 
-  This allows the Calus bot to join the voice channel you are currently connected to, and play the .mp3 file in realtime. The same parameters for /speak_calus apply here as well, and the spoken line will
-  also be sent to the voice channel in case you wish to save he voice. Currently, you MUST be in a voice channel, with the future possibility for an additional parameter to specify the exact VC to speak in
+  This allows the Calus bot to join a voice channel, play a .mp3 similar to the /speak_calus command, then diconnect and send the same .mp3 to the text chat for future use. By default, this command assumes
+  that the user is in a voice chat, and will join the same one as the user. If not, an optional "vc" parameter is available, which allows you to specify a voice channel for the bot to join and perform it's
+  operations.
 
 ### */credits_calus*
 
