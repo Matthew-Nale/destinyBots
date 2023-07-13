@@ -2,14 +2,14 @@
 
 ## What is this?
 
-After having a pretty good cloned voice of the character Rhulk from the game Destiny 2 for a while, I had a sudden thought in bed: "Could I make a bot that acts as Rhulk for Discord?"
-And the answer was "Yes!". and surprisingly simple. After messing around with a few extra commands, eventually the Rhulk bot was born! And not long after, the Calus bot was as well!
+After having a pretty good cloned voice of the character Rhulk from the game Destiny 2 using ElevenLabs, I had a sudden thought in bed: "Could I make a bot that acts as Rhulk for Discord?"
+And the answer was "Yes!". And surprisingly simple as well. After messing around with a few extra commands, eventually the Rhulk bot was born! And not long after, the Calus bot was as well!
 
 ## But... what do they do?
 
 Good question! While some features are still missing, incomplete, or simply broken, these two bots will act and function as the characters they are named after. 
 They have numerous commands each that interact with various AI APIs. Currently, interaction with ElevenLabs and OpenAI/ChatGPT is fully implemmented, with future improvements
-to their prompt memories for ChatGPT and cloned voices from ElevenLabs being worked on.
+for various features and additions being added as well.
 
 ## Sounds great! But what are the commands, and how do I use them?
 
