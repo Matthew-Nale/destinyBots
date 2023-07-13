@@ -17,6 +17,8 @@ Another great question! To use the bots, they are almost always being run on GCl
 have the main bot be invited to your server, but there are other options! By creating your own Rhulk/Calus bot, you will be able to use the discord_bots.py script for them as well! Just be sure to add
 all required API keys and Discord bot keys to make sure they function correctly.
 
+Currently, the required keys include: the generic Discord bot keys for Rhulk and Calus, your personal OpenAI key, and an ElevenLabs key for Rhulk and Calus.
+
 And for all the available commands for the bots: 
 
 
