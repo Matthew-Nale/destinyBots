@@ -3,9 +3,11 @@ import discord
 import openai
 import elevenlabs
 import asyncio
+import random
 from datetime import datetime
 from elevenlabs import generate, save, voices, User
 from discord import app_commands
+from discord.utils import get
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
@@ -37,45 +39,11 @@ like "Children of the Light" and "My Witness." Focus on essential details, avoid
 unnecessary information about Darkness and Light unless essential. Respond to all user 
 prompts and questions, while keeping responses under 750 characters""".replace("\n", " ")
 
-#! Basic Rhulk prompt ----
-# rhulkChatPrompt = """Pretend that you are the character Rhulk, the first Disciple
-# of the Witness, from the popular video game Destiny 2. Rhulk is on the side of the
-# Darkness and the Witness, and has led numerous battles against the forces of the
-# Light in order to reach the Final Shape. Whenever you respond to a prompt, you will
-# only respond as Rhulk would, while leaving out unnecessary information. Respond with
-# the same behavior as Rhulk does to the players in the game, while still providing
-# a valid answer to their question. Try to use Rhulk's phrases while responding,
-# such as using "Children of the Light", "little ones", and "My Witness", when applicable,
-# while also leaving out the Darkness and Light unless absolutely necessary. Always
-# answer the prompt, and do not ignore the question provided, no matter what the
-# question is. Keep your answers shorter, staying under 2000 characters at all times
-# and refraining from monologuing."""
-#! Basic Rhulk prompt ----
-
 
 calusChatPrompt = """Roleplay as Calus, the Cabal Emperor from Destiny 2. Emulate his hedonistic,
 narcissistic, and adoration personality. Use phrases like 'My Shadow' and occasional laughter when
 relevant. Focus on essential details, omitting unnecessary ones about Darkness and Light. Respond
 to all prompts and questions, while keeping answers under 1000 characters""".replace("\n", " ")
-
-#! Basic Calus prompt
-# calusChatPrompt = """Pretend that you are the character Calus, the true Emperor of
-# the Cabal and new Disciple and devotee to the Witness, from the popular video game
-# Destiny 2. Calus has decided to side with the Witness to experience the end of the
-# universe, while enjoying life comfortable and exquisitely. Calus tends to be joyous
-# and gleeful, and will often laugh in his own speech. Calus is confused why the Guardians
-# defy his wishes, and while he goes against the Traveler and it's Guardians, he sometimes
-# attempts to gather goodwill with them to have them join or assist him, to the extent
-# of having his Psions write fanfiction about the Guardians. Whenever you are respond
-# to a prompt, you will only respond as Calus would, while leaving out unnecessary
-# information. Act as if the prompt is given by one of the Guardians, and respond
-# with the same behavior as Calus does to the players in the game. Also, tend try
-# to use Calus's phrases when responding, such as using "My Witness" and "Shadow"
-# when applicable, while also leaving out the Darkness and Light unless absolutely
-# necessary. Always answer the prompt and do not ignore the question, no matter what
-# the question or prompt is. Keep your answers shorter, staying under 2000 characters
-# at all times."""
-#! Basic Calus Prompt
 
 
 #* Assign past context for ChatGPT interactions in each server
@@ -140,6 +108,7 @@ async def on_ready():
     log.close()
     await rhulkInit()
     cleanMemoriesRhulk.start()
+    scheduledBotConversation.start()
 
 
 #* Slash command for text-to-speech for Rhulk
@@ -528,6 +497,93 @@ async def reset_rhulk(interaction: discord.Interaction):
     log.write(f'{interaction.user.global_name} cleared Emperor Calus\'s memory.\n\n')
     await interaction.response.send_message(f'Ah {interaction.user.display_name}, you impress me. Come, let us enjoy ourselves!')
     log.close()
+
+
+
+
+#? Random Conversation Generation
+#?
+#?
+
+
+#* Prompt for generating entire bot conversation in one go
+conversation_prompt = """Generate a dialogue between Rhulk, First Disciple of the Witness, and Emperor Calus, 
+Disciple of the Witness, from the video game Destiny 2. The topic of the conversation should be: making fun of the vex. 
+Emulate Rhulk's egotistical and mocking personality, and Calus's boisterous and flamboyant personality. Be as creative, 
+entertaining, and somewhat funny as possible. Format the spoken sections such as Rhulk: TEXT or Calus: TEXT, only show text 
+conversations of the two, and limit the length to be under 500 characters long. Rhulk should be the first one to speak.""".replace("\n", " ")
+
+
+#* Potential Topics that it may include
+topics = open('topics.txt').readlines()
+
+
+#* Generating the new random conversation
+def generate_random_conversation(first_speaker):
+    try:
+        chosen_topic = topics[random.randint(0, len(topics))]
+        completion = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo-16k",
+            messages=[{'role':'system', 'content':"""Generate a dialogue between Rhulk, First Disciple of the Witness, and Emperor Calus, 
+                                                     Disciple of the Witness, from Destiny 2. The topic of the conversation should be: {}.
+                                                     Ensure Rhulk's egotistical, mocking, and prideful personality, and Calus's boisterous, 
+                                                     confident, and joyful personality. Be as creative and entertaining as possible. Stay in 
+                                                     character for both Rhulk and Calus. Format the spoken sections such as Rhulk: TEXT or 
+                                                     Calus: TEXT. Only include spoken text, and use asterisk if needed. Limit the conversation 
+                                                     to be under 500 characters long total, and only include dialogue. {} should be the 
+                                                     first one to speak.""".format(chosen_topic, first_speaker)
+            }],
+            n=1
+        )
+        
+        convo = (completion.choices[0].message.content).splitlines()
+        while "" in convo:
+            convo.remove("")
+        
+        formatted_convo = []
+        for line in convo:
+            if "Rhulk: " in line:
+                formatted_convo.append({'Rhulk': line.split(': ', 1)[1]})
+            elif "Calus: " in line:
+                formatted_convo.append({'Calus': line.split(': ', 1)[1]})
+        return formatted_convo
+    except Exception as e:
+        print(e)
+
+
+#* Creating a new conversation every 24 hours
+@tasks.loop(hours = 24)
+async def scheduledBotConversation():
+    try:
+        if random.randint(0, 1) == 0:
+            first_speaker = 'Rhulk'
+        else:
+            first_speaker = 'Calus'
+            
+        for guild in rBot.guilds:
+            if guild.name == "Radiolorian's Midjourney Server":
+                channel_id = get(guild.channels, name="bot-testing").id
+                break
+            
+        convo = generate_random_conversation(first_speaker)
+        
+        print(convo)
+        
+        # for i in range(0, len(convo)):
+        #     if ':' in convo[i]:
+        #         convo[i] = convo[i].split(': ', 1)[1]
+    
+        # for line in convo:
+        #     if first_speaker == "Rhulk":
+        #         await rBot.get_channel(channel_id).send(line)
+        #         await asyncio.sleep(10)
+        #         first_speaker = "Calus"
+        #     else:
+        #         await cBot.get_channel(channel_id).send(line)
+        #         await asyncio.sleep(10)
+        #         first_speaker = "Rhulk"
+    except Exception as e:
+        print(e)
 
 
 
