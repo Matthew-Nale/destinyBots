@@ -105,3 +105,15 @@ And for all the available commands for the bots:
 
 
   
+
+## Timed Events
+
+### Memory Cleaning Functions
+
+  There are two seperate memory cleaning functions for the /BOT_chat commands. Whenver a bot is not interacted with in a specific time (currently 6 hours), all memories will be refreshed. The main purpose of this
+  is to reduce the overall cost of the API calls.
+
+### Daily Conversation Topic
+
+  Everyday at 1 PM (Eastern Time), the bots will have a conversation with each other. The topic is chosen randomly from the list in 'topics.txt', and will be printed to a specific channel. Currently this channel is a
+  specific named one, so be sure to change the server name and text channel name when using it outside of the main bots.
