@@ -4,6 +4,7 @@ import openai
 import elevenlabs
 import asyncio
 import random
+import pytz
 from datetime import datetime
 from elevenlabs import generate, save, voices, User
 from discord import app_commands
@@ -272,8 +273,8 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
 
 
 #* Reset the Rhulk ChatGPT if it gets too out of hand.
-@rBot.tree.command(name="reset_rhulk", description="Reset the /chat_rhulk AI's memory in case he gets too far gone")
-async def reset_rhulk(interaction: discord.Interaction):
+@rBot.tree.command(name="rhulk_reset", description="Reset the /chat_rhulk AI's memory in case he gets too far gone")
+async def rhulk_reset(interaction: discord.Interaction):
     log = open("log.txt", "a")
     rhulk_messages[interaction.guild.id].clear()
     rhulk_messages[interaction.guild.id].append({"role": "system", "content": rhulkChatPrompt})
@@ -282,6 +283,63 @@ async def reset_rhulk(interaction: discord.Interaction):
     log.close()
 
 
+#* Shows the list of random topics to be used daily or with the /generate_conversation command
+@rBot.tree.command(name="rhulk_topics", description="View the saved topics that Rhulk and Calus can chat over!")
+async def topics(interaction: discord.Interaction):
+    topics = open('topics.txt').readlines()
+    response = ""
+    for topic in topics:
+        response += topic
+    await interaction.response.send_message(f'Here are the list of topics used for randomly choosing conversations: \n**{response}**')
+
+
+#* Add a topic to the topic list
+@rBot.tree.command(name="rhulk_add_topic", description="Add a topic that can be used for the daily conversation!")
+@app_commands.describe(topic="What topic should be added to the list?")
+async def rhulk_add_topic(interaction: discord.Interaction, topic: str):
+    if topic != None:
+        with open('topics.txt', 'r') as f:
+            topics_list = f.read().splitlines()
+            if topic not in topics_list:
+                log = open('log.txt', 'a')
+                log.write(f'Added a new topic to the list: {topic}\n\n')
+                log.close()
+                with open('topics.txt', 'a') as r:
+                    r.write(topic)
+                    r.write('\n')
+                await interaction.response.send_message(f'Ahhh {interaction.user.global_name}, {topic} does sound interesting, does it not?')
+            else:
+                await interaction.response.send_message(f'{interaction.user.global_name}, we have already discussed that matter. (Already in list)')
+    else:
+        await interaction.response.send_message(f'{interaction.user.global_name}, please do not bore me with that topic. (Must input something)')
+                
+
+#* Manually generate a random or specific conversation with Rhulk being the first speaker
+@rBot.tree.command(name="rhulk_start_conversation", description="Have Rhulk start a conversation with the other bots!")
+@app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.")
+async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=None):
+    log = open('log.txt', 'a')
+    try:
+        await interaction.response.defer()
+        for guild in rBot.guilds:
+            if guild.name == "Radiolorian's Midjourney Server":
+                channel_id = get(guild.channels, name="bot-testing").id
+                break
+        
+        convo, chosen_topic = generate_random_conversation('Rhulk', topic)
+        await interaction.followup.send(f'{interaction.user.display_name} asked us to have a conversation about *{chosen_topic}*. Here is the conversation:')
+        for line in convo:
+            if 'Rhulk' in line:
+                await rBot.get_channel(channel_id).send(line['Rhulk'])
+                await asyncio.sleep(7.5)
+            elif 'Calus' in line:
+                await cBot.get_channel(channel_id).send(line['Calus'])
+                await asyncio.sleep(7.5)
+        
+    except Exception as e:
+        log.write('Encountered an error in the Random Conversation Generation: ' + e + '\n\n')
+        await interaction.followup.send('I was unable to generate a new conversation at this time. Try again or bug Radiolorian to fix it.')
+    log.close()
 
 
 #? Calus Bot Commands
@@ -499,6 +557,65 @@ async def reset_rhulk(interaction: discord.Interaction):
     log.close()
 
 
+#* Shows the list of random topics to be used daily or with the /generate_conversation command
+@cBot.tree.command(name="calus_topics", description="View the saved topics that Rhulk and Calus can chat over!")
+async def topics(interaction: discord.Interaction):
+    topics = open('topics.txt').readlines()
+    response = ""
+    for topic in topics:
+        response += topic
+    await interaction.response.send_message(f'Here are the list of topics used for randomly choosing conversations: \n**{response}**')
+
+
+#* Add a topic to the topic list
+@cBot.tree.command(name="calus_add_topic", description="Add a topic that can be used for the daily conversation!")
+@app_commands.describe(topic="What topic should be added to the list?")
+async def calus_add_topic(interaction: discord.Interaction, topic: str):
+    if topic != None:
+        with open('topics.txt', 'r') as f:
+            topics_list = f.read().splitlines()
+            if topic not in topics_list:
+                log = open('log.txt', 'a')
+                log.write(f'Added a new topic to the list: {topic}\n\n')
+                log.close()
+                with open('topics.txt', 'a') as r:
+                    r.write(topic)
+                    r.write('\n')
+                await interaction.response.send_message(f'Ahhh {interaction.user.global_name}, {topic} does sound interesting, does it not?')
+            else:
+                await interaction.response.send_message(f'{interaction.user.global_name}, we have already discussed that matter. (Already in list)')
+    else:
+        await interaction.response.send_message(f'{interaction.user.global_name}, please do not bore me with that topic. (Must input something)')
+                
+
+#* Manually generate a random or specific conversation with Rhulk being the first speaker
+@cBot.tree.command(name="calus_start_conversation", description="Have Calus start a conversation with the other bots!")
+@app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.")
+async def calus_start_conversation(interaction: discord.Interaction, topic: str=None):
+    log = open('log.txt', 'a')
+    try:
+        await interaction.response.defer()
+        for guild in rBot.guilds:
+            if guild.name == "Radiolorian's Midjourney Server":
+                channel_id = get(guild.channels, name="bot-testing").id
+                break
+        
+        convo, chosen_topic = generate_random_conversation('Rhulk', topic)
+        await interaction.followup.send(f'{interaction.user.display_name} asked us to have a conversation about *{chosen_topic}*. Here is the conversation:')
+        for line in convo:
+            if 'Rhulk' in line:
+                await rBot.get_channel(channel_id).send(line['Rhulk'])
+                await asyncio.sleep(7.5)
+            elif 'Calus' in line:
+                await cBot.get_channel(channel_id).send(line['Calus'])
+                await asyncio.sleep(7.5)
+        
+    except Exception as e:
+        log.write('Encountered an error in the Random Conversation Generation: ' + e + '\n\n')
+        await interaction.followup.send('I was unable to generate a new conversation at this time. Try again or bug Radiolorian to fix it.')
+    log.close()
+
+
 
 
 #? Random Conversation Generation
@@ -514,24 +631,20 @@ entertaining, and somewhat funny as possible. Format the spoken sections such as
 conversations of the two, and limit the length to be under 500 characters long. Rhulk should be the first one to speak.""".replace("\n", " ")
 
 
-#* Potential Topics that it may include
-topics = open('topics.txt').readlines()
-
-
 #* Generating the new random conversation
-def generate_random_conversation(first_speaker):
+def generate_random_conversation(first_speaker="Rhulk", topic=None):
     try:
-        chosen_topic = topics[random.randint(0, len(topics))]
+        if topic == None:
+            topics = open('topics.txt').readlines()
+            chosen_topic = topics[random.randint(0, len(topics))]
+        else:
+            chosen_topic = topic
         completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo-16k",
-            messages=[{'role':'system', 'content':"""Generate a dialogue between Rhulk, First Disciple of the Witness, and Emperor Calus, 
-                                                     Disciple of the Witness, from Destiny 2. The topic of the conversation should be: {}.
-                                                     Ensure Rhulk's egotistical, mocking, and prideful personality, and Calus's boisterous, 
-                                                     confident, and joyful personality. Be as creative and entertaining as possible. Stay in 
-                                                     character for both Rhulk and Calus. Format the spoken sections such as Rhulk: TEXT or 
-                                                     Calus: TEXT. Only include spoken text, and use asterisk if needed. Limit the conversation 
-                                                     to be under 500 characters long total, and only include dialogue. {} should be the 
-                                                     first one to speak.""".format(chosen_topic, first_speaker)
+            messages=[{'role':'system', 'content':"""Create dialogue: Rhulk and Emperor Calus, Disciples of the Witness 
+                    in Destiny 2. Rhulk tolerates Calus. Rhulk is First Disciple of the Witness; Calus, new and unconventional 
+                    Disciple. Topic: {}. Rhulk's egotistical, mocking, prideful; Calus's confident, amused, joyful. Stay in character. 
+                    Be entertaining and creative. Format: Rhulk: TEXT, Calus: TEXT. Limit to under 500 characters. {} starts.""".format(chosen_topic, first_speaker)
             }],
             n=1
         )
@@ -546,44 +659,41 @@ def generate_random_conversation(first_speaker):
                 formatted_convo.append({'Rhulk': line.split(': ', 1)[1]})
             elif "Calus: " in line:
                 formatted_convo.append({'Calus': line.split(': ', 1)[1]})
-        return formatted_convo
+        return formatted_convo, chosen_topic
     except Exception as e:
         print(e)
 
 
-#* Creating a new conversation every 24 hours
-@tasks.loop(hours = 24)
+#* Creating a new conversation at 1pm EST everyday
+@tasks.loop(minutes=1)
 async def scheduledBotConversation():
-    try:
-        if random.randint(0, 1) == 0:
-            first_speaker = 'Rhulk'
-        else:
-            first_speaker = 'Calus'
+    now = datetime.now(pytz.timezone('US/Eastern'))
+    if now.hour == 13 and now.minute == 0:
+        log = open('log.txt', 'a')
+        try:
+            if random.randint(0, 1) == 0:
+                first_speaker = 'Rhulk'
+            else:
+                first_speaker = 'Calus'
+                
+            for guild in rBot.guilds:
+                if guild.name == "Radiolorian's Midjourney Server":
+                    channel_id = get(guild.channels, name="bot-testing").id
+                    break
             
-        for guild in rBot.guilds:
-            if guild.name == "Radiolorian's Midjourney Server":
-                channel_id = get(guild.channels, name="bot-testing").id
-                break
+            convo, _ = generate_random_conversation(first_speaker)
             
-        convo = generate_random_conversation(first_speaker)
-        
-        print(convo)
-        
-        # for i in range(0, len(convo)):
-        #     if ':' in convo[i]:
-        #         convo[i] = convo[i].split(': ', 1)[1]
-    
-        # for line in convo:
-        #     if first_speaker == "Rhulk":
-        #         await rBot.get_channel(channel_id).send(line)
-        #         await asyncio.sleep(10)
-        #         first_speaker = "Calus"
-        #     else:
-        #         await cBot.get_channel(channel_id).send(line)
-        #         await asyncio.sleep(10)
-        #         first_speaker = "Rhulk"
-    except Exception as e:
-        print(e)
+            for line in convo:
+                if 'Rhulk' in line:
+                    await rBot.get_channel(channel_id).send(line['Rhulk'])
+                    await asyncio.sleep(7.5)
+                elif 'Calus' in line:
+                    await cBot.get_channel(channel_id).send(line['Calus'])
+                    await asyncio.sleep(7.5)
+            log.write('Finished random conversation topic as scheduled.\n\n')
+        except Exception as e:
+            log.write('Encountered an error in the Random Conversation Generation: ' + e + '\n\n')
+        log.close()
 
 
 
@@ -604,7 +714,6 @@ async def cleanMemoriesRhulk():
             log.write(f'No interaction for Rhulk in {server.name} during past 6 hours, clearing the memory.\n\n')
             rhulk_messages[server.id] = [{"role": "system", "content": rhulkChatPrompt}]
             last_rhulk_interactions[server.id] = datetime.now()
-    log.write(f'Checked memories for Rhulk in {len(rBot.guilds)} servers.\n\n')
     log.close()
 
 
@@ -619,7 +728,6 @@ async def cleanMemoriesCalus():
             log.write(f'No interaction for Calus in {server.name} during past 6 hours, clearing the memory.\n\n')
             calus_messages[server.id] = [{"role": "system", "content": calusChatPrompt}]
             last_calus_interactions[server.id] = datetime.now()
-    log.write(f'Checked memories for Calus in {len(cBot.guilds)} servers.\n\n')
     log.close()
 
 
