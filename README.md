@@ -26,66 +26,78 @@ And for all the available commands for the bots:
 
 ## Rhulk, Disciple of the Witness
 
-### */speak_rhulk*
+### */rhulk_speak*
 
   This allows the Rhulk bot to speak a provided text prompt, and send a .mp3 to the text channel that plays the spoken line. Additional parameters are available for increasing/decreasing the stability
   and clarity of the message. Do note, that ElevenLabs will always charge characters for this command, even when attempting to mess around with the additional parameters.
 
-### */vc_speak_rhulk*
+### */rhulk_vc_speak*
 
-  This allows the Rhulk bot to join a voice channel, play a .mp3 similar to the /speak_rhulk command, then diconnect and send the same .mp3 to the text chat for future use. By default, this command assumes
+  This allows the Rhulk bot to join a voice channel, play a .mp3 similar to the /rhulk_speak command, then diconnect and send the same .mp3 to the text chat for future use. By default, this command assumes
   that the user is in a voice chat, and will join the same one as the user. If not, an optional "vc" parameter is available, which allows you to specify a voice channel for the bot to join and perform it's
   operations.
 
-### */credits_rhulk*
+### */rhulk_credits*
 
-  This allows the Rhulk bot to show the remaining characters that are available through the ElevenLabs API. Once the balance hits zero, any /speak_rhulk command will automatically fail, and an error
+  This allows the Rhulk bot to show the remaining characters that are available through the ElevenLabs API. Once the balance hits zero, any /rhulk_speak command will automatically fail, and an error
   message will be returned instead of the .mp3 file.
 
-### */chat_rhulk*
+### */rhulk_chat*
 
   This allows the Rhulk bot to interact with ChatGPT to generate a response to a prompt that fits the character. The Rhulk bot can remember at least the most recent response at the worst, and around 
   15 responses or so at best currently. Additional parameters can be included to change the temperature, frequency_penalty, and presence_penalty, all of which can make the output more or less random when 
   needed.
 
-### */prompt_rhulk*
+### */rhulk_prompt*
 
-  This provided an ephemeral message to the user that gives the prompt used in the /chat_rhulk command. This can then be used with ChatGPT in order to generate new responses at no cost.
+  This provided an ephemeral message to the user that gives the prompt used in the /rhulk_chat command. This can then be used with ChatGPT in order to generate new responses at no cost.
 
-### */reset_rhulk*
+### */rhulk_reset*
 
   This resets the Rhulk bot's memory of the server's interaction. In case the bot becomes ilegible or very broken, this command can be used to fix him.
+
+### */rhulk_topics*
+
+  View the list of Random Topics that can happen between the other bots. Provides the same functionality as /calus_topics.
+
+### */rhulk_add_topic*
+
+  Adds a new topic to the Random Topics, causing the daily random conversation to potentially be the topic. Provides the same functionality as /calus_add_topic.
+
+### */rhulk_start_conversation*
+
+  Causes Rhulk to start a conversation with the other bots. An optional parameter is available to specify a topic, otherwise a random topic is chosen from the Random Topics list.
 
 
 
 
 ## Emperor Calus
 
-### */speak_calus*
+### */calus_speak*
 
   This allows the Calus bot to speak a provided text prompt, and send a .mp3 to the text channel that plays the spoken line. Additional parameters are available for increasing/decreasing the stability
   and clarity of the message. Do note, that ElevenLabs will always charge characters for this command, even when attempting to mess around with the additional parameters.
 
-### */vc_speak_calus*
+### */calus_vc_speak*
 
-  This allows the Calus bot to join a voice channel, play a .mp3 similar to the /speak_calus command, then diconnect and send the same .mp3 to the text chat for future use. By default, this command assumes
+  This allows the Calus bot to join a voice channel, play a .mp3 similar to the /calus_speak command, then diconnect and send the same .mp3 to the text chat for future use. By default, this command assumes
   that the user is in a voice chat, and will join the same one as the user. If not, an optional "vc" parameter is available, which allows you to specify a voice channel for the bot to join and perform it's
   operations.
 
-### */credits_calus*
+### */calus_credits*
 
-  This allows the Calus bot to show the remaining characters that are available through the ElevenLabs API. Once the balance hits zero, any /speak_calus command will automatically fail, and an error
+  This allows the Calus bot to show the remaining characters that are available through the ElevenLabs API. Once the balance hits zero, any /calus_speak command will automatically fail, and an error
   message will be returned instead of the .mp3 file.
 
-### */chat_calus*
+### */calus_chat*
 
   This allows the Calus bot to interact with ChatGPT to generate a response to a prompt that fits the character. The Calus bot can remember at least the most recent response at the worst, and around 
   15 responses or so at best currently. Additional parameters can be included to change the temperature, frequency_penalty, and presence_penalty, all of which can make the output more or less random when 
   needed.
 
-### */prompt_calus*
+### */calus_prompt*
 
-  This provided an ephemeral message to the user that gives the prompt used in the /chat_calus command. This can then be used with ChatGPT in order to generate new responses at no cost.
+  This provided an ephemeral message to the user that gives the prompt used in the /calus_chat command. This can then be used with ChatGPT in order to generate new responses at no cost.
 
 ### */reset_calus*
 

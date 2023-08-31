@@ -113,7 +113,7 @@ async def on_ready():
 
 
 #* Slash command for text-to-speech for Rhulk
-@rBot.tree.command(name="speak_rhulk", description="Text-to-speech to have Rhulk speak some text!")
+@rBot.tree.command(name="rhulk_speak", description="Text-to-speech to have Rhulk speak some text!")
 @app_commands.describe(text="What should Rhulk say?",
                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.2.",
                        clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.7")
@@ -151,12 +151,12 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
 
 
 #* Slash command for Rhulk VC text-to-speech
-@rBot.tree.command(name="vc_speak_rhulk", description="Text-to-speech to have Rhulk speak some text, and say it in the VC you are connected to!")
+@rBot.tree.command(name="rhulk_vc_speak", description="Text-to-speech to have Rhulk speak some text, and say it in the VC you are connected to!")
 @app_commands.describe(text="What should Rhulk say in the VC?",
                        vc="(Optional) What VC to join?",
                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.2.",
                        clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.7")
-async def vc_speak_rhulk(interaction: discord.Interaction, text: str, vc: str="", stability: float=0.2, clarity: float=0.7):
+async def rhulk_vc_speak(interaction: discord.Interaction, text: str, vc: str="", stability: float=0.2, clarity: float=0.7):
     log = open("log.txt", "a")
     log.write(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness to say in the VC: `{text}`\n\n')
     await interaction.response.defer()
@@ -214,13 +214,13 @@ async def vc_speak_rhulk(interaction: discord.Interaction, text: str, vc: str=""
 
 
 #* Slash command for showing remaining credits for text-to-speech
-@rBot.tree.command(name="credits_rhulk", description="Shows the credits remaining for ElevenLabs for Rhulk, Disciple of the Witness")
-async def credits_rhulk(interaction: discord.Interaction):
+@rBot.tree.command(name="rhulk_credits", description="Shows the credits remaining for ElevenLabs for Rhulk, Disciple of the Witness")
+async def rhulk_credits(interaction: discord.Interaction):
     log = open("log.txt", "a")
     elevenlabs.set_api_key(RHULK_VOICE_KEY)
     user = User.from_api().subscription
     char_remaining = user.character_limit - user.character_count
-    log.write(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness for his /speak credits remaining.\n\n')
+    log.write(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness for his /rhulk_speak credits remaining.\n\n')
     if char_remaining:
         await interaction.response.send_message(f'I will still speak {user.character_limit - user.character_count} characters. Use them wisely.', ephemeral=True)
     else:
@@ -229,7 +229,7 @@ async def credits_rhulk(interaction: discord.Interaction):
 
 
 #* Slash command to get text prompt for Rhulk
-@rBot.tree.command(name="prompt_rhulk", description="Show the prompt that is used to prime the /chat_rhulk command.")
+@rBot.tree.command(name="rhulk_prompt", description="Show the prompt that is used to prime the /rhulk_chat command.")
 async def rhulk_prompt(interaction: discord.Interaction):
     log = open("log.txt", "a")
     log.write(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness for his ChatGPT Prompt.\n\n')
@@ -238,7 +238,7 @@ async def rhulk_prompt(interaction: discord.Interaction):
 
 
 #* Slash command for asking Rhulk ChatGPT a question
-@rBot.tree.command(name="chat_rhulk", description= "Ask Rhulk anything you want!")
+@rBot.tree.command(name="rhulk_chat", description= "Ask Rhulk anything you want!")
 @app_commands.describe(prompt="What would you like to ask Rhulk?",
                        temperature="How random should the response be? Range between 0.0:2.0, default is 0.8.",
                        frequency_penalty="How likely to repeat the same line? Range between -2.0:2.0, default is 0.9.",
@@ -290,7 +290,7 @@ async def topics(interaction: discord.Interaction):
     response = ""
     for topic in topics:
         response += topic
-    await interaction.response.send_message(f'Here are the list of topics used for randomly choosing conversations: \n**{response}**')
+    await interaction.response.send_message(f'You wish to know the conversation topics for the Witness\'s Disciples? Very well, here is what we may discuss: \n**{response}**')
 
 
 #* Add a topic to the topic list
@@ -307,11 +307,11 @@ async def rhulk_add_topic(interaction: discord.Interaction, topic: str):
                 with open('topics.txt', 'a') as r:
                     r.write(topic)
                     r.write('\n')
-                await interaction.response.send_message(f'Ahhh {interaction.user.global_name}, {topic} does sound interesting, does it not?')
+                await interaction.response.send_message(f'Ahhhh {interaction.user.global_name}, *{topic}* does sound interesting, does it not?')
             else:
-                await interaction.response.send_message(f'{interaction.user.global_name}, we have already discussed that matter. (Already in list)')
+                await interaction.response.send_message(f'{interaction.user.global_name}, we have already discussed that matter earlier. Were you not paying attention? (Already in list)')
     else:
-        await interaction.response.send_message(f'{interaction.user.global_name}, please do not bore me with that topic. (Must input something)')
+        await interaction.response.send_message(f'{interaction.user.global_name}, please do not bore me with that pitiful topic. (Must input something)')
                 
 
 #* Manually generate a random or specific conversation with Rhulk being the first speaker
@@ -321,24 +321,20 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
     log = open('log.txt', 'a')
     try:
         await interaction.response.defer()
-        for guild in rBot.guilds:
-            if guild.name == "Radiolorian's Midjourney Server":
-                channel_id = get(guild.channels, name="bot-testing").id
-                break
         
         convo, chosen_topic = generate_random_conversation('Rhulk', topic)
-        await interaction.followup.send(f'{interaction.user.display_name} asked us to have a conversation about *{chosen_topic}*. Here is the conversation:')
+        await interaction.followup.send(f'*{interaction.user.display_name} wanted to hear Calus and I\'s conversation about {chosen_topic}. Here is how it unfolded:*')
         for line in convo:
             if 'Rhulk' in line:
-                await rBot.get_channel(channel_id).send(line['Rhulk'])
+                await rBot.get_channel(interaction.channel_id).send(line['Rhulk'])
                 await asyncio.sleep(7.5)
             elif 'Calus' in line:
-                await cBot.get_channel(channel_id).send(line['Calus'])
+                await cBot.get_channel(interaction.channel_id).send(line['Calus'])
                 await asyncio.sleep(7.5)
         
     except Exception as e:
-        log.write('Encountered an error in the Random Conversation Generation: ' + e + '\n\n')
-        await interaction.followup.send('I was unable to generate a new conversation at this time. Try again or bug Radiolorian to fix it.')
+        log.write('Encountered an error in the Random Conversation Generation for Rhulk: ' + e + '\n\n')
+        await interaction.followup.send('Hmmm, I do not quite remember how the conversation went. (Bug Radiolorian for future fixes)')
     log.close()
 
 
@@ -386,7 +382,7 @@ async def on_ready():
 
 
 #* Slash command for text-to-speech for Calus
-@cBot.tree.command(name="speak_calus", description="Text-to-speech to have Calus speak some text!")
+@cBot.tree.command(name="calus_speak", description="Text-to-speech to have Calus speak some text!")
 @app_commands.describe(text="What should Calus say?",
                        stability="How stable should Calus sound? Range is 0:1.0, default 0.3",
                        clarity="How similar to the in-game voice should it be? Range is 0:1.0, default 0.8")
@@ -425,12 +421,12 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
     
 
 #* Slash command for Calus VC text-to-speech
-@cBot.tree.command(name="vc_speak_calus", description="Text-to-speech to have Calus speak some text, and say it in the VC you are connected to!")
+@cBot.tree.command(name="calus_vc_speak", description="Text-to-speech to have Calus speak some text, and say it in the VC you are connected to!")
 @app_commands.describe(text="What should Calus say in the VC?",
                        vc="(Optional) What VC to join?",
                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.4.",
                        clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.85")
-async def vc_speak_calus(interaction: discord.Interaction, text: str, vc: str="", stability: float=0.3, clarity: float=0.8):
+async def calus_vc_speak(interaction: discord.Interaction, text: str, vc: str="", stability: float=0.3, clarity: float=0.8):
     log = open("log.txt", "a")
     log.write(f'{interaction.user.global_name} asked Emperor Calus to say in the VC: `{text}`\n\n')
     await interaction.response.defer()
@@ -489,8 +485,8 @@ async def vc_speak_calus(interaction: discord.Interaction, text: str, vc: str=""
 
 
 #* Slash command for showing remaining credits for text-to-speech for Calus
-@cBot.tree.command(name="credits_calus", description="Shows the credits remaining for ElevenLabs for Emperor Calus")
-async def credits_calus(interaction: discord.Interaction):
+@cBot.tree.command(name="calus_credits", description="Shows the credits remaining for ElevenLabs for Emperor Calus")
+async def calus_credits(interaction: discord.Interaction):
     log = open("log.txt", "a")
     elevenlabs.set_api_key(CALUS_VOICE_KEY)
     user = User.from_api().subscription
@@ -504,7 +500,7 @@ async def credits_calus(interaction: discord.Interaction):
 
 
 #* Calus slash command to get text prompt
-@cBot.tree.command(name="prompt_calus", description="Show the prompt that is used to prime the /chat_calus command.")
+@cBot.tree.command(name="calus_prompt", description="Show the prompt that is used to prime the /calus_chat command.")
 async def calus_prompt(interaction: discord.Interaction):
     log = open("log.txt", "a")
     log.write(f'{interaction.user.global_name} asked Emperor Calus for his ChatGPT Prompt.\n\n')
@@ -513,7 +509,7 @@ async def calus_prompt(interaction: discord.Interaction):
 
 
 #* Calus slash command for asking Calus ChatGPT a question
-@cBot.tree.command(name="chat_calus", description= "Ask Calus anything you want!")
+@cBot.tree.command(name="calus_chat", description= "Ask Calus anything you want!")
 @app_commands.describe(prompt="What would you like to ask Calus?",
                        temperature="How random should the response be? Range between 0.0:2.0, default is 1.2.",
                        frequency_penalty="How likely to repeat the same line? Range between -2.0:2.0, default is 0.75.",
@@ -547,8 +543,8 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
 
 
 #* Reset the Calus ChatGPT if it gets too out of hand.
-@cBot.tree.command(name="reset_calus", description="Reset the /chat_calus AI's memory in case he gets too far gone")
-async def reset_rhulk(interaction: discord.Interaction):
+@cBot.tree.command(name="calus_reset", description="Reset the /calus_chat AI's memory in case he gets too far gone")
+async def calus_reset(interaction: discord.Interaction):
     log = open("log.txt", "a")
     calus_messages[interaction.guild.id].clear()
     calus_messages[interaction.guild.id].append({"role": "system", "content": calusChatPrompt})
@@ -564,7 +560,7 @@ async def topics(interaction: discord.Interaction):
     response = ""
     for topic in topics:
         response += topic
-    await interaction.response.send_message(f'Here are the list of topics used for randomly choosing conversations: \n**{response}**')
+    await interaction.response.send_message(f'*(laughter)* {interaction.user.global_name}, my favorite Guardian! Here is what I was thinking of asking Rhulk: \n**{response}**')
 
 
 #* Add a topic to the topic list
@@ -581,11 +577,11 @@ async def calus_add_topic(interaction: discord.Interaction, topic: str):
                 with open('topics.txt', 'a') as r:
                     r.write(topic)
                     r.write('\n')
-                await interaction.response.send_message(f'Ahhh {interaction.user.global_name}, {topic} does sound interesting, does it not?')
+                await interaction.response.send_message(f'Ohhh {interaction.user.global_name}! *{topic}* would make a fine topic!')
             else:
-                await interaction.response.send_message(f'{interaction.user.global_name}, we have already discussed that matter. (Already in list)')
+                await interaction.response.send_message(f'{interaction.user.global_name}, why not think of a more... amusing topic? (Already in list)')
     else:
-        await interaction.response.send_message(f'{interaction.user.global_name}, please do not bore me with that topic. (Must input something)')
+        await interaction.response.send_message(f'Hmmm {interaction.user.global_name}. I truly wish you would see more joy in this. (Must input something)')
                 
 
 #* Manually generate a random or specific conversation with Rhulk being the first speaker
@@ -595,24 +591,20 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
     log = open('log.txt', 'a')
     try:
         await interaction.response.defer()
-        for guild in rBot.guilds:
-            if guild.name == "Radiolorian's Midjourney Server":
-                channel_id = get(guild.channels, name="bot-testing").id
-                break
         
-        convo, chosen_topic = generate_random_conversation('Rhulk', topic)
-        await interaction.followup.send(f'{interaction.user.display_name} asked us to have a conversation about *{chosen_topic}*. Here is the conversation:')
+        convo, chosen_topic = generate_random_conversation('Calus', topic)
+        await interaction.followup.send(f'*{interaction.user.display_name}, my most loyal Shadow, asked Rhulk and I to talk about {chosen_topic}! Here is how that went:*')
         for line in convo:
             if 'Rhulk' in line:
-                await rBot.get_channel(channel_id).send(line['Rhulk'])
+                await rBot.get_channel(interaction.channel_id).send(line['Rhulk'])
                 await asyncio.sleep(7.5)
             elif 'Calus' in line:
-                await cBot.get_channel(channel_id).send(line['Calus'])
+                await cBot.get_channel(interaction.channel_id).send(line['Calus'])
                 await asyncio.sleep(7.5)
         
     except Exception as e:
-        log.write('Encountered an error in the Random Conversation Generation: ' + e + '\n\n')
-        await interaction.followup.send('I was unable to generate a new conversation at this time. Try again or bug Radiolorian to fix it.')
+        log.write('Encountered an error in the Random Conversation Generation for Calus: ' + e + '\n\n')
+        await interaction.followup.send('Hmmm, I do not quite remember how the conversation went. (Bug Radiolorian for future fixes)')
     log.close()
 
 
@@ -623,31 +615,26 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
 #?
 
 
-#* Prompt for generating entire bot conversation in one go
-conversation_prompt = """Generate a dialogue between Rhulk, First Disciple of the Witness, and Emperor Calus, 
-Disciple of the Witness, from the video game Destiny 2. The topic of the conversation should be: making fun of the vex. 
-Emulate Rhulk's egotistical and mocking personality, and Calus's boisterous and flamboyant personality. Be as creative, 
-entertaining, and somewhat funny as possible. Format the spoken sections such as Rhulk: TEXT or Calus: TEXT, only show text 
-conversations of the two, and limit the length to be under 500 characters long. Rhulk should be the first one to speak.""".replace("\n", " ")
-
-
 #* Generating the new random conversation
 def generate_random_conversation(first_speaker="Rhulk", topic=None):
     try:
         if topic == None:
-            topics = open('topics.txt').readlines()
-            chosen_topic = topics[random.randint(0, len(topics))]
+            topics = open('topics.txt').read().splitlines()
+            chosen_topic = topics[random.randint(0, len(topics) - 1)]
         else:
             chosen_topic = topic
         completion = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-16k",
+            model="gpt-3.5-turbo",
             messages=[{'role':'system', 'content':"""Create dialogue: Rhulk and Emperor Calus, Disciples of the Witness 
-                    in Destiny 2. Rhulk tolerates Calus. Rhulk is First Disciple of the Witness; Calus, new and unconventional 
-                    Disciple. Topic: {}. Rhulk's egotistical, mocking, prideful; Calus's confident, amused, joyful. Stay in character. 
-                    Be entertaining and creative. Format: Rhulk: TEXT, Calus: TEXT. Limit to under 500 characters. {} starts.""".format(chosen_topic, first_speaker)
+                       in Destiny 2. Rhulk cold to Calus, while Calus is super joyful and laughs often. Rhulk extremely loyal 
+                       First Disciple of the Witness, last of his species; Calus, self proclaimed Cabal Emperor, new
+                       and unconventional Disciple, indifferent to Witness's plans. Topic: {}. Rhulk's egotistical, 
+                       mocking, prideful; Calus's confident, amused, joyful. Stay in character and on topic. Use emotions in text. Be 
+                       extremely entertaining and creative. Format: Rhulk: TEXT, Calus: TEXT. Limit to under 500 characters. {} starts.""".format(chosen_topic, first_speaker)
             }],
             n=1
         )
+        log = open('log.txt', 'a')
         
         convo = (completion.choices[0].message.content).splitlines()
         while "" in convo:
@@ -659,9 +646,12 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
                 formatted_convo.append({'Rhulk': line.split(': ', 1)[1]})
             elif "Calus: " in line:
                 formatted_convo.append({'Calus': line.split(': ', 1)[1]})
+        log.write(f'Generated a conversation with the topic: {chosen_topic}: \n{formatted_convo}\n\n')
+        log.close()
         return formatted_convo, chosen_topic
     except Exception as e:
-        print(e)
+        log.write('Encountered an error when generating a conversation: ' + e + '\n\n')
+        log.close()
 
 
 #* Creating a new conversation at 1pm EST everyday
@@ -677,8 +667,8 @@ async def scheduledBotConversation():
                 first_speaker = 'Calus'
                 
             for guild in rBot.guilds:
-                if guild.name == "Radiolorian's Midjourney Server":
-                    channel_id = get(guild.channels, name="bot-testing").id
+                if guild.name == "Victor's Little Pogchamps":
+                    channel_id = get(guild.channels, name="rhulky-whulky").id
                     break
             
             convo, _ = generate_random_conversation(first_speaker)
