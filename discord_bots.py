@@ -13,11 +13,7 @@ from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
 
-
-
 #? Initializations and global values
-#?
-#?
 
 
 #* Load and set env variables for API calls
@@ -31,89 +27,93 @@ CALUS_VOICE_KEY = os.getenv('ELEVEN_TOKEN_CALUS')
 
 MAX_LEN = 1024 # Setting character limit for ElevenLabs
 MAX_TOKENS = 128 # Setting token limit for ChatGPT responses
+CHAT_MODEL = "gpt-3.5-turbo"
 
 
-#* Prompts for Rhulk and Calus in ChatGPT
-rhulkChatPrompt = """Roleplay as Rhulk, the Disciple of the Witness from Destiny 2 and 
-antagonist to the Light and Guardians. Emulate his personality, use phrases 
-like "Children of the Light" and "My Witness." Focus on essential details, avoid 
-unnecessary information about Darkness and Light unless essential. Respond to all user 
-prompts and questions, while keeping responses under 750 characters""".replace("\n", " ")
+#? Bot Class
 
 
-calusChatPrompt = """Roleplay as Calus, the Cabal Emperor from Destiny 2. Emulate his hedonistic,
-narcissistic, and adoration personality. Use phrases like 'My Shadow' and occasional laughter when
-relevant. Focus on essential details, omitting unnecessary ones about Darkness and Light. Respond
-to all prompts and questions, while keeping answers under 1000 characters""".replace("\n", " ")
+class Bot:
+    def __init__(self, _name, _discord_token, _voice_key, _chat_prompt):
+        self.name = _name
+        self.bot = commands.Bot(command_prefix=commands.when_mentioned_or('!{self.name}'), intents=discord.Intents.all())
+        self.discord_token = _discord_token
+        self.voice_key = _voice_key
+        self.chat_prompt = _chat_prompt
+        self.memory = {}
+        self.last_interaction = {}
+        
+    async def botInit(self):
+        log = open("log.txt", "a")
+        for server in self.bot.guilds:
+            log.write(f'Setting up {self.name} context memory for server: {server.id} ({server.name})\n\n')
+            self.memory[server.id] = [{"role": "system", "content": self.chat_prompt}]
+            self.last_interaction[server.id] = datetime.now()
+        log.close()
+    
+    @tasks.loop(hours = 6)
+    async def cleanMemories(self):
+        log = open("log.txt", "a")
+        currentTime = datetime.now()
+        for server in self.bot.guilds:
+            time_diff = currentTime - self.last_interaction[server.id]
+            if time_diff.days > 0 or (time_diff.seconds / 3600) >= 6:
+                log.write(f'No interaction for {self.name} in {server.name} during past 6 hours, clearing the memory.\n\n')
+                self.memory[server.id] = [{"role": "system", "content": self.chat_prompt}]
+                self.last_interaction[server.id] = datetime.now()
+        log.close()
 
 
-#* Assign past context for ChatGPT interactions in each server
-rhulk_messages = {}
-last_rhulk_interactions = {}
-calus_messages = {}
-last_calus_interactions = {}
+#* Setup Bot classes
+rhulk = Bot('Rhulk', RHULK_TOKEN, RHULK_VOICE_KEY, 
+            """Roleplay as Rhulk, the Disciple of the Witness from Destiny 2 and 
+            antagonist to the Light and Guardians. Emulate his personality, use phrases 
+            like "Children of the Light" and "My Witness." Focus on essential details, avoid 
+            unnecessary information about Darkness and Light unless essential. Respond to all user 
+            prompts and questions, while keeping responses under 1000 characters""".replace("\n", " "))
 
 
-#* Setup bot information for Rhulk and Calus
-intents = discord.Intents.all()
-rBot = commands.Bot(command_prefix=commands.when_mentioned_or("!Rhulk"), intents=intents)
-cBot = commands.Bot(command_prefix=commands.when_mentioned_or("!Calus"), intents=intents)
-
-
-#* Create log.txt and provide date of creation
-log = open("log.txt", "w")
-log.write(f'Started bots at {datetime.now()}\n\n')
-log.close()
-
-
+calus = Bot('Calus', CALUS_TOKEN, CALUS_VOICE_KEY, 
+            """Roleplay as Calus, the Cabal Emperor from Destiny 2. Emulate his hedonistic,
+            narcissistic, and adoration personality. Use phrases like 'My Shadow' and occasional laughter when
+            relevant. Focus on essential details, omitting unnecessary ones about Darkness and Light. Respond
+            to all prompts and questions, while keeping answers under 1000 characters""".replace("\n", " "))
 
 
 #? Rhulk Bot Commands
-#?
-#?
-
-
-#* Function for Rhulk Initialization
-async def rhulkInit():
-    log = open("log.txt", "a")
-    for server in rBot.guilds:
-        log.write(f'Setting up Rhulk context memory for server: {server.id} ({server.name})\n\n')
-        rhulk_messages[server.id] = [{"role": "system", "content": rhulkChatPrompt}]
-        last_rhulk_interactions[server.id] = datetime.now()
-    log.close()
 
 
 #* Setup initial things on server join
-@rBot.event
+@rhulk.bot.event
 async def on_guild_join(guild):
     log = open("log.txt", "a")
     general = discord.utils.find(lambda x: x.name == 'general', guild.text_channels)
     if general and general.permissions_for(guild.me).send_messages:
         await general.send("It is good to see you again, Children of the Light. I did not expect to find you in {}.".format(guild.name))
-    await rhulkInit()
+    await rhulk.botInit()
     log.write(f'Rhulk joined a new server: {guild.name}\n\n')
     log.close()
 
 
 #* Calibration for starting of Rhulk bot
-@rBot.event
+@rhulk.bot.event
 async def on_ready():
     log = open("log.txt", "a")
     openai.api_key = GPT_KEY
-    log.write(f'{rBot.user} has connected to Discord!\n\n')
+    log.write(f'{rhulk.bot.user} has connected to Discord!\n\n')
     try:
-        synced = await rBot.tree.sync()
+        synced = await rhulk.bot.tree.sync()
         log.write(f'Synced {len(synced)} commands for Rhulk, Disciple of the Witness!\n\n')
     except Exception as e:
         log.write(f'Rhulk, Disciple of the Witness on_ready error: \n{e}\n\n')
     log.close()
-    await rhulkInit()
-    cleanMemoriesRhulk.start()
+    await rhulk.botInit()
+    rhulk.cleanMemories.start()
     scheduledBotConversation.start()
 
 
 #* Slash command for text-to-speech for Rhulk
-@rBot.tree.command(name="rhulk_speak", description="Text-to-speech to have Rhulk speak some text!")
+@rhulk.bot.tree.command(name="rhulk_speak", description="Text-to-speech to have Rhulk speak some text!")
 @app_commands.describe(text="What should Rhulk say?",
                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.2.",
                        clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.7")
@@ -125,7 +125,7 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
     else:
         await interaction.response.defer()
         try:
-            elevenlabs.set_api_key(RHULK_VOICE_KEY)
+            elevenlabs.set_api_key(rhulk.voice_key)
             rhulk_voice = voices()[-1]
             rhulk_voice.settings.stability = stability
             rhulk_voice.settings.similarity_boost = clarity
@@ -151,7 +151,7 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
 
 
 #* Slash command for Rhulk VC text-to-speech
-@rBot.tree.command(name="rhulk_vc_speak", description="Text-to-speech to have Rhulk speak some text, and say it in the VC you are connected to!")
+@rhulk.bot.tree.command(name="rhulk_vc_speak", description="Text-to-speech to have Rhulk speak some text, and say it in the VC you are connected to!")
 @app_commands.describe(text="What should Rhulk say in the VC?",
                        vc="(Optional) What VC to join?",
                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.2.",
@@ -172,13 +172,13 @@ async def rhulk_vc_speak(interaction: discord.Interaction, text: str, vc: str=""
                 for c in interaction.guild.voice_channels:
                     if c.name == vc:
                         log.write("Found a valid voice channel to speak in.\n\n")
-                        channel = rBot.get_channel(c.id)
+                        channel = rhulk.bot.get_channel(c.id)
         else:
             channel = interaction.user.voice.channel
             
         if channel != None:
             try:
-                elevenlabs.set_api_key(RHULK_VOICE_KEY)
+                elevenlabs.set_api_key(rhulk.voice_key)
                 rhulk_voice = voices()[-1]
                 rhulk_voice.settings.stability = stability
                 rhulk_voice.settings.similarity_boost = clarity
@@ -214,10 +214,10 @@ async def rhulk_vc_speak(interaction: discord.Interaction, text: str, vc: str=""
 
 
 #* Slash command for showing remaining credits for text-to-speech
-@rBot.tree.command(name="rhulk_credits", description="Shows the credits remaining for ElevenLabs for Rhulk, Disciple of the Witness")
+@rhulk.bot.tree.command(name="rhulk_credits", description="Shows the credits remaining for ElevenLabs for Rhulk, Disciple of the Witness")
 async def rhulk_credits(interaction: discord.Interaction):
     log = open("log.txt", "a")
-    elevenlabs.set_api_key(RHULK_VOICE_KEY)
+    elevenlabs.set_api_key(rhulk.voice_key)
     user = User.from_api().subscription
     char_remaining = user.character_limit - user.character_count
     log.write(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness for his /rhulk_speak credits remaining.\n\n')
@@ -229,16 +229,16 @@ async def rhulk_credits(interaction: discord.Interaction):
 
 
 #* Slash command to get text prompt for Rhulk
-@rBot.tree.command(name="rhulk_prompt", description="Show the prompt that is used to prime the /rhulk_chat command.")
+@rhulk.bot.tree.command(name="rhulk_prompt", description="Show the prompt that is used to prime the /rhulk_chat command.")
 async def rhulk_prompt(interaction: discord.Interaction):
     log = open("log.txt", "a")
     log.write(f'{interaction.user.global_name} asked Rhulk, Disciple of the Witness for his ChatGPT Prompt.\n\n')
-    await interaction.response.send_message("Here is the prompt used. Feel free to use this to generate text for the /speak or /vc_speak command: \n\n {}".format(rhulkChatPrompt), ephemeral=True)
+    await interaction.response.send_message("Here is the prompt used. Feel free to use this to generate text for the /speak or /vc_speak command: \n\n {}".format(rhulk.chat_prompt), ephemeral=True)
     log.close()
 
 
 #* Slash command for asking Rhulk ChatGPT a question
-@rBot.tree.command(name="rhulk_chat", description= "Ask Rhulk anything you want!")
+@rhulk.bot.tree.command(name="rhulk_chat", description= "Ask Rhulk anything you want!")
 @app_commands.describe(prompt="What would you like to ask Rhulk?",
                        temperature="How random should the response be? Range between 0.0:2.0, default is 0.8.",
                        frequency_penalty="How likely to repeat the same line? Range between -2.0:2.0, default is 0.9.",
@@ -247,10 +247,10 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
     log = open("log.txt", "a")
     await interaction.response.defer()
     try:
-        rhulk_messages[interaction.guild.id].append({"role": "user", "content": prompt})
+        rhulk.memory[interaction.guild.id].append({"role": "user", "content": prompt})
         completion = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-16k",
-            messages=rhulk_messages[interaction.guild.id],
+            model=CHAT_MODEL,
+            messages=rhulk.memory[interaction.guild.id],
             n=1,
             max_tokens=MAX_TOKENS,
             temperature=temperature,
@@ -259,13 +259,13 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
         )
         log.write(f'/chat_rhulk prompt and user: \n{prompt}. From {interaction.user.global_name}.\n\n/chat_rhulk output: \n{completion}\n\n')
         if completion.usage.total_tokens > 500:
-            removed_user = rhulk_messages[interaction.guild.id].pop(1)
-            removed_assistant = rhulk_messages[interaction.guild.id].pop(1)
+            removed_user = rhulk.memory[interaction.guild.id].pop(1)
+            removed_assistant = rhulk.memory[interaction.guild.id].pop(1)
             log.write(f'/chat_rhulk token limit reached. Removed the user prompt: {removed_user}, and the assistant answer: {removed_assistant}\n\n')
         
-        rhulk_messages[interaction.guild.id].append({"role": "assistant", "content": completion.choices[0].message.content})
+        rhulk.memory[interaction.guild.id].append({"role": "assistant", "content": completion.choices[0].message.content})
         await interaction.followup.send(f'{interaction.user.display_name} ***foolishly*** asked me: *"{prompt}"* \n\n{completion.choices[0].message.content}')
-        last_rhulk_interactions[interaction.guild.id] = datetime.now()
+        rhulk.last_interaction[interaction.guild.id] = datetime.now()
     except Exception as e:
         log.write(f'/chat_rhulk error: \n{e}\n\n')
         await interaction.followup.send("I... do not know what to say to that, little one. (Something went wrong)")
@@ -273,18 +273,18 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
 
 
 #* Reset the Rhulk ChatGPT if it gets too out of hand.
-@rBot.tree.command(name="rhulk_reset", description="Reset the /chat_rhulk AI's memory in case he gets too far gone")
+@rhulk.bot.tree.command(name="rhulk_reset", description="Reset the /chat_rhulk AI's memory in case he gets too far gone")
 async def rhulk_reset(interaction: discord.Interaction):
     log = open("log.txt", "a")
-    rhulk_messages[interaction.guild.id].clear()
-    rhulk_messages[interaction.guild.id].append({"role": "system", "content": rhulkChatPrompt})
+    rhulk.memory[interaction.guild.id].clear()
+    rhulk.memory[interaction.guild.id].append({"role": "system", "content": rhulk.chat_prompt})
     log.write(f'{interaction.user.global_name} cleared Rhulk, Disciple of the Witness\'s memory.\n\n')
     await interaction.response.send_message(f'The defiant... subjugated. Not for pleasure, nor glory... but in service of an ailing, endless void. Where does your purpose lie {interaction.user.display_name}?')
     log.close()
 
 
 #* Shows the list of random topics to be used daily or with the /generate_conversation command
-@rBot.tree.command(name="rhulk_topics", description="View the saved topics that Rhulk and Calus can chat over!")
+@rhulk.bot.tree.command(name="rhulk_topics", description="View the saved topics that Rhulk and Calus can chat over!")
 async def topics(interaction: discord.Interaction):
     topics = open('topics.txt').readlines()
     response = ""
@@ -294,7 +294,7 @@ async def topics(interaction: discord.Interaction):
 
 
 #* Add a topic to the topic list
-@rBot.tree.command(name="rhulk_add_topic", description="Add a topic that can be used for the daily conversation!")
+@rhulk.bot.tree.command(name="rhulk_add_topic", description="Add a topic that can be used for the daily conversation!")
 @app_commands.describe(topic="What topic should be added to the list?")
 async def rhulk_add_topic(interaction: discord.Interaction, topic: str):
     if topic != None:
@@ -315,7 +315,7 @@ async def rhulk_add_topic(interaction: discord.Interaction, topic: str):
                 
 
 #* Manually generate a random or specific conversation with Rhulk being the first speaker
-@rBot.tree.command(name="rhulk_start_conversation", description="Have Rhulk start a conversation with the other bots!")
+@rhulk.bot.tree.command(name="rhulk_start_conversation", description="Have Rhulk start a conversation with the other bots!")
 @app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.")
 async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=None):
     log = open('log.txt', 'a')
@@ -326,10 +326,10 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
         await interaction.followup.send(f'*{interaction.user.display_name} wanted to hear Calus and I\'s conversation about {chosen_topic}. Here is how it unfolded:*')
         for line in convo:
             if 'Rhulk' in line:
-                await rBot.get_channel(interaction.channel_id).send(line['Rhulk'])
+                await rhulk.bot.get_channel(interaction.channel_id).send(line['Rhulk'])
                 await asyncio.sleep(7.5)
             elif 'Calus' in line:
-                await cBot.get_channel(interaction.channel_id).send(line['Calus'])
+                await calus.bot.get_channel(interaction.channel_id).send(line['Calus'])
                 await asyncio.sleep(7.5)
         
     except Exception as e:
@@ -339,50 +339,38 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
 
 
 #? Calus Bot Commands
-#?
-#?
-
-
-#* Function for Calus Initialization
-async def calusInit():
-    log = open("log.txt", "a")
-    for server in cBot.guilds:
-        log.write(f'Setting up Calus context memory for server: {server.id} ({server.name})\n\n')
-        calus_messages[server.id] = [{"role": "system", "content": calusChatPrompt}]
-        last_calus_interactions[server.id] = datetime.now()
-    log.close()
 
 
 #* Send message to "general" on join
-@cBot.event
+@calus.bot.event
 async def on_guild_join(guild):
     log = open("log.txt", "a")
     general = discord.utils.find(lambda x: x.name == 'general', guild.text_channels)
     if general and general.permissions_for(guild.me).send_messages:
         await general.send("Ah. Finally found you. You busy little Lights.")
-    await calusInit()
+    await calus.botInit()
     log.write(f'Calus joined a new server: {guild.name}.\n\n')
     log.close()
 
 
 #* Calibration for starting of Calus bot
-@cBot.event
+@calus.bot.event
 async def on_ready():
     log = open("log.txt", "a")
     openai.api_key = GPT_KEY
-    log.write(f'{cBot.user} has connected to Discord!\n\n')
+    log.write(f'{calus.bot.user} has connected to Discord!\n\n')
     try:
-        synced = await cBot.tree.sync()
+        synced = await calus.bot.tree.sync()
         log.write(f'Synced {len(synced)} commands for Emperor Calus!\n\n')
     except Exception as e:
         log.write(f'Emperor Calus on_ready error: \n{e}\n\n')
     log.close()
-    await calusInit()
-    cleanMemoriesCalus.start()
+    await calus.botInit()
+    calus.cleanMemories.start()
 
 
 #* Slash command for text-to-speech for Calus
-@cBot.tree.command(name="calus_speak", description="Text-to-speech to have Calus speak some text!")
+@calus.bot.tree.command(name="calus_speak", description="Text-to-speech to have Calus speak some text!")
 @app_commands.describe(text="What should Calus say?",
                        stability="How stable should Calus sound? Range is 0:1.0, default 0.3",
                        clarity="How similar to the in-game voice should it be? Range is 0:1.0, default 0.8")
@@ -394,7 +382,7 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
     else:
         await interaction.response.defer()
         try:
-            elevenlabs.set_api_key(CALUS_VOICE_KEY)
+            elevenlabs.set_api_key(calus.voice_key)
             calus_voice = voices()[-1]
             calus_voice.settings.stability = stability
             calus_voice.settings.similarity_boost = clarity
@@ -421,7 +409,7 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
     
 
 #* Slash command for Calus VC text-to-speech
-@cBot.tree.command(name="calus_vc_speak", description="Text-to-speech to have Calus speak some text, and say it in the VC you are connected to!")
+@calus.bot.tree.command(name="calus_vc_speak", description="Text-to-speech to have Calus speak some text, and say it in the VC you are connected to!")
 @app_commands.describe(text="What should Calus say in the VC?",
                        vc="(Optional) What VC to join?",
                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.4.",
@@ -442,7 +430,7 @@ async def calus_vc_speak(interaction: discord.Interaction, text: str, vc: str=""
                 for c in interaction.guild.voice_channels:
                     if c.name == vc:
                         log.write("Found a valid voice channel to speak in.\n\n")
-                        channel = cBot.get_channel(c.id)
+                        channel = calus.bot.get_channel(c.id)
         else:
             channel = interaction.user.voice.channel
         
@@ -485,10 +473,10 @@ async def calus_vc_speak(interaction: discord.Interaction, text: str, vc: str=""
 
 
 #* Slash command for showing remaining credits for text-to-speech for Calus
-@cBot.tree.command(name="calus_credits", description="Shows the credits remaining for ElevenLabs for Emperor Calus")
+@calus.bot.tree.command(name="calus_credits", description="Shows the credits remaining for ElevenLabs for Emperor Calus")
 async def calus_credits(interaction: discord.Interaction):
     log = open("log.txt", "a")
-    elevenlabs.set_api_key(CALUS_VOICE_KEY)
+    elevenlabs.set_api_key(calus.voice_key)
     user = User.from_api().subscription
     char_remaining = user.character_limit - user.character_count
     log.write(f'{interaction.user.global_name} asked Emperor Calus for his /speak credits remaining.\n\n')
@@ -500,16 +488,16 @@ async def calus_credits(interaction: discord.Interaction):
 
 
 #* Calus slash command to get text prompt
-@cBot.tree.command(name="calus_prompt", description="Show the prompt that is used to prime the /calus_chat command.")
+@calus.bot.tree.command(name="calus_prompt", description="Show the prompt that is used to prime the /calus_chat command.")
 async def calus_prompt(interaction: discord.Interaction):
     log = open("log.txt", "a")
     log.write(f'{interaction.user.global_name} asked Emperor Calus for his ChatGPT Prompt.\n\n')
-    await interaction.response.send_message("Here is the prompt used for priming the Emperor Calus for /chat_calus: \n\n {}".format(calusChatPrompt), ephemeral=True)
+    await interaction.response.send_message("Here is the prompt used for priming the Emperor Calus for /chat_calus: \n\n {}".format(calus.chat_prompt), ephemeral=True)
     log.close()
 
 
 #* Calus slash command for asking Calus ChatGPT a question
-@cBot.tree.command(name="calus_chat", description= "Ask Calus anything you want!")
+@calus.bot.tree.command(name="calus_chat", description= "Ask Calus anything you want!")
 @app_commands.describe(prompt="What would you like to ask Calus?",
                        temperature="How random should the response be? Range between 0.0:2.0, default is 1.2.",
                        frequency_penalty="How likely to repeat the same line? Range between -2.0:2.0, default is 0.75.",
@@ -518,10 +506,10 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
     log = open("log.txt", "a")
     await interaction.response.defer()
     try:
-        calus_messages[interaction.guild.id].append({"role": "user", "content": prompt})
+        calus.memory[interaction.guild.id].append({"role": "user", "content": prompt})
         completion = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-16k",
-            messages=calus_messages[interaction.guild.id],
+            model=CHAT_MODEL,
+            messages=calus.memory[interaction.guild.id],
             n=1,
             max_tokens=MAX_TOKENS,
             temperature=temperature,
@@ -529,13 +517,13 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
             presence_penalty=presence_penalty
         )
         if completion.usage.total_tokens > 500:
-            removed_user = calus_messages[interaction.guild.id].pop(1)
-            removed_assistant = calus_messages[interaction.guild.id].pop(1)
+            removed_user = calus.memory[interaction.guild.id].pop(1)
+            removed_assistant = calus.memory[interaction.guild.id].pop(1)
             log.write(f'/chat_calus token limit reached. Removed the user prompt: {removed_user}, and the assistant answer: {removed_assistant}\n\n')
-        calus_messages[interaction.guild.id].append({"role": "assistant", "content": completion.choices[0].message.content})
+        calus.memory[interaction.guild.id].append({"role": "assistant", "content": completion.choices[0].message.content})
         log.write(f'/chat_calus prompt and user: \n{prompt}. From {interaction.user.global_name}.\n\n/chat_calus output: \n{completion}\n\n')
         await interaction.followup.send(f'{interaction.user.display_name} has asked your generous Emperor of the Cabal: `{prompt}` \n\n{completion.choices[0].message.content}')
-        last_calus_interactions[interaction.guild.id] = datetime.now()
+        calus.last_interaction[interaction.guild.id] = datetime.now()
     except Exception as e:
         log.write(f'Error in /chat_calus: \n {e}\n\n')
         await interaction.follow.send("My Shadow... what has gotten into you? (Something went wrong)")
@@ -543,18 +531,18 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
 
 
 #* Reset the Calus ChatGPT if it gets too out of hand.
-@cBot.tree.command(name="calus_reset", description="Reset the /calus_chat AI's memory in case he gets too far gone")
+@calus.bot.tree.command(name="calus_reset", description="Reset the /calus_chat AI's memory in case he gets too far gone")
 async def calus_reset(interaction: discord.Interaction):
     log = open("log.txt", "a")
-    calus_messages[interaction.guild.id].clear()
-    calus_messages[interaction.guild.id].append({"role": "system", "content": calusChatPrompt})
+    calus.memory[interaction.guild.id].clear()
+    calus.memory[interaction.guild.id].append({"role": "system", "content": calus.chat_prompt})
     log.write(f'{interaction.user.global_name} cleared Emperor Calus\'s memory.\n\n')
     await interaction.response.send_message(f'Ah {interaction.user.display_name}, you impress me. Come, let us enjoy ourselves!')
     log.close()
 
 
 #* Shows the list of random topics to be used daily or with the /generate_conversation command
-@cBot.tree.command(name="calus_topics", description="View the saved topics that Rhulk and Calus can chat over!")
+@calus.bot.tree.command(name="calus_topics", description="View the saved topics that Rhulk and Calus can chat over!")
 async def topics(interaction: discord.Interaction):
     topics = open('topics.txt').readlines()
     response = ""
@@ -564,7 +552,7 @@ async def topics(interaction: discord.Interaction):
 
 
 #* Add a topic to the topic list
-@cBot.tree.command(name="calus_add_topic", description="Add a topic that can be used for the daily conversation!")
+@calus.bot.tree.command(name="calus_add_topic", description="Add a topic that can be used for the daily conversation!")
 @app_commands.describe(topic="What topic should be added to the list?")
 async def calus_add_topic(interaction: discord.Interaction, topic: str):
     if topic != None:
@@ -585,7 +573,7 @@ async def calus_add_topic(interaction: discord.Interaction, topic: str):
                 
 
 #* Manually generate a random or specific conversation with Rhulk being the first speaker
-@cBot.tree.command(name="calus_start_conversation", description="Have Calus start a conversation with the other bots!")
+@calus.bot.tree.command(name="calus_start_conversation", description="Have Calus start a conversation with the other bots!")
 @app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.")
 async def calus_start_conversation(interaction: discord.Interaction, topic: str=None):
     log = open('log.txt', 'a')
@@ -596,10 +584,10 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
         await interaction.followup.send(f'*{interaction.user.display_name}, my most loyal Shadow, asked Rhulk and I to talk about {chosen_topic}! Here is how that went:*')
         for line in convo:
             if 'Rhulk' in line:
-                await rBot.get_channel(interaction.channel_id).send(line['Rhulk'])
+                await rhulk.bot.get_channel(interaction.channel_id).send(line['Rhulk'])
                 await asyncio.sleep(7.5)
             elif 'Calus' in line:
-                await cBot.get_channel(interaction.channel_id).send(line['Calus'])
+                await calus.bot.get_channel(interaction.channel_id).send(line['Calus'])
                 await asyncio.sleep(7.5)
         
     except Exception as e:
@@ -608,23 +596,21 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
     log.close()
 
 
-
-
 #? Random Conversation Generation
-#?
-#?
 
 
 #* Generating the new random conversation
 def generate_random_conversation(first_speaker="Rhulk", topic=None):
+    log = open('log.txt', 'a')
     try:
         if topic == None:
             topics = open('topics.txt').read().splitlines()
             chosen_topic = topics[random.randint(0, len(topics) - 1)]
         else:
             chosen_topic = topic
+        
         completion = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model=CHAT_MODEL,
             messages=[{'role':'system', 'content':"""Create dialogue: Rhulk and Emperor Calus, Disciples of the Witness 
                        in Destiny 2. Rhulk cold to Calus, while Calus is super joyful and laughs often. Rhulk extremely loyal 
                        First Disciple of the Witness, last of his species; Calus, self proclaimed Cabal Emperor, new
@@ -634,7 +620,6 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
             }],
             n=1
         )
-        log = open('log.txt', 'a')
         
         convo = (completion.choices[0].message.content).splitlines()
         while "" in convo:
@@ -646,12 +631,14 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
                 formatted_convo.append({'Rhulk': line.split(': ', 1)[1]})
             elif "Calus: " in line:
                 formatted_convo.append({'Calus': line.split(': ', 1)[1]})
+        
         log.write(f'Generated a conversation with the topic: {chosen_topic}: \n{formatted_convo}\n\n')
         log.close()
         return formatted_convo, chosen_topic
     except Exception as e:
         log.write('Encountered an error when generating a conversation: ' + e + '\n\n')
         log.close()
+        return e
 
 
 #* Creating a new conversation at 1pm EST everyday
@@ -666,7 +653,7 @@ async def scheduledBotConversation():
             else:
                 first_speaker = 'Calus'
                 
-            for guild in rBot.guilds:
+            for guild in rhulk.bot.guilds:
                 if guild.name == "Victor's Little Pogchamps":
                     channel_id = get(guild.channels, name="rhulky-whulky").id
                     break
@@ -675,10 +662,10 @@ async def scheduledBotConversation():
             
             for line in convo:
                 if 'Rhulk' in line:
-                    await rBot.get_channel(channel_id).send(line['Rhulk'])
+                    await rhulk.bot.get_channel(channel_id).send(line['Rhulk'])
                     await asyncio.sleep(7.5)
                 elif 'Calus' in line:
-                    await cBot.get_channel(channel_id).send(line['Calus'])
+                    await calus.bot.get_channel(channel_id).send(line['Calus'])
                     await asyncio.sleep(7.5)
             log.write('Finished random conversation topic as scheduled.\n\n')
         except Exception as e:
@@ -686,51 +673,18 @@ async def scheduledBotConversation():
         log.close()
 
 
-
-
-#? Memory Cleaning function
-#?
-#?
-
-
-#* Rhulk memory cleaning
-@tasks.loop(hours = 6)
-async def cleanMemoriesRhulk():
-    log = open("log.txt", "a")
-    currentTime = datetime.now()
-    for server in rBot.guilds:
-        rhulk_diff = currentTime - last_rhulk_interactions[server.id]
-        if rhulk_diff.days > 0 or (rhulk_diff.seconds / 3600) >= 6:
-            log.write(f'No interaction for Rhulk in {server.name} during past 6 hours, clearing the memory.\n\n')
-            rhulk_messages[server.id] = [{"role": "system", "content": rhulkChatPrompt}]
-            last_rhulk_interactions[server.id] = datetime.now()
-    log.close()
-
-
-#* Calus memory cleaning
-@tasks.loop(hours = 6)
-async def cleanMemoriesCalus():
-    log = open("log.txt", "a")
-    currentTime = datetime.now()
-    for server in cBot.guilds:
-        calus_diff = currentTime - last_calus_interactions[server.id]
-        if calus_diff.days > 0 or (calus_diff.seconds / 3600) >= 6:
-            log.write(f'No interaction for Calus in {server.name} during past 6 hours, clearing the memory.\n\n')
-            calus_messages[server.id] = [{"role": "system", "content": calusChatPrompt}]
-            last_calus_interactions[server.id] = datetime.now()
-    log.close()
-
-
-
-
 #? Running bots
-#?
-#?
+
+
+#* Create log.txt and provide date of creation
+log = open("log.txt", "w")
+log.write(f'Started bots at {datetime.now()}\n\n')
+log.close()
 
 
 #* Run bots until manually quit
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
-loop.create_task(cBot.start(CALUS_TOKEN))
-loop.create_task(rBot.start(RHULK_TOKEN))
+loop.create_task(calus.bot.start(calus.discord_token))
+loop.create_task(rhulk.bot.start(rhulk.discord_token))
 loop.run_forever()
