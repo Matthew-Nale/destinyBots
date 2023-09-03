@@ -202,8 +202,9 @@ class Bot:
                     if len(split_text) < 5:
                         filename = f'{split_text[0]}.mp3'
                     else:
-                        
-                        filename = f'{split_text[0]}_{split_text[1]}_{split_text[2]}_{split_text[3]}_{split_text[4]}.mp3'
+                        translator = str.maketrans('', '', string.punctuation)
+                        cleaned_words = [word.translate(translator) for word in split_text]
+                        filename = f'{cleaned_words[0]}_{cleaned_words[1]}_{cleaned_words[2]}_{cleaned_words[3]}_{cleaned_words[4]}.mp3'
                     save(audio, filename)
                     vc = await channel.connect()
                     await asyncio.sleep(1)
