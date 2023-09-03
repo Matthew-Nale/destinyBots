@@ -70,7 +70,7 @@ class Bot:
     # Show remaining ElevenLabs credits
     async def credits(self, interaction: discord.Interaction):
         log = open("log.txt", "a")
-        user = self.elevenlabs.get_credits()
+        user = self.elevenlabs.get_user()
         char_remaining = user['character_limit'] - user['character_count']
         log.write(f'{interaction.user.global_name} asked {self.name} for his ElevenLabs credits remaining.\n\n')
         if char_remaining:

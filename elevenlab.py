@@ -15,8 +15,8 @@ class ElevenLabs:
         if name_check:
             self.voice = name_check[0]
 
-    # Obtain credits remaining on ElevenLabs account
-    def get_credits(self):
+    # Obtain user data from ElevenLabs
+    def get_user(self):
         request = re.get(ELEVEN_BASE_URL + '/v1/user/subscription', headers={'XI-API-KEY': self.api_key})
         return request.json()
     
