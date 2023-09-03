@@ -1,16 +1,17 @@
 import os
 import discord
 import openai
-import elevenlabs
 import asyncio
 import random
 import pytz
+import requests as re
 from datetime import datetime
 from elevenlabs import generate, save, voices, User
 from discord import app_commands
 from discord.utils import get
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
+from elevenlab import *
 
 
 #? Initializations and global values
@@ -28,6 +29,8 @@ CALUS_VOICE_KEY = os.getenv('ELEVEN_TOKEN_CALUS')
 MAX_LEN = 1024 # Setting character limit for ElevenLabs
 MAX_TOKENS = 128 # Setting token limit for ChatGPT responses
 CHAT_MODEL = "gpt-3.5-turbo" # Model for OpenAI Completions to use
+VOICE_MODEL = "eleven_english_v2" # Model used for ElevenLabs voice synthesis
+ELEVEN_BASE_URL = 'https://api.elevenlabs.io'
 
 
 #? Bot Class for general functions
@@ -35,12 +38,11 @@ CHAT_MODEL = "gpt-3.5-turbo" # Model for OpenAI Completions to use
 
 class Bot:
     # Constructor for the class
-    def __init__(self, _name, _discord_token, _voice, _voice_key, _chat_prompt, _status_messages):
+    def __init__(self, _name, _discord_token, _voice_name, _voice_key, _chat_prompt, _status_messages):
         self.name = _name
         self.bot = commands.Bot(command_prefix=commands.when_mentioned_or('!{self.name}'), intents=discord.Intents.all())
         self.discord_token = _discord_token
-        self.voice = _voice
-        self.voice_key = _voice_key
+        self.elevenlabs = ElevenLabs(_voice_name, _voice_key)
         self.chat_prompt = _chat_prompt
         self.status_messages = _status_messages
         self.memory = {}
@@ -85,12 +87,11 @@ class Bot:
     # Show remaining ElevenLabs credits
     async def credits(self, interaction: discord.Interaction):
         log = open("log.txt", "a")
-        elevenlabs.set_api_key(self.voice_key)
-        user = User.from_api().subscription
-        char_remaining = user.character_limit - user.character_count
+        user = self.elevenlabs.get_credits()
+        char_remaining = user['character_limit'] - user['character_count']
         log.write(f'{interaction.user.global_name} asked {self.name} for his ElevenLabs credits remaining.\n\n')
         if char_remaining:
-            await interaction.response.send_message(f'I will still speak {user.character_limit - user.character_count} characters. Use them wisely.', ephemeral=True)
+            await interaction.response.send_message(f'I will still speak {char_remaining} characters. Use them wisely.', ephemeral=True)
         else:
             await interaction.response.send_message('{} (Reached character quota for this month)'.format(self.status_messages['credits']))
         log.close()
@@ -112,7 +113,7 @@ class Bot:
         log.close()
     
     # Obtain a GPT response from the bot
-    async def chat(self, interaction: discord.Interaction, prompt: str, temperature: float=0.8, frequency_penalty: float=0.9, presence_penalty: float=0.75):
+    async def chat(self, interaction: discord.Interaction, prompt: str, temperature: float, frequency_penalty: float, presence_penalty: float):
         log = open("log.txt", "a")
         await interaction.response.defer()
         try:
@@ -143,7 +144,7 @@ class Bot:
         log.close()
     
     # Have the bot speak a line of text
-    async def speak(self, interaction: discord.Interaction, text: str, stability: float, clarity: float):
+    async def speak(self, interaction: discord.Interaction, text: str, stability: float, clarity: float, style: float):
         log = open("log.txt", "a")
         log.write(f'{interaction.user.global_name} asked {self.name} to say: `{text}`\n\n')
         if len(text) > MAX_LEN:
@@ -153,14 +154,13 @@ class Bot:
         else:
             await interaction.response.defer()
             try:
-                voice = self.voice
-                elevenlabs.set_api_key(self.voice_key)
-                voice.settings.stability = stability
-                voice.settings.similarity_boost = clarity
-                audio = generate(
+                audio = self.elevenlabs.generate(
                     text=text,
-                    voice=voice,
-                    model="eleven_monolingual_v1"
+                    model=VOICE_MODEL,
+                    stability=stability,
+                    similarity_boost=clarity,
+                    style=style,
+                    use_speaker_boost=True
                 )
                 filename = f'{text.split()[0]}.mp3'
                 split_text = text.split()
@@ -179,7 +179,7 @@ class Bot:
         log.close()
     
     # Have the bot speak text in a VC
-    async def vc_speak(self, interaction: discord.Interaction, text: str, vc: str="", stability: float=0.2, clarity: float=0.7):
+    async def vc_speak(self, interaction: discord.Interaction, text: str, vc: str="", stability: float=0.2, clarity: float=0.7, style: float=0.1):
         log = open("log.txt", "a")
         log.write(f'{interaction.user.global_name} asked {self.name} to say in the VC: `{text}`\n\n')
         await interaction.response.defer()
@@ -203,14 +203,13 @@ class Bot:
                 
             if channel != None:
                 try:
-                    voice = self.voice
-                    elevenlabs.set_api_key(self.voice_key)
-                    voice.settings.stability = stability
-                    voice.settings.similarity_boost = clarity
-                    audio = generate(
+                    audio = self.elevenlabs.generate(
                         text=text,
-                        voice=voice,
-                        model="eleven_monolingual_v1"
+                        model=VOICE_MODEL,
+                        stability=stability,
+                        similarity_boost=clarity,
+                        style=style,
+                        use_speaker_boost=True
                     )
                     filename = f'{text.split()[0]}.mp3'
                     split_text = text.split()
@@ -240,7 +239,7 @@ class Bot:
 
 #* Setup Bot with classes
 elevenlabs.set_api_key(RHULK_VOICE_KEY)
-rhulk = Bot('Rhulk', RHULK_TOKEN, voices()[-1], RHULK_VOICE_KEY,
+rhulk = Bot('Rhulk', RHULK_TOKEN, "Rhulk, Disciple of the Witness", RHULK_VOICE_KEY,
             """Roleplay as Rhulk, the Disciple of the Witness from Destiny 2 and 
             antagonist to the Light and Guardians. Emulate his personality, use phrases 
             like "Children of the Light" and "My Witness." Focus on essential details, avoid 
@@ -256,7 +255,7 @@ rhulk = Bot('Rhulk', RHULK_TOKEN, voices()[-1], RHULK_VOICE_KEY,
 
 
 elevenlabs.set_api_key(CALUS_VOICE_KEY)
-calus = Bot('Calus', CALUS_TOKEN, voices()[-1], CALUS_VOICE_KEY, 
+calus = Bot('Calus', CALUS_TOKEN, "Calus, Emperor of the Cabal", CALUS_VOICE_KEY, 
             """Roleplay as Calus, the Cabal Emperor from Destiny 2. Emulate his hedonistic,
             narcissistic, and adoration personality. Use phrases like 'My Shadow' and occasional laughter when
             relevant. Focus on essential details, omitting unnecessary ones about Darkness and Light. Respond
@@ -289,25 +288,28 @@ async def on_guild_join(guild):
 @rhulk.bot.event
 async def on_ready():
     await rhulk.on_ready()
+    await scheduledBotConversation.start()
 
 
 #* Slash command for text-to-speech for Rhulk
 @rhulk.bot.tree.command(name="rhulk_speak", description="Text-to-speech to have Rhulk speak some text!")
 @app_commands.describe(text="What should Rhulk say?",
-                       stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.2.",
-                       clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.7")
-async def speak(interaction: discord.Interaction, text: str, stability: float=0.2, clarity: float=0.7):
-    await rhulk.speak(interaction, text, stability, clarity)
+                       stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.5",
+                       clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.8",
+                       style="(Optional) How exaggerated should the text be read? Float from 0-1.0, default is 0.1")
+async def speak(interaction: discord.Interaction, text: str, stability: float=0.5, clarity: float=0.8, style: float=0.1):
+    await rhulk.speak(interaction, text, stability, clarity, style)
 
 
 #* Slash command for Rhulk VC text-to-speech
 @rhulk.bot.tree.command(name="rhulk_vc_speak", description="Text-to-speech to have Rhulk speak some text, and say it in the VC you are connected to!")
 @app_commands.describe(text="What should Rhulk say in the VC?",
                        vc="(Optional) What VC to join?",
-                       stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.2.",
-                       clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.7")
-async def rhulk_vc_speak(interaction: discord.Interaction, text: str, vc: str="", stability: float=0.2, clarity: float=0.7):
-    await rhulk.vc_speak(interaction, text, vc, stability, clarity)
+                       stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.5",
+                       clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.8",
+                       style="(Optional) How exaggerated should the text be read? Float from 0-1.0, default is 0.1")
+async def rhulk_vc_speak(interaction: discord.Interaction, text: str, vc: str="", stability: float=0.5, clarity: float=0.8, style: float=0.1):
+    await rhulk.vc_speak(interaction, text, vc, stability, clarity, style)
 
 
 #* Slash command for showing remaining credits for text-to-speech
@@ -441,19 +443,21 @@ async def on_ready():
 @calus.bot.tree.command(name="calus_speak", description="Text-to-speech to have Calus speak some text!")
 @app_commands.describe(text="What should Calus say?",
                        stability="How stable should Calus sound? Range is 0:1.0, default 0.3",
-                       clarity="How similar to the in-game voice should it be? Range is 0:1.0, default 0.8")
-async def speak(interaction: discord.Interaction, text: str, stability: float=0.3, clarity: float=0.8):
-    await calus.speak(interaction, text, stability, clarity)
+                       clarity="How similar to the in-game voice should it be? Range is 0:1.0, default 0.65",
+                       style="(Optional) How exaggerated should the text be read? Float from 0-1.0, default is 0.45")
+async def speak(interaction: discord.Interaction, text: str, stability: float=0.3, clarity: float=0.65, style: float=0.45):
+    await calus.speak(interaction, text, stability, clarity, style)
     
 
 #* Slash command for Calus VC text-to-speech
 @calus.bot.tree.command(name="calus_vc_speak", description="Text-to-speech to have Calus speak some text, and say it in the VC you are connected to!")
 @app_commands.describe(text="What should Calus say in the VC?",
                        vc="(Optional) What VC to join?",
-                       stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.4.",
-                       clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.85")
-async def calus_vc_speak(interaction: discord.Interaction, text: str, vc: str="", stability: float=0.3, clarity: float=0.8):
-    await calus.vc_speak(interaction, text, vc, stability, clarity)
+                       stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.3.",
+                       clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.65",
+                       style="(Optional) How exaggerated should the text be read? Float from 0-1.0, default is 0.45")
+async def calus_vc_speak(interaction: discord.Interaction, text: str, vc: str="", stability: float=0.3, clarity: float=0.65, style: float=0.45):
+    await calus.vc_speak(interaction, text, vc, stability, clarity, style)
 
 
 #* Slash command for showing remaining credits for text-to-speech for Calus
@@ -608,7 +612,7 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
 
 
 #* Creating a new conversation at 1pm EST everyday
-@tasks.loop(minutes=1)
+@tasks.loop(seconds = 30)
 async def scheduledBotConversation():
     now = datetime.now(pytz.timezone('US/Eastern'))
     if now.hour == 13 and now.minute == 0:
@@ -653,5 +657,4 @@ loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 loop.create_task(calus.bot.start(calus.discord_token))
 loop.create_task(rhulk.bot.start(rhulk.discord_token))
-loop.create_task(scheduledBotConversation())
 loop.run_forever()
