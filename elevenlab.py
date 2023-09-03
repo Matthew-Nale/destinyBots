@@ -1,8 +1,12 @@
 import requests as re
 import json
 
+
+#* Base URL for ElevenLabs calls
 ELEVEN_BASE_URL = 'https://api.elevenlabs.io'
 
+
+#* Object for all API calls
 class ElevenLabs:
     def __init__(self, _voice_name, _api_key):
         self.api_key = _api_key
@@ -11,10 +15,12 @@ class ElevenLabs:
         if name_check:
             self.voice = name_check[0]
 
+    # Obtain credits remaining on ElevenLabs account
     def get_credits(self):
         request = re.get(ELEVEN_BASE_URL + '/v1/user/subscription', headers={'XI-API-KEY': self.api_key})
         return request.json()
     
+    # Generate audio file from text
     def generate(self, text, model='eleven_monolingual_v1', stability=0.5, similarity_boost=0.75, style=0, use_speaker_boost=False):
         body = {'text': text,
                 'model_id': model,
