@@ -1,5 +1,6 @@
 import requests as re
 import json
+import aiohttp
 
 
 #* Base URL for ElevenLabs calls
@@ -16,12 +17,14 @@ class ElevenLabs:
             self.voice = name_check[0]
 
     # Obtain user data from ElevenLabs
-    def get_user(self):
-        request = re.get(ELEVEN_BASE_URL + '/v1/user/subscription', headers={'XI-API-KEY': self.api_key})
-        return request.json()
+    async def get_user(self):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(ELEVEN_BASE_URL + '/v1/user/subscription', headers={'XI-API-KEY': self.api_key}) as r:
+                request = await r.json()
+        return request
     
     # Generate audio file from text
-    def generate(self, text, model='eleven_monolingual_v1', stability=0.5, similarity_boost=0.75, style=0, use_speaker_boost=False):
+    async def generate(self, text, model='eleven_monolingual_v1', stability=0.5, similarity_boost=0.75, style=0, use_speaker_boost=False):
         body = {'text': text,
                 'model_id': model,
                 'voice_settings': {'stability': stability,
@@ -30,7 +33,11 @@ class ElevenLabs:
                                    'use_speaker_boost': use_speaker_boost
                                    }
                 }
-        request = re.post(url=ELEVEN_BASE_URL + '/v1/text-to-speech/' + self.voice['voice_id'] + '?optimize_streaming_latency=0',
-                          headers={'XI-API-KEY': self.api_key},
-                          data=json.dumps(body))
-        return request.content
+        print(body)
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url=ELEVEN_BASE_URL + '/v1/text-to-speech/' + self.voice['voice_id'] + '?optimize_streaming_latency=0',
+                                    headers={'XI-API-KEY': self.api_key},
+                                    json=body) as r:
+                print(await r.read())
+                request = await r.read()
+        return request

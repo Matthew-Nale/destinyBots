@@ -4,7 +4,6 @@ import openai
 import asyncio
 import string
 from datetime import datetime
-from elevenlabs import save
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from elevenlab import *
@@ -66,12 +65,12 @@ class Bot:
             log.write(f'{self.bot.user} on_ready error: \n{e}\n\n')
         log.close()
         await self.botInit()
-        self.cleanMemories.start()
+        await self.cleanMemories.start()
 
     # Show remaining ElevenLabs credits
     async def credits(self, interaction: discord.Interaction):
         log = open("log.txt", "a")
-        user = self.elevenlabs.get_user()
+        user = await self.elevenlabs.get_user()
         char_remaining = user['character_limit'] - user['character_count']
         log.write(f'{interaction.user.global_name} asked {self.name} for his ElevenLabs credits remaining.\n\n')
         if char_remaining:
@@ -131,37 +130,39 @@ class Bot:
     async def speak(self, interaction: discord.Interaction, text: str, stability: float, clarity: float, style: float):
         log = open("log.txt", "a")
         log.write(f'{interaction.user.global_name} asked {self.name} to say: `{text}`\n\n')
+        await interaction.response.defer()
         if len(text) > MAX_LEN:
-            await interaction.response.send_message('{} Please limit your text to below {} characters. You are currently at {len(text)} characters.'.format(self.status_messages['speak']['too_long'],
-                                                                                                                                                            MAX_LEN),
-                                                    ephemeral=True)
-        else:
-            await interaction.response.defer()
-            try:
-                audio = self.elevenlabs.generate(
-                    text=text,
-                    model=VOICE_MODEL,
-                    stability=stability,
-                    similarity_boost=clarity,
-                    style=style,
-                    use_speaker_boost=True
-                )
-                filename = f'{text.split()[0]}.mp3'
-                split_text = text.split()
-                if len(split_text) < 5:
-                    filename = f'{split_text[0]}.mp3'
-                else:
-                    translator = str.maketrans('', '', string.punctuation)
-                    cleaned_words = [word.translate(translator) for word in split_text]
-                    filename = f'{cleaned_words[0]}_{cleaned_words[1]}_{cleaned_words[2]}_{cleaned_words[3]}_{cleaned_words[4]}.mp3'
-                save(audio, filename)
-                await interaction.followup.send(file=discord.File(filename))
-                log.write(f'/speak for {self.name}: Sent .mp3 titled `{filename}`.\n\n')
-                os.remove(filename)
-            except Exception as e:
-                log.write(f'Error in /speak for {self.name}: \n{e}\n\n')
-                await interaction.followup.send("{} (Something went wrong with that request)".format(self.status_messages['speak']['error']),
-                                                ephemeral=True)
+            log.write(f'Size of request was too long for /speak\n\n')
+            await interaction.followup.send('{} Please limit your text to below {} characters. You are currently at {} characters.'.format(self.status_messages['speak']['too_long'], MAX_LEN, len(text)))
+            log.close()
+            return
+        
+        try:
+            audio = await self.elevenlabs.generate(
+                text=text,
+                model=VOICE_MODEL,
+                stability=stability,
+                similarity_boost=clarity,
+                style=style,
+                use_speaker_boost=True
+            )
+            filename = f'{text.split()[0]}.mp3'
+            split_text = text.split()
+            if len(split_text) < 5:
+                filename = f'{split_text[0]}.mp3'
+            else:
+                translator = str.maketrans('', '', string.punctuation)
+                cleaned_words = [word.translate(translator) for word in split_text]
+                filename = f'{cleaned_words[0]}_{cleaned_words[1]}_{cleaned_words[2]}_{cleaned_words[3]}_{cleaned_words[4]}.mp3'
+            with open(filename, "wb") as f:
+                    f.write(audio)
+            await interaction.followup.send(file=discord.File(filename))
+            log.write(f'/speak for {self.name}: Sent .mp3 titled `{filename}`.\n\n')
+            os.remove(filename)
+        except Exception as e:
+            log.write(f'Error in /speak for {self.name}: \n{e}\n\n')
+            await interaction.followup.send("{} (Something went wrong with that request)".format(self.status_messages['speak']['error']),
+                                            ephemeral=True)
         log.close()
     
     # Have the bot speak text in a VC
@@ -170,56 +171,60 @@ class Bot:
         log.write(f'{interaction.user.global_name} asked {self.name} to say in the VC: `{text}`\n\n')
         await interaction.response.defer()
         if len(text) > MAX_LEN:
-            await interaction.followup.send('{} Please limit your text to below {} characters. You are currently at {len(text)} characters.'.format(self.status_messages['speak']['too_long'],
-                                                                                                                                                            MAX_LEN),
-                                                    ephemeral=True)
+            log.write(f'Size of request was too long for /vc_speak\n\n')
+            await interaction.followup.send('{} Please limit your text to below {} characters. You are currently at {} characters.'.format(self.status_messages['speak']['too_long'], MAX_LEN, len(text)))
+            log.close()
+            return
+        
+        if interaction.user.voice is None:
+            if vc == "":
+                log.write(f'{interaction.user.global_name} was not in the VC, could not send message.\n\n')
+                await interaction.followup.send(f'{interaction.user.display_name}, do not waste my time if you are not here. (Must be in a VC or specify a valid VC)', ephemeral=True)
+                log.close()
+                return
+            for c in interaction.guild.voice_channels:
+                if c.name == vc:
+                    log.write("Found a valid voice channel to speak in.\n\n")
+                    channel = self.bot.get_channel(c.id)
         else:
-            channel = None
-            if interaction.user.voice is None:
-                if vc == "":
-                    log.write(f'{interaction.user.global_name} was not in the VC, could not send message.\n\n')
-                    await interaction.followup.send(f'{interaction.user.display_name}, do not waste my time if you are not here. (Must be in a VC or specify a valid VC)', ephemeral=True)
-                else:
-                    for c in interaction.guild.voice_channels:
-                        if c.name == vc:
-                            log.write("Found a valid voice channel to speak in.\n\n")
-                            channel = self.bot.get_channel(c.id)
+            channel = interaction.user.voice.channel
+
+        try:
+            audio = await self.elevenlabs.generate(
+                text=text,
+                model=VOICE_MODEL,
+                stability=stability,
+                similarity_boost=clarity,
+                style=style,
+                use_speaker_boost=True
+            )
+            
+            filename = f'{text.split()[0]}.mp3'
+            split_text = text.split()
+            if len(split_text) < 5:
+                filename = f'{split_text[0]}.mp3'
             else:
-                channel = interaction.user.voice.channel
+                translator = str.maketrans('', '', string.punctuation)
+                cleaned_words = [word.translate(translator) for word in split_text]
+                filename = f'{cleaned_words[0]}_{cleaned_words[1]}_{cleaned_words[2]}_{cleaned_words[3]}_{cleaned_words[4]}.mp3'
+            with open(filename, "wb") as f:
+                f.write(audio)
+            
+            vc = await channel.connect()
+            await asyncio.sleep(1.5)
+            vc.play(discord.FFmpegPCMAudio(source=filename))
+            while vc.is_playing():
+                await asyncio.sleep(1.5)
+            vc.stop()
+            await vc.disconnect()
+            
+            await interaction.followup.send(file=discord.File(filename))
+            log.write(f'/vc_speak for {self.name}: Sent .mp3 titled `{filename}`.\n\n')
+            os.remove(filename)
+        except Exception as e:
+            log.write(f'Error in /vc_speak for {self.name}: \n{e}\n\n')
+            await vc.disconnect()
+            await interaction.followup.send("{} (Something went wrong with that request)".format(self.status_messages['speak']['error']),
+                                        ephemeral=True)
                 
-            if channel != None:
-                try:
-                    audio = self.elevenlabs.generate(
-                        text=text,
-                        model=VOICE_MODEL,
-                        stability=stability,
-                        similarity_boost=clarity,
-                        style=style,
-                        use_speaker_boost=True
-                    )
-                    filename = f'{text.split()[0]}.mp3'
-                    split_text = text.split()
-                    if len(split_text) < 5:
-                        filename = f'{split_text[0]}.mp3'
-                    else:
-                        translator = str.maketrans('', '', string.punctuation)
-                        cleaned_words = [word.translate(translator) for word in split_text]
-                        filename = f'{cleaned_words[0]}_{cleaned_words[1]}_{cleaned_words[2]}_{cleaned_words[3]}_{cleaned_words[4]}.mp3'
-                    save(audio, filename)
-                    vc = await channel.connect()
-                    await asyncio.sleep(1)
-                    vc.play(discord.FFmpegPCMAudio(source=filename))
-                    while vc.is_playing():
-                        await asyncio.sleep(2.5)
-                    vc.stop()
-                    await vc.disconnect()
-                    await interaction.followup.send(file=discord.File(filename))
-                    log.write(f'/vc_speak for {self.name}: Sent .mp3 titled `{filename}`.\n\n')
-                    os.remove(filename)
-                except Exception as e:
-                    log.write(f'Error in /vc_speak for {self.name}: \n{e}\n\n')
-                    await vc.disconnect()
-                    await interaction.followup.send("{} (Something went wrong with that request)".format(self.status_messages['speak']['error']),
-                                                ephemeral=True)
-                    
         log.close()
