@@ -9,8 +9,8 @@ from discord import app_commands
 from discord.utils import get
 from discord.ext import tasks
 from dotenv import load_dotenv
-from elevenlab import *
-from bot import *
+from src.elevenlab import *
+from src.bot import *
 
 #? Initializations and global values
 
