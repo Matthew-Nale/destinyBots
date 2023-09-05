@@ -33,11 +33,9 @@ class ElevenLabs:
                                    'use_speaker_boost': use_speaker_boost
                                    }
                 }
-        print(body)
         async with aiohttp.ClientSession() as session:
             async with session.post(url=ELEVEN_BASE_URL + '/v1/text-to-speech/' + self.voice['voice_id'] + '?optimize_streaming_latency=0',
                                     headers={'XI-API-KEY': self.api_key},
                                     json=body) as r:
-                print(await r.read())
                 request = await r.read()
         return request
