@@ -6,7 +6,7 @@ import string
 from datetime import datetime
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
-from elevenlab import *
+from src.elevenlab import *
 
 #* Load and set env variables for API calls
 load_dotenv()
