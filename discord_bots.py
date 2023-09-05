@@ -365,7 +365,6 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
 #* Creating a new conversation at 1pm EST everyday
 @tasks.loop(seconds = 45)
 async def scheduledBotConversation():
-    print('test')
     now = datetime.now(pytz.timezone('US/Eastern'))
     if now.hour == 13 and now.minute == 0:
         log = open('log.txt', 'a')
