@@ -1,11 +1,8 @@
 import requests as re
-import json
 import aiohttp
-
 
 #* Base URL for ElevenLabs calls
 ELEVEN_BASE_URL = 'https://api.elevenlabs.io'
-
 
 #* Object for all API calls
 class ElevenLabs:

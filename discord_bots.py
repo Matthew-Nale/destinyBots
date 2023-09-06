@@ -1,4 +1,3 @@
-import os
 import discord
 import openai
 import asyncio
