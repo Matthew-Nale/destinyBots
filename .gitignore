@@ -2,3 +2,6 @@
 /dalle_images
 /image_generation.py
 /log.txt
+/__pycache__
+/bots/__pycache__
+/src/__pycache__
