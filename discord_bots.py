@@ -26,11 +26,15 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
         await interaction.followup.send(f'*{interaction.user.display_name} wanted to hear Calus and I\'s conversation about {chosen_topic}. Here is how it unfolded:*')
         for line in convo:
             if 'Rhulk' in line:
+                await rhulk.bot.get_channel(interaction.channel_id).typing()
+                await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
                 await rhulk.bot.get_channel(interaction.channel_id).send(line['Rhulk'])
-                await asyncio.sleep(7.5)
             elif 'Calus' in line:
+                await calus.bot.get_channel(interaction.channel_id).typing()
+                await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
                 await calus.bot.get_channel(interaction.channel_id).send(line['Calus'])
-                await asyncio.sleep(7.5)
+
+        await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
         
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Rhulk: ' + e + '\n\n')
@@ -50,10 +54,10 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
         for line in convo:
             if 'Rhulk' in line:
                 await rhulk.bot.get_channel(interaction.channel_id).send(line['Rhulk'])
-                await asyncio.sleep(7.5)
+                await asyncio.sleep(round(random.uniform(5.0, 15.0), 1))
             elif 'Calus' in line:
                 await calus.bot.get_channel(interaction.channel_id).send(line['Calus'])
-                await asyncio.sleep(7.5)
+                await asyncio.sleep(round(random.uniform(5.0, 15.0), 1))
         
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Calus: ' + e + '\n\n')
@@ -83,7 +87,7 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
             }],
             n=1,
             temperature=1.2,
-            frequency_penalty=0.9
+            frequency_penalty=0.3
         )
         
         convo = (completion.choices[0].message.content).splitlines()
@@ -126,10 +130,10 @@ async def scheduledBotConversation():
             for line in convo:
                 if 'Rhulk' in line:
                     await rhulk.bot.get_channel(channel_id).send(line['Rhulk'])
-                    await asyncio.sleep(7.5)
+                    await asyncio.sleep(round(random.uniform(5.0, 15.0), 1))
                 elif 'Calus' in line:
                     await calus.bot.get_channel(channel_id).send(line['Calus'])
-                    await asyncio.sleep(7.5)
+                    await asyncio.sleep(round(random.uniform(5.0, 15.0), 1))
             log.write('Finished random conversation topic as scheduled.\n\n')
         except Exception as e:
             log.write('Encountered an error in the Random Conversation Generation: ' + e + '\n\n')
