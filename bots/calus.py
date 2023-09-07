@@ -91,11 +91,13 @@ async def calus_reset(interaction: discord.Interaction):
 async def topics(interaction: discord.Interaction):
     topics = json.load(open('topics.json'))
     response = ""
-    for _, (key, value) in enumerate(topics):
-        response += f'\n{key}:'
+    print(topics)
+    for _, (key, value) in enumerate(topics.items()):
+        response += f'**{key}:**\n'
         for v in value:
             response += f'{v}\n'
-    await interaction.response.send_message(f'*(laughter)* {interaction.user.global_name}, my favorite Guardian! Here is what I was thinking of asking Rhulk: \n**{response}**')
+        response += '\n'
+    await interaction.response.send_message(f'*(laughter)* {interaction.user.global_name}, my favorite Guardian! Here is what I was thinking of asking Rhulk: \n\n{response}', ephemeral=True)
 
 #* Add a topic to the topic list
 @calus.bot.tree.command(name="calus_add_topic", description="Add a topic that can be used for the daily conversation!")
@@ -107,10 +109,10 @@ async def calus_add_topic(interaction: discord.Interaction, topic: str):
             topics['misc'].append(topic)
             with open('topics.json', 'w') as f:
                 log = open('log.txt', 'a')
-                f.write(json.dumps(topics))
+                f.write(json.dumps(topics, indent=4))
                 log.write(f'Added a new topic to the list: {topic}\n\n')
                 log.close()
-                await interaction.response.send_message(f'Ohhh {interaction.user.global_name}! *{topic}* would make a fine topic!')
+                await interaction.response.send_message(f'Ohhh {interaction.user.global_name}! **{topic}** would make a fine topic!')
         else:
             await interaction.response.send_message(f'{interaction.user.global_name}, why not think of a more... amusing topic? (Already in list)')
     else:

@@ -92,11 +92,13 @@ async def rhulk_reset(interaction: discord.Interaction):
 async def topics(interaction: discord.Interaction):
     topics = json.load(open('topics.json'))
     response = ""
-    for _, (key, value) in enumerate(topics):
-        response += f'\n{key}:'
+    print(topics)
+    for _, (key, value) in enumerate(topics.items()):
+        response += f'**{key}:**\n'
         for v in value:
             response += f'{v}\n'
-    await interaction.response.send_message(f'You wish to know the conversation topics for the Witness\'s Disciples? Very well, here is what we may discuss: \n**{response}**')
+        response += '\n'
+    await interaction.response.send_message(f'You wish to know the conversation topics for the Witness\'s Disciples? Very well, here is what we may discuss: \n\n{response}', ephemeral=True)
 
 #* Add a topic to the topic list
 @rhulk.bot.tree.command(name="rhulk_add_topic", description="Add a topic that can be used for the daily conversation!")
@@ -108,10 +110,10 @@ async def rhulk_add_topic(interaction: discord.Interaction, topic: str):
             topics['misc'].append(topic)
             with open('topics.json', 'w') as f:
                 log = open('log.txt', 'a')
-                f.write(json.dumps(topics))
+                f.write(json.dumps(topics, indent=4))
                 log.write(f'Added a new topic to the list: {topic}\n\n')
                 log.close()
-                await interaction.response.send_message(f'Ahhhh {interaction.user.global_name}, *{topic}* does sound interesting, does it not?')
+                await interaction.response.send_message(f'Ahhhh {interaction.user.global_name}, **{topic}** does sound interesting, does it not?')
         else:
             await interaction.response.send_message(f'{interaction.user.global_name}, we have already discussed that matter earlier. Were you not paying attention? (Already in list)')
     else:

@@ -83,7 +83,7 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
             }],
             n=1,
             temperature=1.2,
-            frequency_penalty=0.3
+            frequency_penalty=0.9
         )
         
         convo = (completion.choices[0].message.content).splitlines()
