@@ -3,6 +3,7 @@ import openai
 import asyncio
 import random
 import pytz
+import json
 from datetime import datetime
 from discord import app_commands
 from discord.utils import get
@@ -64,21 +65,25 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
     log = open('log.txt', 'a')
     try:
         if topic == None:
-            topics = open('topics.txt').read().splitlines()
-            chosen_topic = topics[random.randint(0, len(topics) - 1)]
+            topics = json.load(open('topics.json'))
+            weights = {'discord_members': 5, 'insult': 1, 'discussion': 1, 'misc': 1}
+            chosen_key = random.choices(list(weights.keys()), weights=list(weights.values()))[0]
+            chosen_topic = topics[chosen_key][random.randint(0, len(topics[chosen_key]) - 1)]
         else:
             chosen_topic = topic
         
         completion = openai.ChatCompletion.create(
             model=CHAT_MODEL,
-            messages=[{'role':'system', 'content':"""Create dialogue: Rhulk and Emperor Calus, Disciples of the Witness 
-                       in Destiny 2. Rhulk cold to Calus, while Calus is super joyful and laughs often. Rhulk extremely loyal 
-                       First Disciple of the Witness, last of his species; Calus, self proclaimed Cabal Emperor, new
-                       and unconventional Disciple, indifferent to Witness's plans. Topic: {}. Rhulk's egotistical, 
-                       mocking, prideful; Calus's confident, amused, joyful. Stay in character and on topic. Use emotions in text. Be 
-                       extremely entertaining and creative. Format: Rhulk: TEXT, Calus: TEXT. Limit to under 500 characters. {} starts.""".format(chosen_topic, first_speaker)
+            messages=[{'role':'system', 'content':"""Create dialogue: Characters: Rhulk and Emperor Calus, Disciples of the Witness 
+                       in Destiny 2. Rhulk annoyed with Calus; Calus joyful and laughs often. Rhulk: extremely loyal, First Disciple 
+                       of the Witness, last of the ancient Lubraean. Calus: former Emperor of the Cabal, new and unconventional Disciple, 
+                       indifferent to Witness's plans. Topic: {}. Rhulk's egotistical, mocking, prideful; Calus's confident, amused, 
+                       joyful. Stay in character and on provided topic. Be extremely entertaining and creative. Format: Rhulk: TEXT, 
+                       Calus: TEXT. Limit to under 10 total lines of dialogue. {} starts.""".format(chosen_topic, first_speaker)
             }],
-            n=1
+            n=1,
+            temperature=1.2,
+            frequency_penalty=0.3
         )
         
         convo = (completion.choices[0].message.content).splitlines()
@@ -91,7 +96,6 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
                 formatted_convo.append({'Rhulk': line.split(': ', 1)[1]})
             elif "Calus: " in line:
                 formatted_convo.append({'Calus': line.split(': ', 1)[1]})
-        
         log.write(f'Generated a conversation with the topic: {chosen_topic}: \n{formatted_convo}\n\n')
         log.close()
         return formatted_convo, chosen_topic

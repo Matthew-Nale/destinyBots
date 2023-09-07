@@ -1,4 +1,5 @@
 import os
+import json
 from discord import app_commands
 from dotenv import load_dotenv
 from src.elevenlab import *
@@ -89,10 +90,12 @@ async def rhulk_reset(interaction: discord.Interaction):
 #* Shows the list of random topics to be used daily or with the /generate_conversation command
 @rhulk.bot.tree.command(name="rhulk_topics", description="View the saved topics that Rhulk and Calus can chat over!")
 async def topics(interaction: discord.Interaction):
-    topics = open('topics.txt').readlines()
+    topics = json.load(open('topics.json'))
     response = ""
-    for topic in topics:
-        response += topic
+    for _, (key, value) in enumerate(topics):
+        response += f'\n{key}:'
+        for v in value:
+            response += f'{v}\n'
     await interaction.response.send_message(f'You wish to know the conversation topics for the Witness\'s Disciples? Very well, here is what we may discuss: \n**{response}**')
 
 #* Add a topic to the topic list
@@ -100,39 +103,16 @@ async def topics(interaction: discord.Interaction):
 @app_commands.describe(topic="What topic should be added to the list?")
 async def rhulk_add_topic(interaction: discord.Interaction, topic: str):
     if topic != None:
-        with open('topics.txt', 'r') as f:
-            topics_list = f.read().splitlines()
-            if topic not in topics_list:
+        topics = json.load(open('topics.json'))
+        if topic not in topics['misc']:
+            topics['misc'].append(topic)
+            with open('topics.json', 'w') as f:
                 log = open('log.txt', 'a')
+                f.write(json.dumps(topics))
                 log.write(f'Added a new topic to the list: {topic}\n\n')
                 log.close()
-                with open('topics.txt', 'a') as r:
-                    r.write(topic)
-                    r.write('\n')
                 await interaction.response.send_message(f'Ahhhh {interaction.user.global_name}, *{topic}* does sound interesting, does it not?')
-            else:
-                await interaction.response.send_message(f'{interaction.user.global_name}, we have already discussed that matter earlier. Were you not paying attention? (Already in list)')
+        else:
+            await interaction.response.send_message(f'{interaction.user.global_name}, we have already discussed that matter earlier. Were you not paying attention? (Already in list)')
     else:
         await interaction.response.send_message(f'{interaction.user.global_name}, please do not bore me with that pitiful topic. (Must input something)')
-    
-#* Remove a topic from the topic list
-@rhulk.bot.tree.command(name="rhulk_remove_topic", description="Remove a topic from the topic list.")
-@app_commands.describe(topic="What topic should be removed from the list?")
-async def rhulk_remove_topic(interaction: discord.Interaction, topic: str):
-    if topic != None:
-        with open('topics.txt', 'r') as f:
-            topics_list = f.read().splitlines()
-            print(topics_list)
-            if topic in topics_list:
-                log = open('log.txt', 'a')
-                log.write(f'Removing a topic from the list: {topic}\n\n')
-                log.close()
-                topics_list.remove(topic)
-                with open('topics.txt', 'w') as r:
-                    for t in topics_list:
-                        r.write(t + '\n')
-                await interaction.response.send_message(f'Fine, {interaction.user.global_name}, I will not bring {topic} up again. For now.')
-            else:
-                await interaction.response.send_message(f'{interaction.user.global_name}, we never have discussed that... (Not in list)')
-    else:
-        await interaction.response.send_message(f'{interaction.user.global_name}, why would we ever discuss that? (Must input something)')

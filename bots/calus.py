@@ -1,4 +1,5 @@
 import os
+import json
 from discord import app_commands
 from dotenv import load_dotenv
 from src.elevenlab import *
@@ -88,10 +89,12 @@ async def calus_reset(interaction: discord.Interaction):
 #* Shows the list of random topics to be used daily or with the /generate_conversation command
 @calus.bot.tree.command(name="calus_topics", description="View the saved topics that Rhulk and Calus can chat over!")
 async def topics(interaction: discord.Interaction):
-    topics = open('topics.txt').readlines()
+    topics = json.load(open('topics.json'))
     response = ""
-    for topic in topics:
-        response += topic
+    for _, (key, value) in enumerate(topics):
+        response += f'\n{key}:'
+        for v in value:
+            response += f'{v}\n'
     await interaction.response.send_message(f'*(laughter)* {interaction.user.global_name}, my favorite Guardian! Here is what I was thinking of asking Rhulk: \n**{response}**')
 
 #* Add a topic to the topic list
@@ -99,39 +102,16 @@ async def topics(interaction: discord.Interaction):
 @app_commands.describe(topic="What topic should be added to the list?")
 async def calus_add_topic(interaction: discord.Interaction, topic: str):
     if topic != None:
-        with open('topics.txt', 'r') as f:
-            topics_list = f.read().splitlines()
-            if topic not in topics_list:
+        topics = json.load(open('topics.json'))
+        if topic not in topics['misc']:
+            topics['misc'].append(topic)
+            with open('topics.json', 'w') as f:
                 log = open('log.txt', 'a')
+                f.write(json.dumps(topics))
                 log.write(f'Added a new topic to the list: {topic}\n\n')
                 log.close()
-                with open('topics.txt', 'a') as r:
-                    r.write(topic)
-                    r.write('\n')
                 await interaction.response.send_message(f'Ohhh {interaction.user.global_name}! *{topic}* would make a fine topic!')
-            else:
-                await interaction.response.send_message(f'{interaction.user.global_name}, why not think of a more... amusing topic? (Already in list)')
+        else:
+            await interaction.response.send_message(f'{interaction.user.global_name}, why not think of a more... amusing topic? (Already in list)')
     else:
         await interaction.response.send_message(f'Hmmm {interaction.user.global_name}. I truly wish you would see more joy in this. (Must input something)')
-
-#* Remove a topic from the topic list
-@calus.bot.tree.command(name="calus_remove_topic", description="Remove a topic from the topic list.")
-@app_commands.describe(topic="What topic should be removed from the list?")
-async def calus_remove_topic(interaction: discord.Interaction, topic: str):
-    if topic != None:
-        with open('topics.txt', 'r') as f:
-            topics_list = f.read().splitlines()
-            print(topics_list)
-            if topic in topics_list:
-                log = open('log.txt', 'a')
-                log.write(f'Removing a topic from the list: {topic}\n\n')
-                log.close()
-                topics_list.remove(topic)
-                with open('topics.txt', 'w') as r:
-                    for t in topics_list:
-                        r.write(t + '\n')
-                await interaction.response.send_message(f'Oh {interaction.user.global_name}, *{topic}* is such a fine topic though! But if you insist...')
-            else:
-                await interaction.response.send_message(f'Why, I have never even thought of that {interaction.user.global_name}! (Not in list)')
-    else:
-        await interaction.response.send_message(f'{interaction.user.global_name}, why bother worrying about these petty topics? (Must input something)')
