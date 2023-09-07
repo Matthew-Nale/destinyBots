@@ -50,7 +50,7 @@ async def on_ready():
                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.5",
                        clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.8",
                        style="(Optional) How exaggerated should the text be read? Float from 0-1.0, default is 0.1")
-async def speak(interaction: discord.Interaction, text: str, stability: float=0.5, clarity: float=0.8, style: float=0.1):
+async def speak(interaction: discord.Interaction, text: str, stability: float=0.2, clarity: float=0.7, style: float=0.1):
     await rhulk.speak(interaction, text, stability, clarity, style)
 
 #* Slash command for Rhulk VC text-to-speech
@@ -60,7 +60,7 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.5",
                        clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.8",
                        style="(Optional) How exaggerated should the text be read? Float from 0-1.0, default is 0.1")
-async def rhulk_vc_speak(interaction: discord.Interaction, text: str, vc: str="", stability: float=0.5, clarity: float=0.8, style: float=0.1):
+async def rhulk_vc_speak(interaction: discord.Interaction, text: str, vc: str="", stability: float=0.2, clarity: float=0.7, style: float=0.1):
     await rhulk.vc_speak(interaction, text, vc, stability, clarity, style)
 
 #* Slash command for showing remaining credits for text-to-speech
