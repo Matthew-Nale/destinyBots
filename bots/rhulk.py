@@ -92,7 +92,6 @@ async def rhulk_reset(interaction: discord.Interaction):
 async def topics(interaction: discord.Interaction):
     topics = json.load(open('topics.json'))
     response = ""
-    print(topics)
     for _, (key, value) in enumerate(topics.items()):
         response += f'**{key}:**\n'
         for v in value:
