@@ -53,11 +53,15 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
         await interaction.followup.send(f'*{interaction.user.display_name}, my most loyal Shadow, asked Rhulk and I to talk about {chosen_topic}! Here is how that went:*')
         for line in convo:
             if 'Rhulk' in line:
+                await rhulk.bot.get_channel(interaction.channel_id).typing()
+                await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
                 await rhulk.bot.get_channel(interaction.channel_id).send(line['Rhulk'])
-                await asyncio.sleep(round(random.uniform(5.0, 15.0), 1))
             elif 'Calus' in line:
+                await calus.bot.get_channel(interaction.channel_id).typing()
+                await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
                 await calus.bot.get_channel(interaction.channel_id).send(line['Calus'])
-                await asyncio.sleep(round(random.uniform(5.0, 15.0), 1))
+
+        await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
         
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Calus: ' + e + '\n\n')
@@ -129,11 +133,15 @@ async def scheduledBotConversation():
             
             for line in convo:
                 if 'Rhulk' in line:
+                    await rhulk.bot.get_channel(channel_id).typing()
+                    await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
                     await rhulk.bot.get_channel(channel_id).send(line['Rhulk'])
-                    await asyncio.sleep(round(random.uniform(5.0, 15.0), 1))
                 elif 'Calus' in line:
+                    await calus.bot.get_channel(channel_id).typing()
+                    await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
                     await calus.bot.get_channel(channel_id).send(line['Calus'])
-                    await asyncio.sleep(round(random.uniform(5.0, 15.0), 1))
+
+            await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
             log.write('Finished random conversation topic as scheduled.\n\n')
         except Exception as e:
             log.write('Encountered an error in the Random Conversation Generation: ' + e + '\n\n')
