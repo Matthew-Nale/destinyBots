@@ -26,15 +26,14 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
         await interaction.followup.send(f'*{interaction.user.display_name} wanted to hear Calus and I\'s conversation about {chosen_topic}. Here is how it unfolded:*')
         for line in convo:
             if 'Rhulk' in line:
-                await rhulk.bot.get_channel(interaction.channel_id).typing()
-                await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
+                async with rhulk.bot.get_channel(interaction.channel_id).typing():
+                    await asyncio.sleep(round(random.uniform(8.0, 14.0), 1))
                 await rhulk.bot.get_channel(interaction.channel_id).send(line['Rhulk'])
             elif 'Calus' in line:
-                await calus.bot.get_channel(interaction.channel_id).typing()
-                await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
+                async with calus.bot.get_channel(interaction.channel_id).typing():
+                    await asyncio.sleep(round(random.uniform(8.0, 14.0), 1))
                 await calus.bot.get_channel(interaction.channel_id).send(line['Calus'])
-
-        await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
+            await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
         
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Rhulk: ' + e + '\n\n')
@@ -53,15 +52,14 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
         await interaction.followup.send(f'*{interaction.user.display_name}, my most loyal Shadow, asked Rhulk and I to talk about {chosen_topic}! Here is how that went:*')
         for line in convo:
             if 'Rhulk' in line:
-                await rhulk.bot.get_channel(interaction.channel_id).typing()
-                await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
+                async with rhulk.bot.get_channel(interaction.channel_id).typing():
+                    await asyncio.sleep(round(random.uniform(8.0, 14.0), 1))
                 await rhulk.bot.get_channel(interaction.channel_id).send(line['Rhulk'])
             elif 'Calus' in line:
-                await calus.bot.get_channel(interaction.channel_id).typing()
-                await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
+                async with calus.bot.get_channel(interaction.channel_id).typing():
+                    await asyncio.sleep(round(random.uniform(8.0, 14.0), 1))
                 await calus.bot.get_channel(interaction.channel_id).send(line['Calus'])
-
-        await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
+            await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
         
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Calus: ' + e + '\n\n')
@@ -86,12 +84,12 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
                        in Destiny 2. Rhulk annoyed with Calus; Calus joyful and laughs often. Rhulk: extremely loyal, First Disciple 
                        of the Witness, last of the ancient Lubraean. Calus: former Emperor of the Cabal, new and unconventional Disciple, 
                        indifferent to Witness's plans. Topic: {}. Rhulk's egotistical, mocking, prideful; Calus's confident, amused, 
-                       joyful. Stay in character and on provided topic. Be extremely entertaining and creative. Format: Rhulk: TEXT, 
+                       joyful. Stay on topic. Be extremely entertaining, creative, and funny. Format: Rhulk: TEXT, 
                        Calus: TEXT. Limit to under 10 total lines of dialogue. {} starts.""".format(chosen_topic, first_speaker)
             }],
             n=1,
-            temperature=1.2,
-            frequency_penalty=0.3
+            frequency_penalty=0.5,
+            presence_penalty=0.1
         )
         
         convo = (completion.choices[0].message.content).splitlines()
@@ -133,15 +131,15 @@ async def scheduledBotConversation():
             
             for line in convo:
                 if 'Rhulk' in line:
-                    await rhulk.bot.get_channel(channel_id).typing()
-                    await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
+                    async with rhulk.bot.get_channel(channel_id).typing():
+                        await asyncio.sleep(round(random.uniform(8.0, 14.0), 1))
                     await rhulk.bot.get_channel(channel_id).send(line['Rhulk'])
                 elif 'Calus' in line:
-                    await calus.bot.get_channel(channel_id).typing()
-                    await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
+                    async with calus.bot.get_channel(channel_id).typing():
+                        await asyncio.sleep(round(random.uniform(8.0, 14.0), 1))
                     await calus.bot.get_channel(channel_id).send(line['Calus'])
+                await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
 
-            await asyncio.sleep(round(random.uniform(4.0, 8.0), 1))
             log.write('Finished random conversation topic as scheduled.\n\n')
         except Exception as e:
             log.write('Encountered an error in the Random Conversation Generation: ' + e + '\n\n')
