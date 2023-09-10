@@ -15,7 +15,7 @@ GPT_KEY = os.getenv('CHATGPT_TOKEN')
 
 MAX_LEN = 1024 # Setting character limit for ElevenLabs
 MAX_TOKENS = 128 # Setting token limit for ChatGPT responses
-CHAT_MODEL = "gpt-3.5-turbo-16k" # Model for OpenAI Completions to use
+CHAT_MODEL = "gpt-3.5-turbo" # Model for OpenAI Completions to use
 VOICE_MODEL = "eleven_english_v2" # Model used for ElevenLabs voice synthesis
 
 
