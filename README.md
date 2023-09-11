@@ -94,3 +94,16 @@ And here are all of the various commands used:
 
   Everyday at 1 PM (Eastern Time), the bots will have a conversation with each other. The topic is chosen randomly from the list in 'topics.json', and will be printed to a specific channel. Currently this channel is a
   specific named one in a personal server, so be sure to change the server name and text channel name when using it outside of the main bots.
+
+<br />
+
+## Basic Setup Information
+
+  If you wish to setup your own bots, first make sure to have all of the required packages in 'requirements.txt'. For information on creating a Discord bot and getting it's token, be sure to checkout the Discord documentation.
+  You will also need an OpenAI token and ElevenLabs token. Multiple ElevenLabs tokens can be used as well if needed. Be sure to add your tokens in the 'bots/calus.py', 'bots/rhulk.py', and 'src/bot.py' files. These are located towards the 
+  top, and allow for interaction with the APIs.
+
+  In addition to adding your tokens, you should modify the scheduledBotConversation task in 'discord_bots.py', and change the guild.name and channel_id to be your desired server and text channel name respectively. Otherwise,
+  the task will not work. In the future this will be consolidated to a single environmental variable for the text channel id.
+
+  To run the bots, simply have them invited to your Discord server, give them text permissions, and then run 'discord_bots.py'!
