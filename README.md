@@ -53,15 +53,15 @@ And here are all of the various commands used:
 
 ### */BOT_topics*
 
-  View the list of random topics that can happen between the other bots.
+  View the list of random topics that can happen between the other bots, sorted by category.
 
 ### */BOT_add_topic*
 
-  Adds a new topic to the random topics, causing the daily random conversation to potentially be the topic.
+  Adds a new topic to the random topics, causing the daily random conversation to potentially be the topic. The topic will be added inside of the 'misc' category of 'topics.json'.
 
 ### */BOT_start_conversation*
 
-  Causes the specified bot to start a conversation with the other bots. An optional parameter is available to specify a topic, otherwise a random topic is chosen from the random topics list.
+  Causes the specified bot to start a conversation with the other bots. An optional parameter is available to specify a topic, otherwise a random topic is chosen from the 'topics.json' file.
 
 <br />
 <br />
@@ -70,15 +70,15 @@ And here are all of the various commands used:
 
 | Command                  | Rhulk    | Calus    |
 |--------------------------|----------|----------|
-| /BOT_speak               |    &check; |    &check; 
-| /BOT_vc_speak            |    &check; |    &check;
-| /BOT_credits             |    &check; |    &check;
-| /BOT_chat                |    &check; |    &check;
-| /BOT_prompt              |    &check; |    &check;
-| /BOT_reset               |    &check; |    &check;
-| /BOT_topics              |    &check; |    &check;
-| /BOT_add_topic           |    &check; |    &check;
-| /BOT_start_conversation  |    &check; |    &check;
+| /BOT_speak               |  &check; |  &check; 
+| /BOT_vc_speak            |  &check; |  &check;
+| /BOT_credits             |  &check; |  &check;
+| /BOT_chat                |  &check; |  &check;
+| /BOT_prompt              |  &check; |  &check;
+| /BOT_reset               |  &check; |  &check;
+| /BOT_topics              |  &check; |  &check;
+| /BOT_add_topic           |  &check; |  &check;
+| /BOT_start_conversation  |  &check; |  &check;
 
 <br />
 <br />
