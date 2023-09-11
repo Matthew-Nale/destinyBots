@@ -72,9 +72,11 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
     try:
         if topic == None:
             topics = json.load(open('topics.json'))
-            weights = {'discord_members': 3.5, 'insult': 2, 'discussion': 3, 'misc': 1.5}
+            weights = {}
+            for _, (k, v) in enumerate(topics.items()):
+                weights[k] = v["weight"]
             chosen_key = random.choices(list(weights.keys()), weights=list(weights.values()))[0]
-            chosen_topic = topics[chosen_key][random.randint(0, len(topics[chosen_key]) - 1)]
+            chosen_topic = topics[chosen_key]["topics"][random.randint(0, len(topics[chosen_key]["topics"]) - 1)]
         else:
             chosen_topic = topic
         

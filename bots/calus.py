@@ -94,7 +94,7 @@ async def topics(interaction: discord.Interaction):
     print(topics)
     for _, (key, value) in enumerate(topics.items()):
         response += f'**{key}:**\n'
-        for v in value:
+        for v in value["topics"]:
             response += f'{v}\n'
         response += '\n'
     await interaction.response.send_message(f'*(laughter)* {interaction.user.global_name}, my favorite Guardian! Here is what I was thinking of asking Rhulk: \n\n{response}', ephemeral=True)
@@ -105,8 +105,8 @@ async def topics(interaction: discord.Interaction):
 async def calus_add_topic(interaction: discord.Interaction, topic: str):
     if topic != None:
         topics = json.load(open('topics.json'))
-        if topic not in topics['misc']:
-            topics['misc'].append(topic)
+        if topic not in topics['misc']["topics"]:
+            topics['misc']["topics"].append(topic)
             with open('topics.json', 'w') as f:
                 log = open('log.txt', 'a')
                 f.write(json.dumps(topics, indent=4))
