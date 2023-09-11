@@ -21,9 +21,6 @@ Currently, the required keys include: the generic Discord bot keys for Rhulk and
 
 And here are all of the various commands used: 
 
-<br />
-<br />
-
 ### */BOT_speak*
 
   This allows the specified bot to speak a provided text prompt, and send a .mp3 to the text channel that plays the spoken line. Additional parameters are available for increasing/decreasing the stability
@@ -73,15 +70,15 @@ And here are all of the various commands used:
 
 | Command                  | Rhulk    | Calus    |
 |--------------------------|----------|----------|
-| /BOT_speak               |  &check; |  &check; 
-| /BOT_vc_speak            |  &check; |  &check;
-| /BOT_credits             |  &check; |  &check;
-| /BOT_chat                |  &check; |  &check;
-| /BOT_prompt              |  &check; |  &check;
-| /BOT_reset               |  &check; |  &check;
-| /BOT_topics              |  &check; |  &check;
-| /BOT_add_topic           |  &check; |  &check;
-| /BOT_start_conversation  |  &check; |  
+| /BOT_speak               |    &check; |    &check; 
+| /BOT_vc_speak            |    &check; |    &check;
+| /BOT_credits             |    &check; |    &check;
+| /BOT_chat                |    &check; |    &check;
+| /BOT_prompt              |    &check; |    &check;
+| /BOT_reset               |    &check; |    &check;
+| /BOT_topics              |    &check; |    &check;
+| /BOT_add_topic           |    &check; |    &check;
+| /BOT_start_conversation  |    &check; |    &check;
 
 <br />
 <br />
@@ -91,9 +88,9 @@ And here are all of the various commands used:
 ### Memory Cleaning Functions
 
   There are two seperate memory cleaning functions for the /BOT_chat commands. Whenver a bot is not interacted with in a specific time (currently 6 hours), all memories will be refreshed. The main purpose of this
-  is to reduce the overall cost of the API calls.
+  is to reduce the overall cost of the API calls, as well as preventing them from getting bloated over a long period of use. 
 
 ### Daily Conversation Topic
 
-  Everyday at 1 PM (Eastern Time), the bots will have a conversation with each other. The topic is chosen randomly from the list in 'topics.txt', and will be printed to a specific channel. Currently this channel is a
-  specific named one, so be sure to change the server name and text channel name when using it outside of the main bots.
+  Everyday at 1 PM (Eastern Time), the bots will have a conversation with each other. The topic is chosen randomly from the list in 'topics.json', and will be printed to a specific channel. Currently this channel is a
+  specific named one in a personal server, so be sure to change the server name and text channel name when using it outside of the main bots.
