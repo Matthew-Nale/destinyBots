@@ -21,6 +21,8 @@ Currently, the required keys include: the generic Discord bot keys for Rhulk and
 
 And here are all of the various commands used: 
 
+<br />
+<br />
 
 ### */BOT_speak*
 
@@ -64,6 +66,8 @@ And here are all of the various commands used:
 
   Causes the specified bot to start a conversation with the other bots. An optional parameter is available to specify a topic, otherwise a random topic is chosen from the random topics list.
 
+<br />
+<br />
 
 ## Bot Command Compatability
 
@@ -77,8 +81,10 @@ And here are all of the various commands used:
 | /BOT_reset               |  &check; |  &check;
 | /BOT_topics              |  &check; |  &check;
 | /BOT_add_topic           |  &check; |  &check;
-| /BOT_start_conversation  |  &check; |  &check;
+| /BOT_start_conversation  |  &check; |  
 
+<br />
+<br />
 
 ## Timed Events
 
