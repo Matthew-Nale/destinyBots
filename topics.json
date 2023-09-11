@@ -1,30 +1,30 @@
 {
     "discord_members": [
-        "making fun of a Hunter called Radiolorian",
-        "making fun of a Warlock called A Moist Sponge",
-        "making fun of a Warlock called victoriousq",
-        "making fun of a Titan called Heironymus",
-        "making fun of a Titan called PaschalGravy9",
-        "making fun of a Guardian called BEE"
-    ],
-    "insult": [
-        "making fun of each other",
         "making fun of a Hunter from Destiny called Radiolorian",
         "making fun of a Warlock from Destiny called A Moist Sponge",
         "making fun of a Warlock from Destiny called victoriousq",
         "making fun of a Titan from Destiny called Heironymus",
         "making fun of a Titan from Destiny called PaschalGravy9",
-        "making fun of a Guardian called BEE",
+        "making fun of a Guardian from Destiny called BEE"
+    ],
+    "insult": [
+        "making fun of each other",
         "making fun of the Hunter jump",
         "making fun of the Warlock jump",
         "making fun of the Titan jump",
-        "making fun of the Witness"
+        "making fun of the Witness",
+        "making fun of Matthew's job of programming the two as Discord bots"
     ],
     "discussion": [
         "discussing the origins of the Witness",
         "discussing their favorite pokemon",
         "discussing if cats would be good warriors",
-        "discussing the existence of catgirls"
+        "discussing the existence of catgirls",
+        "discussing what the best food is",
+        "discussing the Guardian's habits of 'tea bagging'",
+        "discussing the dance rituals of Guardians",
+        "coming up with bizarre new topics to discuss",
+        "discussing when the Guardian called BEE will get his next raid exotic"
     ],
     "misc": [
         "making bizarre plans to get rid of the Traveler and the Light",
@@ -32,6 +32,10 @@
         "comparing catgirls to foxgirls",
         "discussing Calus's sexual history",
         "discussing Rhulk's sexual history",
-        "discuss the Vaporeon copypasta"
+        "discussing how Vaporeon is the most sexually compatible for human males",
+        "the Guardians' bliss of licking Hive Ogre toes",
+        "Calus attempting to get Rhulk to become a catgirl",
+        "Calus attempting to get Rhulk to wear a maid outfit with him",
+        "the two getting upset at losing at Elden Ring"
     ]
 }

@@ -27,13 +27,13 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
         for line in convo:
             if 'Rhulk' in line:
                 async with rhulk.bot.get_channel(interaction.channel_id).typing():
-                    await asyncio.sleep(round(random.uniform(6.0, 10.0), 1))
+                    await asyncio.sleep(0.03 * len(line['Rhulk']))
                 await rhulk.bot.get_channel(interaction.channel_id).send(line['Rhulk'])
             elif 'Calus' in line:
                 async with calus.bot.get_channel(interaction.channel_id).typing():
-                    await asyncio.sleep(round(random.uniform(6.0, 10.0), 1))
+                    await asyncio.sleep(0.03 * len(line['Calus']))
                 await calus.bot.get_channel(interaction.channel_id).send(line['Calus'])
-            await asyncio.sleep(round(random.uniform(2.0, 5.0), 1))
+            await asyncio.sleep(round(random.uniform(5.0, 10.0), 1))
         
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Rhulk: ' + e + '\n\n')
@@ -53,13 +53,13 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
         for line in convo:
             if 'Rhulk' in line:
                 async with rhulk.bot.get_channel(interaction.channel_id).typing():
-                    await asyncio.sleep(round(random.uniform(6.0, 10.0), 1))
+                    await asyncio.sleep(0.03 * len(line['Rhulk']))
                 await rhulk.bot.get_channel(interaction.channel_id).send(line['Rhulk'])
             elif 'Calus' in line:
                 async with calus.bot.get_channel(interaction.channel_id).typing():
-                    await asyncio.sleep(round(random.uniform(6.0, 10.0), 1))
+                    await asyncio.sleep(0.03 * len(line['Calus']))
                 await calus.bot.get_channel(interaction.channel_id).send(line['Calus'])
-            await asyncio.sleep(round(random.uniform(2.0, 5.0), 1))
+            await asyncio.sleep(round(random.uniform(5.0, 10.0), 1))
         
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Calus: ' + e + '\n\n')
@@ -72,7 +72,7 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
     try:
         if topic == None:
             topics = json.load(open('topics.json'))
-            weights = {'discord_members': 5, 'insult': 1, 'discussion': 1, 'misc': 1}
+            weights = {'discord_members': 3.5, 'insult': 2, 'discussion': 3, 'misc': 1.5}
             chosen_key = random.choices(list(weights.keys()), weights=list(weights.values()))[0]
             chosen_topic = topics[chosen_key][random.randint(0, len(topics[chosen_key]) - 1)]
         else:
@@ -88,6 +88,7 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
                        Calus: TEXT. Limit to under 10 total lines of dialogue. {} starts.""".format(chosen_topic, first_speaker)
             }],
             n=1,
+            temperature=1.2,
             frequency_penalty=0.3
         )
         
@@ -131,13 +132,13 @@ async def scheduledBotConversation():
             for line in convo:
                 if 'Rhulk' in line:
                     async with rhulk.bot.get_channel(channel_id).typing():
-                        await asyncio.sleep(round(random.uniform(6.0, 10.0), 1))
+                        await asyncio.sleep(0.03 * len(line['Rhulk']))
                     await rhulk.bot.get_channel(channel_id).send(line['Rhulk'])
                 elif 'Calus' in line:
                     async with calus.bot.get_channel(channel_id).typing():
-                        await asyncio.sleep(round(random.uniform(6.0, 10.0), 1))
+                        await asyncio.sleep(0.03 * len(line['Calus']))
                     await calus.bot.get_channel(channel_id).send(line['Calus'])
-                await asyncio.sleep(round(random.uniform(2.0, 5.0), 1))
+                await asyncio.sleep(round(random.uniform(5.0, 10.0), 1))
 
             log.write('Finished random conversation topic as scheduled.\n\n')
         except Exception as e:
