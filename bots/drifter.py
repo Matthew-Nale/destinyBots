@@ -11,7 +11,7 @@ load_dotenv()
 DRIFTER_TOKEN = os.getenv('DISCORD_TOKEN_DRIFTER')
 DRIFTER_VOICE_KEY = os.getenv('ELEVEN_TOKEN_DRIFTER')
 
-drifter = Bot('Drifter', DRIFTER_TOKEN, "The Drifter", DRIFTER_VOICE_KEY, "eleven_multilingual_v2"
+drifter = Bot('Drifter', DRIFTER_TOKEN, "The Drifter", DRIFTER_VOICE_KEY, "eleven_multilingual_v2",
               """Roleplay as The Drifter from Destiny 2. Emulate his irreverent 
               temperament, strange behaviors, and personality. Use his phrases 
               such as "Brother" when referring to other Guardians. Focus on essential 

@@ -21,14 +21,14 @@ def create_prompt(first_speaker, topic, num_speakers=None):
     
     if num_speakers == None:
         num_additional_chars = random.randint(1, len(character_info) - 1)
-        while len(active_characters) < num_additional_chars:
-            k, v = random.choice(list(character_info.items()))
-            if k not in active_characters:
-                active_characters[k] = v
+    elif num_speakers > 1 and num_speakers < len(character_info):
+        num_additional_chars = num_speakers - 1
     else:
-        print("In here")
-        for _, (k, v) in enumerate(character_info):
-            if k != first_speaker:
+        num_additional_chars = 2
+    
+    while len(active_characters) < num_additional_chars:
+            k, v = random.choice(list(character_info.items()))
+            if k not in active_characters and k != first_speaker:
                 active_characters[k] = v
             
     characters = "Characters: {}".format(character_info[first_speaker]["character"])
@@ -67,7 +67,9 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None, num_speakers
             model=CHAT_MODEL,
             messages=[{'role':'system', 'content': prompt}],
             n=1,
-            max_tokens=500
+            temperature=1.1,
+            frequency_penalty=0.1,
+            max_tokens=1024
         )
         
         convo = (completion.choices[0].message.content).splitlines()
