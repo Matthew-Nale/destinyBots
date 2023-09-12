@@ -68,20 +68,37 @@ And here are all of the various commands used:
 
 ## Bot Command Compatability
 
-| Command                  | Rhulk    | Calus    |
-|--------------------------|----------|----------|
-| /BOT_speak               |  &check; |  &check; 
-| /BOT_vc_speak            |  &check; |  &check;
-| /BOT_credits             |  &check; |  &check;
-| /BOT_chat                |  &check; |  &check;
-| /BOT_prompt              |  &check; |  &check;
-| /BOT_reset               |  &check; |  &check;
-| /BOT_topics              |  &check; |  &check;
-| /BOT_add_topic           |  &check; |  &check;
-| /BOT_start_conversation  |  &check; |  &check;
+| Command                  | Rhulk    | Calus    | Drifter  |
+|--------------------------|----------|----------|----------|
+| /BOT_speak               |  &check; |  &check; |  &check;
+| /BOT_vc_speak            |  &check; |  &check; |  &check;
+| /BOT_credits             |  &check; |  &check; |  &check;
+| /BOT_chat                |  &check; |  &check; |  &check;
+| /BOT_prompt              |  &check; |  &check; |  &check;
+| /BOT_reset               |  &check; |  &check; |  &check;
+| /BOT_topics              |  &check; |  &check; |  &check;
+| /BOT_add_topic           |  &check; |  &check; |
+| /BOT_start_conversation  |  &check; |  &check; |
 
 <br />
 <br />
+
+## Recommended Future Bots
+
+  Listed below are some future potential bots. These were all either recommended to myself from people who use the current bots, or my own personal ideas. These
+  are not guranteed to be added, but are the most likely.
+
+<br />
+
+- Spongebob
+- Gabriel from Overkill
+- The Witness
+- Catgirl
+- Caiatl
+- Tower PA System
+- Hyper Masculine Guy
+
+<br /> 
 
 ## Timed Events
 

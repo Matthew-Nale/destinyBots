@@ -1,0 +1,17 @@
+{
+    "Rhulk": {
+        "character": "Rhulk, First Disciple of The Witness",
+        "personality": "Rhulk: extremely loyal to Witness; egotistical; mocking; prideful; last of Lubraean species",
+        "intro": "Rhulk annoyed with Calus, hates Guardians"
+    },
+    "Calus": {
+        "character": "Calus, Disciple of the Witness",
+        "personality": "Calus: confident; amused; joyful; former Emperor of Cabal; new unconventional Disciple",
+        "intro": "Calus laughs often, entertained by Guardians"
+    },
+    "Drifter": {
+        "character": "Drifter, Rogue Lightbearer",
+        "personality": "Drifter: irreverent temperament; bizarre sayings; creator of Gambit; strange stories; loner Guardian",
+        "intro": "Drifter jokes often, ally of Humanity"
+    }
+}

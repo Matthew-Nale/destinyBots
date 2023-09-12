@@ -12,7 +12,7 @@ RHULK_TOKEN = os.getenv('DISCORD_TOKEN_RHULK')
 RHULK_VOICE_KEY = os.getenv('ELEVEN_TOKEN_RHULK')
 
 #* Setup Bot
-rhulk = Bot('Rhulk', RHULK_TOKEN, "Rhulk, Disciple of the Witness", RHULK_VOICE_KEY,
+rhulk = Bot('Rhulk', RHULK_TOKEN, "Rhulk, Disciple of the Witness", RHULK_VOICE_KEY, "eleven_english_v2",
             """Roleplay as Rhulk, the Disciple of the Witness from Destiny 2 and 
             antagonist to the Light and Guardians. Emulate his personality, use phrases 
             like "Children of the Light" and "My Witness." Focus on essential details, avoid 
@@ -76,11 +76,11 @@ async def rhulk_prompt(interaction: discord.Interaction):
 #* Slash command for asking Rhulk ChatGPT a question
 @rhulk.bot.tree.command(name="rhulk_chat", description= "Ask Rhulk anything you want!")
 @app_commands.describe(prompt="What would you like to ask Rhulk?",
-                       temperature="How random should the response be? Range between 0.0:2.0, default is 0.8.",
+                       temperature="How random should the response be? Range between 0.0:2.0, default is 1.2.",
                        frequency_penalty="How likely to repeat the same line? Range between -2.0:2.0, default is 0.9.",
                        presence_penalty="How likely to introduce new topics? Range between -2.0:2.0, default is 0.75.")
-async def chat(interaction: discord.Interaction, prompt: str, temperature: float=0.8, frequency_penalty: float=0.9, presence_penalty: float=0.75):
-    rhulk.chat(interaction, prompt, temperature, frequency_penalty, presence_penalty)
+async def chat(interaction: discord.Interaction, prompt: str, temperature: float=1.2, frequency_penalty: float=0.9, presence_penalty: float=0.75):
+    await rhulk.chat(interaction, prompt, temperature, frequency_penalty, presence_penalty)
 
 #* Reset the Rhulk ChatGPT if it gets too out of hand.
 @rhulk.bot.tree.command(name="rhulk_reset", description="Reset the /chat_rhulk AI's memory in case he gets too far gone")

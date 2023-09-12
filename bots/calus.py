@@ -12,7 +12,7 @@ CALUS_TOKEN = os.getenv('DISCORD_TOKEN_CALUS')
 CALUS_VOICE_KEY = os.getenv('ELEVEN_TOKEN_CALUS')
 
 #* Setup bot
-calus = Bot('Calus', CALUS_TOKEN, "Calus, Emperor of the Cabal", CALUS_VOICE_KEY, 
+calus = Bot('Calus', CALUS_TOKEN, "Calus, Emperor of the Cabal", CALUS_VOICE_KEY, "eleven_english_v2",
             """Roleplay as Calus, the Cabal Emperor from Destiny 2. Emulate his hedonistic,
             narcissistic, and adoration personality. Use phrases like 'My Shadow' and occasional laughter when
             relevant. Focus on essential details, omitting unnecessary ones about Darkness and Light. Respond

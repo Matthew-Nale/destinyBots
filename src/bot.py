@@ -16,12 +16,11 @@ GPT_KEY = os.getenv('CHATGPT_TOKEN')
 MAX_LEN = 1024 # Setting character limit for ElevenLabs
 MAX_TOKENS = 128 # Setting token limit for ChatGPT responses
 CHAT_MODEL = "gpt-3.5-turbo" # Model for OpenAI Completions to use
-VOICE_MODEL = "eleven_english_v2" # Model used for ElevenLabs voice synthesis
 
 
 class Bot:
     # Constructor for the class
-    def __init__(self, _name, _discord_token, _voice_name, _voice_key, _chat_prompt, _status_messages):
+    def __init__(self, _name, _discord_token, _voice_name, _voice_key, _voice_model, _chat_prompt, _status_messages):
         self.name = _name
         self.bot = commands.Bot(command_prefix=commands.when_mentioned_or('!{self.name}'), intents=discord.Intents.all())
         self.discord_token = _discord_token
@@ -30,6 +29,7 @@ class Bot:
         self.status_messages = _status_messages
         self.memory = {}
         self.last_interaction = {}
+        self.voice_model = _voice_model
     
     # Initialization of the bot
     async def botInit(self):
@@ -140,7 +140,7 @@ class Bot:
         try:
             audio = await self.elevenlabs.generate(
                 text=text,
-                model=VOICE_MODEL,
+                model=self.voice_model,
                 stability=stability,
                 similarity_boost=clarity,
                 style=style,
@@ -192,7 +192,7 @@ class Bot:
         try:
             audio = await self.elevenlabs.generate(
                 text=text,
-                model=VOICE_MODEL,
+                model=self.voice_model,
                 stability=stability,
                 similarity_boost=clarity,
                 style=style,
