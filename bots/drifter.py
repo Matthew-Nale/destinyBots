@@ -31,7 +31,7 @@ async def on_guild_join(guild):
     log = open("log.txt", "a")
     general = discord.utils.find(lambda x: x.name == 'general', guild.text_channels)
     if general and general.permissions_for(guild.me).send_messages:
-        await general.send("Good to see you all here in {}! How you livin\'?".format(guild.name))
+        await general.send("Alright alright alright! Let\'s see what we got! {} on the field\'!".format(guild.name))
     await drifter.botInit()
     log.write(f'Drifter joined a new server: {guild.name}\n\n')
     log.close()
