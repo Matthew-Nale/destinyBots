@@ -87,6 +87,8 @@ And here are all of the various commands used:
 
   Listed below are some future potential bots. These were all either recommended to myself from people who use the current bots, or my own personal ideas. These
   are not guranteed to be added, but are the most likely.
+  
+<br />
 
 - Spongebob
 - Grabriel from Overkill
@@ -97,7 +99,6 @@ And here are all of the various commands used:
 - Hyper Masculine Guy
 
 <br /> 
-<br />
 
 ## Timed Events
 
