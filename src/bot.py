@@ -21,7 +21,7 @@ VOICE_MODEL = "eleven_english_v2" # Model used for ElevenLabs voice synthesis
 
 class Bot:
     # Constructor for the class
-    def __init__(self, _name, _discord_token, _voice_name, _voice_key, _chat_prompt, _status_messages):
+    def __init__(self, _name, _discord_token, _voice_name, _voice_key, _voice_model, _chat_prompt, _status_messages):
         self.name = _name
         self.bot = commands.Bot(command_prefix=commands.when_mentioned_or('!{self.name}'), intents=discord.Intents.all())
         self.discord_token = _discord_token
@@ -30,6 +30,7 @@ class Bot:
         self.status_messages = _status_messages
         self.memory = {}
         self.last_interaction = {}
+        self.voice_model = _voice_model
     
     # Initialization of the bot
     async def botInit(self):

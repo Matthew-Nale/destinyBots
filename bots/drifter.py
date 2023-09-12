@@ -11,7 +11,7 @@ load_dotenv()
 DRIFTER_TOKEN = os.getenv('DISCORD_TOKEN_DRIFTER')
 DRIFTER_VOICE_KEY = os.getenv('ELEVEN_TOKEN_DRIFTER')
 
-drifter = Bot('Drifter', DRIFTER_TOKEN, "The Drifter", DRIFTER_VOICE_KEY,
+drifter = Bot('Drifter', DRIFTER_TOKEN, "The Drifter", DRIFTER_VOICE_KEY, "eleven_multilingual_v2"
               """Roleplay as The Drifter from Destiny 2. Emulate his irreverent 
               temperament, strange behaviors, and personality. Use his phrases 
               such as "Brother" when referring to other Guardians. Focus on essential 
@@ -77,7 +77,7 @@ async def drifter_prompt(interaction: discord.Interaction):
                        frequency_penalty="How likely to repeat the same line? Range between -2.0:2.0, default is 0.9.",
                        presence_penalty="How likely to introduce new topics? Range between -2.0:2.0, default is 0.75.")
 async def chat(interaction: discord.Interaction, prompt: str, temperature: float=1.2, frequency_penalty: float=0.9, presence_penalty: float=0.75):
-    drifter.chat(interaction, prompt, temperature, frequency_penalty, presence_penalty)
+    await drifter.chat(interaction, prompt, temperature, frequency_penalty, presence_penalty)
 
 #* Reset the Drifter ChatGPT if it gets too out of hand.
 @drifter.bot.tree.command(name="drifter_reset", description="Reset the /drifter_chat AI's memory in case he gets too far gone")
@@ -95,3 +95,22 @@ async def topics(interaction: discord.Interaction):
             response += f'{v}\n'
         response += '\n'
     await interaction.response.send_message(f'Heh, listen to this brother. Those two \'Disciples\' you killed are wanting to talk about these topics: \n\n{response}', ephemeral=True)
+
+#* Add a topic to the topic list
+@drifter.bot.tree.command(name="drifter_add_topic", description="Add a topic that can be used for the daily conversation!")
+@app_commands.describe(topic="What topic should be added to the list?")
+async def drifter_add_topic(interaction: discord.Interaction, topic: str):
+    if topic != None:
+        topics = json.load(open('topics.json'))
+        if topic not in topics['misc']["topics"]:
+            topics['misc']["topics"].append(topic)
+            with open('topics.json', 'w') as f:
+                log = open('log.txt', 'a')
+                f.write(json.dumps(topics, indent=4))
+                log.write(f'Added a new topic to the list: {topic}\n\n')
+                log.close()
+                await interaction.response.send_message(f'Ooooh {interaction.user.global_name}! **{topic}** sounds like a fun thing to discuss!')
+        else:
+            await interaction.response.send_message(f'{interaction.user.global_name}, did that Primeval drain your Light? (Already in list)')
+    else:
+        await interaction.response.send_message(f'I\'ve been more entertained being cooped up down here than hearing that, {interaction.user.global_name}. (Must input something)')
