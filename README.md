@@ -83,6 +83,22 @@ And here are all of the various commands used:
 <br />
 <br />
 
+## Recommended Future Bots
+
+  Listed below are some future potential bots. These were all either recommended to myself from people who use the current bots, or my own personal ideas. These
+  are not guranteed to be added, but are the most likely.
+  
+  &emsp; Spongebob
+  &emsp; Grabriel from Overkill
+  &emsp; The Witness
+  &emsp; Catgirl
+  &emsp; Caiatl
+  &emsp; Tower PA System
+  &emsp; Hyper Masculine Guy
+
+<br /> 
+<br />
+
 ## Timed Events
 
 ### Memory Cleaning Functions
