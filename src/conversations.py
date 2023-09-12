@@ -15,39 +15,41 @@ from bots.drifter import drifter
 
 #* Creates the prompt for generating the random conversation
 def create_prompt(first_speaker, topic, num_speakers=None):
-    character_info = json.load(open('src/conversation_info.json'))
-    
-    active_characters = {}
-    
-    if num_speakers == None:
-        num_additional_chars = random.randint(1, len(character_info) - 1)
-    elif num_speakers > 1 and num_speakers < len(character_info):
-        num_additional_chars = num_speakers - 1
-    else:
-        num_additional_chars = 2
-    
-    while len(active_characters) < num_additional_chars:
-            k, v = random.choice(list(character_info.items()))
-            if k not in active_characters and k != first_speaker:
-                active_characters[k] = v
-            
-    characters = "Characters: {}".format(character_info[first_speaker]["character"])
-    personalities = character_info[first_speaker]["personality"]
-    intros = character_info[first_speaker]["intro"]
-    formatting = "Format as {}: TEXT".format(first_speaker)
-    
-    for char in active_characters:
-        characters += "; {}".format(character_info[char]["character"])
-        personalities += ". {}".format(character_info[char]["personality"])
-        intros += "; {}".format(character_info[char]["intro"])
-        formatting += ", {}: TEXT".format(char)
-    
-    prompt = ("Create dialogue set in Destiny universe. {}. {}. {}. "
-    "Topic: {}. Stay on topic. Be extremely entertaining, creative, and funny. {}. "
-    "Order of Speaking: completely random order. Limit conversation to be under 10 lines "
-    "of dialogue. {} starts.").format(characters, intros, personalities, topic, formatting, first_speaker)
-    
-    return prompt
+    try:
+        character_info = json.load(open('src/conversation_info.json'))
+        
+        active_characters = {}
+        
+        if num_speakers == None:
+            num_additional_chars = random.randint(1, len(character_info) - 1)
+        else:
+            num_additional_chars = num_speakers - 1
+
+        
+        while len(active_characters) < num_additional_chars:
+                k, v = random.choice(list(character_info.items()))
+                if k not in active_characters and k != first_speaker:
+                    active_characters[k] = v
+                
+        characters = "Characters: {}".format(character_info[first_speaker]["character"])
+        personalities = character_info[first_speaker]["personality"]
+        intros = character_info[first_speaker]["intro"]
+        formatting = "Format as {}: TEXT".format(first_speaker)
+        
+        for char in active_characters:
+            characters += "; {}".format(character_info[char]["character"])
+            personalities += ". {}".format(character_info[char]["personality"])
+            intros += "; {}".format(character_info[char]["intro"])
+            formatting += ", {}: TEXT".format(char)
+        
+        prompt = ("Create dialogue set in Destiny universe. {}. {}. {}. "
+        "Topic: {}. Stay on topic. Be extremely entertaining, creative, and funny. {}. "
+        "Order of Speaking: completely random order. Limit conversation to be under 10 lines "
+        "of dialogue. {} starts.").format(characters, intros, personalities, topic, formatting, first_speaker)
+        
+        return prompt
+    except Exception as e:
+        return e
 
 #* Generating the new random conversation
 def generate_random_conversation(first_speaker="Rhulk", topic=None, num_speakers=None):
@@ -105,6 +107,9 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
     try:
         await interaction.response.defer()
         
+        character_info = json.load(open('conversation_info.json'))
+        num_speakers = max(2, min(num_speakers, len(character_info)))
+        
         convo, chosen_topic = generate_random_conversation('Rhulk', topic, num_speakers)
         await interaction.followup.send(f'*{interaction.user.display_name} wanted to hear Calus and I\'s conversation about* ***{chosen_topic}.*** *Here is how it unfolded:*')
         for line in convo:
@@ -135,6 +140,10 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
     log = open('log.txt', 'a')
     try:
         await interaction.response.defer()
+        
+        character_info = json.load(open('conversation_info.json'))
+        num_speakers = max(2, min(num_speakers, len(character_info)))
+        
         convo, chosen_topic = generate_random_conversation('Calus', topic, num_speakers)
         await interaction.followup.send(f'*{interaction.user.display_name}, my most loyal Shadow, asked Rhulk and I to talk about: {chosen_topic}! Here is how that went:*')
         for line in convo:
@@ -165,6 +174,10 @@ async def drifter_start_conversation(interaction: discord.Interaction, topic: st
     log = open('log.txt', 'a')
     try:
         await interaction.response.defer()
+        
+        character_info = json.load(open('conversation_info.json'))
+        num_speakers = max(2, min(num_speakers, len(character_info)))
+        
         convo, chosen_topic = generate_random_conversation('Drifter', topic, num_speakers)
         await interaction.followup.send(f'*My fellow Dredgen {interaction.user.display_name} wanted to know about:* ***{chosen_topic}!*** *Well, here you go brother:*')
         for line in convo:
