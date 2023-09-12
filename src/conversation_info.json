@@ -1,0 +1,12 @@
+{
+    "Rhulk": {
+        "character": "Rhulk, First Disciple of The Witness",
+        "personality": "Rhulk: extremely loyal; egotistical; mocking; prideful; last of Lubraean species",
+        "intro": "Rhulk annoyed with Calus"
+    },
+    "Calus": {
+        "character": "Calus, Disciple of the Witness",
+        "personality": "Calus: confident, amused, joyful, former Emperor of Cabal, new unconventional Disciple, indifferent to Witness's plans",
+        "intro": "Calus laughs often"
+    }
+}

@@ -76,10 +76,10 @@ async def rhulk_prompt(interaction: discord.Interaction):
 #* Slash command for asking Rhulk ChatGPT a question
 @rhulk.bot.tree.command(name="rhulk_chat", description= "Ask Rhulk anything you want!")
 @app_commands.describe(prompt="What would you like to ask Rhulk?",
-                       temperature="How random should the response be? Range between 0.0:2.0, default is 0.8.",
+                       temperature="How random should the response be? Range between 0.0:2.0, default is 1.2.",
                        frequency_penalty="How likely to repeat the same line? Range between -2.0:2.0, default is 0.9.",
                        presence_penalty="How likely to introduce new topics? Range between -2.0:2.0, default is 0.75.")
-async def chat(interaction: discord.Interaction, prompt: str, temperature: float=0.8, frequency_penalty: float=0.9, presence_penalty: float=0.75):
+async def chat(interaction: discord.Interaction, prompt: str, temperature: float=1.2, frequency_penalty: float=0.9, presence_penalty: float=0.75):
     rhulk.chat(interaction, prompt, temperature, frequency_penalty, presence_penalty)
 
 #* Reset the Rhulk ChatGPT if it gets too out of hand.
