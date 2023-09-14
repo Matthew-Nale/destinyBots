@@ -90,6 +90,7 @@ And here are all of the various commands used:
 
 <br />
 
+- Nezarec, Final God of Pain
 - Spongebob
 - Gabriel from Overkill
 - The Witness
