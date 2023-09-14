@@ -77,8 +77,8 @@ And here are all of the various commands used:
 | /BOT_prompt              |  &check; |  &check; |  &check;
 | /BOT_reset               |  &check; |  &check; |  &check;
 | /BOT_topics              |  &check; |  &check; |  &check;
-| /BOT_add_topic           |  &check; |  &check; |
-| /BOT_start_conversation  |  &check; |  &check; |
+| /BOT_add_topic           |  &check; |  &check; |  &check;
+| /BOT_start_conversation  |  &check; |  &check; |  &check;
 
 <br />
 <br />
