@@ -18,7 +18,7 @@ MAX_TOKENS = 128 # Setting token limit for ChatGPT responses
 CHAT_MODEL = "gpt-3.5-turbo" # Model for OpenAI Completions to use
 
 class VoiceCommands:
-    def __init__(self, _name, _voice_name, _voice_key, _voice_model, _status_messages):
+    def __init__(self, _name:str, _voice_name:str, _voice_key:str, _voice_model:str, _status_messages:dict):
         self.name = _name
         self.elevenlabs = ElevenLabs(_voice_name, _voice_key)
         self.voice_model = _voice_model
@@ -140,7 +140,7 @@ class VoiceCommands:
         log.close()
 
 class TextCommands:
-    def __init__(self, _name, _chat_prompt, _status_messages):
+    def __init__(self, _name:str, _chat_prompt:str, _status_messages:dict):
         self.name = _name
         self.chat_prompt = _chat_prompt
         self.memory = {}
