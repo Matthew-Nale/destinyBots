@@ -13,6 +13,7 @@ from bots.rhulk import rhulk
 from bots.calus import calus
 from bots.drifter import drifter
 
+
 #* Creates the prompt for generating the random conversation
 def create_prompt(first_speaker, topic, num_speakers=None):
     try:
@@ -55,7 +56,7 @@ def create_prompt(first_speaker, topic, num_speakers=None):
 def generate_random_conversation(first_speaker="Rhulk", topic=None, num_speakers=None):
     log = open('log.txt', 'a')
     try:
-        if topic == None:
+        if topic is None:
             topics = json.load(open('topics.json'))
             weights = {}
             for _, (k, v) in enumerate(topics.items()):
