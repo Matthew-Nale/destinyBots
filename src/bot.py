@@ -11,62 +11,19 @@ from src.elevenlab import *
 #* Load and set env variables for API calls
 load_dotenv()
 GPT_KEY = os.getenv('CHATGPT_TOKEN')
-
+openai.api_key = GPT_KEY
 
 MAX_LEN = 1024 # Setting character limit for ElevenLabs
 MAX_TOKENS = 128 # Setting token limit for ChatGPT responses
 CHAT_MODEL = "gpt-3.5-turbo" # Model for OpenAI Completions to use
 
-
-class Bot:
-    # Constructor for the class
-    def __init__(self, _name, _discord_token, _voice_name, _voice_key, _voice_model, _chat_prompt, _status_messages):
+class VoiceCommands:
+    def __init__(self, _name, _voice_name, _voice_key, _voice_model, _status_messages):
         self.name = _name
-        self.bot = commands.Bot(command_prefix=commands.when_mentioned_or('!{self.name}'), intents=discord.Intents.all())
-        self.discord_token = _discord_token
         self.elevenlabs = ElevenLabs(_voice_name, _voice_key)
-        self.chat_prompt = _chat_prompt
-        self.status_messages = _status_messages
-        self.memory = {}
-        self.last_interaction = {}
         self.voice_model = _voice_model
+        self.status_messages = _status_messages
     
-    # Initialization of the bot
-    async def botInit(self):
-        log = open("log.txt", "a")
-        for server in self.bot.guilds:
-            log.write(f'Setting up {self.name} context memory for server: {server.id} ({server.name})\n\n')
-            self.memory[server.id] = [{"role": "system", "content": self.chat_prompt}]
-            self.last_interaction[server.id] = datetime.now()
-        log.close()
-    
-    # Memory cleaning function for /chat commands
-    @tasks.loop(hours = 6)
-    async def cleanMemories(self):
-        log = open("log.txt", "a")
-        currentTime = datetime.now()
-        for server in self.bot.guilds:
-            time_diff = currentTime - self.last_interaction[server.id]
-            if time_diff.days > 0 or (time_diff.seconds / 3600) >= 6:
-                log.write(f'No interaction for {self.name} in {server.name} during past 6 hours, clearing the memory.\n\n')
-                self.memory[server.id] = [{"role": "system", "content": self.chat_prompt}]
-                self.last_interaction[server.id] = datetime.now()
-        log.close()
-    
-    # On ready command to run on startup
-    async def on_ready(self):
-        log = open("log.txt", "a")
-        openai.api_key = GPT_KEY
-        log.write(f'{self.bot.user} has connected to Discord!\n\n')
-        try:
-            synced = await self.bot.tree.sync()
-            log.write(f'Synced {len(synced)} commands for {self.bot.user}!\n\n')
-        except Exception as e:
-            log.write(f'{self.bot.user} on_ready error: \n{e}\n\n')
-        log.close()
-        await self.botInit()
-        await self.cleanMemories.start()
-
     # Show remaining ElevenLabs credits
     async def credits(self, interaction: discord.Interaction):
         log = open("log.txt", "a")
@@ -77,53 +34,6 @@ class Bot:
             await interaction.response.send_message(f'I will still speak {char_remaining} characters. Use them wisely.', ephemeral=True)
         else:
             await interaction.response.send_message('{} (Reached character quota for this month)'.format(self.status_messages['credits']))
-        log.close()
-    
-    # Show prompt that the bot uses
-    async def prompt(self, interaction: discord.Interaction):
-        log = open("log.txt", "a")
-        log.write(f'{interaction.user.global_name} asked {self.name} for his ChatGPT Prompt.\n\n')
-        await interaction.response.send_message("Here is the prompt used. Feel free to use this to generate text for the /speak or /vc_speak command: \n\n {}".format(self.chat_prompt), ephemeral=True)
-        log.close()
-    
-    # Reset memory for bot /chat commands
-    async def reset(self, interaction: discord.Interaction):
-        log = open("log.txt", "a")
-        self.memory[interaction.guild.id].clear()
-        self.memory[interaction.guild.id].append({"role": "system", "content": self.chat_prompt})
-        log.write(f'{interaction.user.global_name} cleared {self.name}\'s memory.\n\n')
-        await interaction.response.send_message('{}'.format(self.status_messages['reset'].replace('{USERNAME}', interaction.user.display_name)))
-        log.close()
-    
-    # Obtain a GPT response from the bot
-    async def chat(self, interaction: discord.Interaction, prompt: str, temperature: float, frequency_penalty: float, presence_penalty: float):
-        log = open("log.txt", "a")
-        await interaction.response.defer()
-        try:
-            self.memory[interaction.guild.id].append({"role": "user", "content": prompt})
-            completion = openai.ChatCompletion.create(
-                model=CHAT_MODEL,
-                messages=self.memory[interaction.guild.id],
-                n=1,
-                max_tokens=MAX_TOKENS,
-                temperature=temperature,
-                frequency_penalty=frequency_penalty,
-                presence_penalty=presence_penalty
-            )
-            log.write(f'/chat for {self.name} prompt and user: \n{prompt}. From {interaction.user.global_name}.\n\n/chat output: \n{completion}\n\n')
-            if completion.usage.total_tokens > 500:
-                removed_user = self.memory[interaction.guild.id].pop(1)
-                removed_assistant = self.memory[interaction.guild.id].pop(1)
-                log.write(f'/chat for {self.name} token limit reached. Removed the user prompt: {removed_user}, and the assistant answer: {removed_assistant}\n\n')
-            
-            self.memory[interaction.guild.id].append({"role": "assistant", "content": completion.choices[0].message.content})
-            await interaction.followup.send('{} *"{}"* \n\n{}'.format(self.status_messages['chat']['response'].replace('{USERNAME}', interaction.user.display_name),
-                                                                                                           prompt,
-                                                                                                           completion.choices[0].message.content))
-            self.last_interaction[interaction.guild.id] = datetime.now()
-        except Exception as e:
-            log.write(f'/chat for {self.name} error: \n{e}\n\n')
-            await interaction.followup.send("{} (Something went wrong)".format(self.status_messages['chat']['error']))
         log.close()
     
     # Have the bot speak a line of text
@@ -228,3 +138,104 @@ class Bot:
                                         ephemeral=True)
                 
         log.close()
+
+class TextCommands:
+    def __init__(self, _name, _chat_prompt, _status_messages):
+        self.name = _name
+        self.chat_prompt = _chat_prompt
+        self.memory = {}
+        self.last_interaction = {}
+        self.status_messages = _status_messages
+        
+    # Show prompt that the bot uses
+    async def prompt(self, interaction: discord.Interaction):
+        log = open("log.txt", "a")
+        log.write(f'{interaction.user.global_name} asked {self.name} for his ChatGPT Prompt.\n\n')
+        await interaction.response.send_message("Here is the prompt used. Feel free to use this to generate text for the /speak or /vc_speak command: \n\n {}".format(self.chat_prompt), ephemeral=True)
+        log.close()
+    
+    # Reset memory for bot /chat commands
+    async def reset(self, interaction: discord.Interaction):
+        log = open("log.txt", "a")
+        self.memory[interaction.guild.id].clear()
+        self.memory[interaction.guild.id].append({"role": "system", "content": self.chat_prompt})
+        log.write(f'{interaction.user.global_name} cleared {self.name}\'s memory.\n\n')
+        await interaction.response.send_message('{}'.format(self.status_messages['reset'].replace('{USERNAME}', interaction.user.display_name)))
+        log.close()
+    
+    # Obtain a GPT response from the bot
+    async def chat(self, interaction: discord.Interaction, prompt: str, temperature: float, frequency_penalty: float, presence_penalty: float):
+        log = open("log.txt", "a")
+        await interaction.response.defer()
+        try:
+            self.memory[interaction.guild.id].append({"role": "user", "content": prompt})
+            completion = openai.ChatCompletion.create(
+                model=CHAT_MODEL,
+                messages=self.memory[interaction.guild.id],
+                n=1,
+                max_tokens=MAX_TOKENS,
+                temperature=temperature,
+                frequency_penalty=frequency_penalty,
+                presence_penalty=presence_penalty
+            )
+            log.write(f'/chat for {self.name} prompt and user: \n{prompt}. From {interaction.user.global_name}.\n\n/chat output: \n{completion}\n\n')
+            if completion.usage.total_tokens > 500:
+                removed_user = self.memory[interaction.guild.id].pop(1)
+                removed_assistant = self.memory[interaction.guild.id].pop(1)
+                log.write(f'/chat for {self.name} token limit reached. Removed the user prompt: {removed_user}, and the assistant answer: {removed_assistant}\n\n')
+            
+            self.memory[interaction.guild.id].append({"role": "assistant", "content": completion.choices[0].message.content})
+            await interaction.followup.send('{} *"{}"* \n\n{}'.format(self.status_messages['chat']['response'].replace('{USERNAME}', interaction.user.display_name),
+                                                                                                           prompt,
+                                                                                                           completion.choices[0].message.content))
+            self.last_interaction[interaction.guild.id] = datetime.now()
+        except Exception as e:
+            log.write(f'/chat for {self.name} error: \n{e}\n\n')
+            await interaction.followup.send("{} (Something went wrong)".format(self.status_messages['chat']['error']))
+        log.close()
+    
+
+class Bot:
+    # Constructor for the class
+    def __init__(self, _name, _discord_token, _status_messages, _voice_name=None, _voice_key=None, _voice_model=None, _chat_prompt=None, _use_voice=False, _use_text=False):
+        self.name = _name
+        self.bot = commands.Bot(command_prefix=commands.when_mentioned_or('!{self.name}'), intents=discord.Intents.all())
+        self.discord_token = _discord_token
+        self.voice = VoiceCommands(_name, _voice_name, _voice_key, _voice_model, _status_messages) if _use_voice else None
+        self.text = TextCommands(_name, _chat_prompt, _status_messages) if _use_text else None
+    
+    # Initialization of the bot
+    async def botInit(self):
+        log = open("log.txt", "a")
+        for server in self.bot.guilds:
+            log.write(f'Setting up {self.name} context memory for server: {server.id} ({server.name})\n\n')
+            self.text.memory[server.id] = [{"role": "system", "content": self.text.chat_prompt}]
+            self.text.last_interaction[server.id] = datetime.now()
+        log.close()
+    
+    # Memory cleaning function for /chat commands
+    @tasks.loop(hours = 6)
+    async def cleanMemories(self):
+        log = open("log.txt", "a")
+        currentTime = datetime.now()
+        for server in self.bot.guilds:
+            time_diff = currentTime - self.text.last_interaction[server.id]
+            if time_diff.days > 0 or (time_diff.seconds / 3600) >= 6:
+                log.write(f'No interaction for {self.name} in {server.name} during past 6 hours, clearing the memory.\n\n')
+                self.text.memory[server.id] = [{"role": "system", "content": self.text.chat_prompt}]
+                self.text.last_interaction[server.id] = datetime.now()
+        log.close()
+    
+    # On ready command to run on startup
+    async def on_ready(self):
+        log = open("log.txt", "a")
+        log.write(f'{self.bot.user} has connected to Discord!\n\n')
+        try:
+            synced = await self.bot.tree.sync()
+            log.write(f'Synced {len(synced)} commands for {self.bot.user}!\n\n')
+        except Exception as e:
+            log.write(f'{self.bot.user} on_ready error: \n{e}\n\n')
+        log.close()
+        if self.text is not None:
+            await self.botInit()
+            await self.cleanMemories.start()
