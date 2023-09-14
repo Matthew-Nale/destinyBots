@@ -76,7 +76,7 @@ class VoiceCommands:
         log.close()
     
     # Have the bot speak text in a VC
-    async def vc_speak(self, interaction: discord.Interaction, text: str, vc: str="", stability: float=0.2, clarity: float=0.7, style: float=0.1):
+    async def vc_speak(self, interaction: discord.Interaction, text: str, vc: str=None, stability: float=0.2, clarity: float=0.7, style: float=0.1):
         log = open("log.txt", "a")
         log.write(f'{interaction.user.global_name} asked {self.name} to say in the VC: `{text}`\n\n')
         await interaction.response.defer()
@@ -87,7 +87,7 @@ class VoiceCommands:
             return
         
         if interaction.user.voice is None:
-            if vc == "":
+            if vc is None:
                 log.write(f'{interaction.user.global_name} was not in the VC, could not send message.\n\n')
                 await interaction.followup.send(f'{interaction.user.display_name}, do not waste my time if you are not here. (Must be in a VC or specify a valid VC)', ephemeral=True)
                 log.close()
@@ -197,7 +197,8 @@ class TextCommands:
 
 class Bot:
     # Constructor for the class
-    def __init__(self, _name, _discord_token, _status_messages, _voice_name=None, _voice_key=None, _voice_model=None, _chat_prompt=None, _use_voice=False, _use_text=False):
+    def __init__(self, _name:str, _discord_token:str, _status_messages:dict, _voice_name:str=None, _voice_key:str=None,
+                 _voice_model:str=None, _chat_prompt:str=None, _use_voice:bool=False, _use_text:bool=False):
         self.name = _name
         self.bot = commands.Bot(command_prefix=commands.when_mentioned_or('!{self.name}'), intents=discord.Intents.all())
         self.discord_token = _discord_token

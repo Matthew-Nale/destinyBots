@@ -114,7 +114,7 @@ async def topics(interaction: discord.Interaction):
 #* Add a topic to the topic list
 @calus.bot.tree.command(name="calus_add_topic", description="Add a topic that can be used for the daily conversation!")
 @app_commands.describe(topic="What topic should be added to the list?")
-async def calus_add_topic(interaction: discord.Interaction, topic: str):
+async def calus_add_topic(interaction: discord.Interaction, topic: str=None):
     if topic != None:
         topics = json.load(open('topics.json'))
         if topic not in topics['misc']["topics"]:
