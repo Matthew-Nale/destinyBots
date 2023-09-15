@@ -100,7 +100,7 @@ async def rhulk_reset(interaction: discord.Interaction):
     await rhulk.text.reset(interaction)
 
 #* Shows the list of random topics to be used daily or with the /generate_conversation command
-@rhulk.bot.tree.command(name="rhulk_topics", description="View the saved topics that Rhulk and Calus can chat over!")
+@rhulk.bot.tree.command(name="rhulk_topics", description="View the saved topics that the bots can chat over!")
 async def topics(interaction: discord.Interaction):
     topics = json.load(open('topics.json'))
     response = ""

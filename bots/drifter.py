@@ -99,7 +99,7 @@ async def drifter_reset(interaction: discord.Interaction):
     await drifter.text.reset(interaction)
 
 #* Shows the list of random topics to be used daily or with the /generate_conversation command
-@drifter.bot.tree.command(name="drifter_topics", description="View the saved topics that Rhulk and Calus can chat over!")
+@drifter.bot.tree.command(name="drifter_topics", description="View the saved topics that the bots can chat over!")
 async def topics(interaction: discord.Interaction):
     topics = json.load(open('topics.json'))
     response = ""
@@ -108,7 +108,7 @@ async def topics(interaction: discord.Interaction):
         for v in value["topics"]:
             response += f'{v}\n'
         response += '\n'
-    await interaction.response.send_message(f'Heh, listen to this brother. Those two \'Disciples\' you killed are wanting to talk about these topics: \n\n{response}', ephemeral=True)
+    await interaction.response.send_message(f'Heh, listen to this brother. Those \'Disciples\' you killed are wanting to talk about these topics: \n\n{response}', ephemeral=True)
 
 #* Add a topic to the topic list
 @drifter.bot.tree.command(name="drifter_add_topic", description="Add a topic that can be used for the daily conversation!")

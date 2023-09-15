@@ -99,7 +99,7 @@ async def calus_reset(interaction: discord.Interaction):
     await calus.text.reset(interaction)
 
 #* Shows the list of random topics to be used daily or with the /generate_conversation command
-@calus.bot.tree.command(name="calus_topics", description="View the saved topics that Rhulk and Calus can chat over!")
+@calus.bot.tree.command(name="calus_topics", description="View the saved topics that the bots can chat over!")
 async def topics(interaction: discord.Interaction):
     topics = json.load(open('topics.json'))
     response = ""
@@ -109,7 +109,7 @@ async def topics(interaction: discord.Interaction):
         for v in value["topics"]:
             response += f'{v}\n'
         response += '\n'
-    await interaction.response.send_message(f'*(laughter)* {interaction.user.global_name}, my favorite Guardian! Here is what I was thinking of asking Rhulk: \n\n{response}', ephemeral=True)
+    await interaction.response.send_message(f'*(laughter)* {interaction.user.global_name}, my favorite Guardian! Here is what I was thinking of asking the others: \n\n{response}', ephemeral=True)
 
 #* Add a topic to the topic list
 @calus.bot.tree.command(name="calus_add_topic", description="Add a topic that can be used for the daily conversation!")
