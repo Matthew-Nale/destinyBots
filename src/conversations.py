@@ -117,7 +117,7 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
         num_speakers = max(2, min(num_speakers, len(character_info)))
         
         convo, chosen_topic = generate_random_conversation('Rhulk', topic, num_speakers)
-        await interaction.followup.send(f'*{interaction.user.display_name} wanted to hear Calus and I\'s conversation about* ***{chosen_topic}.*** *Here is how it unfolded:*')
+        await interaction.followup.send(f'*{interaction.user.display_name} wanted to hear our conversation about* ***{chosen_topic}.*** *Here is how it unfolded:*')
         for line in convo:
             if 'Rhulk' in line:
                 async with rhulk.bot.get_channel(interaction.channel_id).typing():
@@ -151,7 +151,7 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
         num_speakers = max(2, min(num_speakers, len(character_info)))
         
         convo, chosen_topic = generate_random_conversation('Calus', topic, num_speakers)
-        await interaction.followup.send(f'*{interaction.user.display_name}, my most loyal Shadow, asked Rhulk and I to talk about: {chosen_topic}! Here is how that went:*')
+        await interaction.followup.send(f'*{interaction.user.display_name}, my most loyal Shadow, asked Rhulk and I to talk about:* ***{chosen_topic}!*** *Here is how that went:*')
         for line in convo:
             if 'Rhulk' in line:
                 async with rhulk.bot.get_channel(interaction.channel_id).typing():
