@@ -14,14 +14,17 @@ from bots.calus import calus
 from bots.drifter import drifter
 
 
+#? Conversation Generation
+
+
 #* Creates the prompt for generating the random conversation
 def create_prompt(first_speaker, topic, num_speakers=None):
     try:
-        character_info = json.load(open('src/conversation_info.json'))
+        character_info = json.load(open('src/character_info.json'))
         
         active_characters = {}
         
-        if num_speakers == None:
+        if num_speakers is None:
             num_additional_chars = random.randint(1, len(character_info) - 1)
         else:
             num_additional_chars = num_speakers - 1
@@ -97,7 +100,9 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None, num_speakers
         log.close()
         return e
 
+
 #? Random Conversation Commands
+
 
 #* Manually generate a random or specific conversation with Rhulk being the first speaker
 @rhulk.bot.tree.command(name="rhulk_start_conversation", description="Have Rhulk start a conversation with the other bots!")
@@ -108,7 +113,7 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
     try:
         await interaction.response.defer()
         
-        character_info = json.load(open('conversation_info.json'))
+        character_info = json.load(open('src/character_info.json'))
         num_speakers = max(2, min(num_speakers, len(character_info)))
         
         convo, chosen_topic = generate_random_conversation('Rhulk', topic, num_speakers)
@@ -142,7 +147,7 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
     try:
         await interaction.response.defer()
         
-        character_info = json.load(open('conversation_info.json'))
+        character_info = json.load(open('src/character_info.json'))
         num_speakers = max(2, min(num_speakers, len(character_info)))
         
         convo, chosen_topic = generate_random_conversation('Calus', topic, num_speakers)
@@ -176,7 +181,7 @@ async def drifter_start_conversation(interaction: discord.Interaction, topic: st
     try:
         await interaction.response.defer()
         
-        character_info = json.load(open('conversation_info.json'))
+        character_info = json.load(open('src/character_info.json'))
         num_speakers = max(2, min(num_speakers, len(character_info)))
         
         convo, chosen_topic = generate_random_conversation('Drifter', topic, num_speakers)
@@ -201,6 +206,10 @@ async def drifter_start_conversation(interaction: discord.Interaction, topic: st
         await interaction.followup.send('Well well well, seems ol\' Drifter has done run out of ideas. (Bug Radiolorian for future fixes)')
     log.close()
 
+
+#? Daily Conversation
+
+
 #* Creating a new conversation at 1pm EST everyday
 @tasks.loop(seconds = 45)
 async def scheduledBotConversation():
@@ -208,9 +217,9 @@ async def scheduledBotConversation():
     if now.hour == 13 and now.minute == 0:
         log = open('log.txt', 'a')
         try:
-            character_info = json.load(open('src/conversation_info.json'))
+            character_info = json.load(open('src/character_info.json'))
             first_speaker = random.choice(list(character_info))
-            num_speakers = len(character_info)
+            num_speakers = random.randint(2, len(character_info))
             
             for guild in rhulk.bot.guilds:
                 if guild.name == "Victor's Little Pogchamps":
