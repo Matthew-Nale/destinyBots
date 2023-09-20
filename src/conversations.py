@@ -55,8 +55,8 @@ def create_prompt(first_speaker, topic, num_additional_speakers=None):
         
         for char in active_characters:
             characters += "; {}".format(character_info[char]["character"])
-            personalities += ". {}".format(character_info[char]["personality"])
             intros += "; {}".format(character_info[char]["intro"])
+            personalities += ". {}".format(character_info[char]["personality"])
             formatting += ", {}: TEXT".format(char)
         
         prompt = ("Create dialogue set in Destiny universe. {}. {}. {}. "
@@ -130,6 +130,7 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
             num_speakers = max(1, min(num_additional_speakers, len(character_info)))
         
         convo, chosen_topic = generate_random_conversation('Rhulk', topic, num_speakers)
+        
         await interaction.followup.send(f'*{interaction.user.display_name} wanted to hear our conversation about* ***{chosen_topic}.*** *Here is how it unfolded:*')
         
         await send_messages(convo, interaction.channel_id)
@@ -152,6 +153,7 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
             num_speakers = max(1, min(num_additional_speakers, len(character_info)))
         
         convo, chosen_topic = generate_random_conversation('Calus', topic, num_speakers)
+        
         await interaction.followup.send(f'*{interaction.user.display_name}, my most loyal Shadow, asked Rhulk and I to talk about:* ***{chosen_topic}!*** *Here is how that went:*')
         
         await send_messages(convo, interaction.channel_id)
@@ -174,6 +176,7 @@ async def drifter_start_conversation(interaction: discord.Interaction, topic: st
             num_speakers = max(1, min(num_additional_speakers, len(character_info)))
         
         convo, chosen_topic = generate_random_conversation('Drifter', topic, num_speakers)
+        
         await interaction.followup.send(f'*My fellow crew member, Dredgen {interaction.user.display_name}, wanted to know about:* ***{chosen_topic}!*** *Well, here you go brother:*')
         
         await send_messages(convo, interaction.channel_id)
