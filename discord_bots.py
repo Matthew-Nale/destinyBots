@@ -15,9 +15,7 @@ async def main():
 
 
     #* Run bots until manually quit
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop = await asyncio.gather(
+    await asyncio.gather(
         calus.bot.start(calus.discord_token),
         rhulk.bot.start(rhulk.discord_token),
         drifter.bot.start(drifter.discord_token),
