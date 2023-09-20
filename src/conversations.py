@@ -34,14 +34,11 @@ async def send_messages(conversation, channel):
         await asyncio.sleep(round(random.uniform(2.0, 8.0), 1))
         
 #* Creates the prompt for generating the random conversation
-def create_prompt(first_speaker, topic, num_additional_speakers=None):
+def create_prompt(first_speaker, topic, num_additional_speakers):
     try:
         character_info = json.load(open('src/character_info.json'))
         
         active_characters = {}
-        
-        if num_additional_speakers is None:
-            num_additional_speakers = random.randint(1, len(character_info) - 1)
         
         while len(active_characters) < num_additional_speakers:
                 k, v = random.choice(list(character_info.items()))
@@ -127,7 +124,9 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
         
         character_info = json.load(open('src/character_info.json'))
         if num_additional_speakers is not None:
-            num_speakers = max(1, min(num_additional_speakers, len(character_info)))
+            num_speakers = max(1, min(num_additional_speakers, len(character_info) - 1))
+        else:
+            num_speakers = random.randint(1, len(character_info) - 1)
         
         convo, chosen_topic = generate_random_conversation('Rhulk', topic, num_speakers)
         
@@ -150,7 +149,9 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
         
         character_info = json.load(open('src/character_info.json'))
         if num_additional_speakers is not None:
-            num_speakers = max(1, min(num_additional_speakers, len(character_info)))
+            num_speakers = max(1, min(num_additional_speakers, len(character_info) - 1))
+        else:
+            num_speakers = random.randint(1, len(character_info) - 1)
         
         convo, chosen_topic = generate_random_conversation('Calus', topic, num_speakers)
         
@@ -173,7 +174,9 @@ async def drifter_start_conversation(interaction: discord.Interaction, topic: st
         
         character_info = json.load(open('src/character_info.json'))
         if num_additional_speakers is not None:
-            num_speakers = max(1, min(num_additional_speakers, len(character_info)))
+            num_speakers = max(1, min(num_additional_speakers, len(character_info) - 1))
+        else:
+            num_speakers = random.randint(1, len(character_info) - 1)
         
         convo, chosen_topic = generate_random_conversation('Drifter', topic, num_speakers)
         
@@ -205,7 +208,7 @@ async def scheduledBotConversation():
                     channel_id = get(guild.channels, name="rhulky-whulky").id
                     break
             
-            convo, _ = generate_random_conversation(first_speaker, num_speakers=num_speakers)
+            convo, _ = generate_random_conversation(first_speaker, num_additional_speakers=num_speakers)
             
             send_messages(convo, channel_id)
 
