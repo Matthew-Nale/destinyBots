@@ -71,7 +71,7 @@ async def nezarec_reset(interaction: discord.Interaction):
 #* Shows the list of random topics to be used daily or with the /generate_conversation command
 @nezarec.bot.tree.command(name="nezarec_topics", description="View the saved topics that the bots can chat over!")
 async def topics(interaction: discord.Interaction):
-    topics = json.load(open('topics.json'))
+    topics = json.load(open('data/topics.json'))
     response = ""
     for _, (key, value) in enumerate(topics.items()):
         response += f'**{key}:**\n'

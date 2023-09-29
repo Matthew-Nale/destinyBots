@@ -102,7 +102,7 @@ async def rhulk_reset(interaction: discord.Interaction):
 #* Shows the list of random topics to be used daily or with the /generate_conversation command
 @rhulk.bot.tree.command(name="rhulk_topics", description="View the saved topics that the bots can chat over!")
 async def topics(interaction: discord.Interaction):
-    topics = json.load(open('topics.json'))
+    topics = json.load(open('data/topics.json'))
     response = ""
     for _, (key, value) in enumerate(topics.items()):
         response += f'**{key}:**\n'
@@ -116,10 +116,10 @@ async def topics(interaction: discord.Interaction):
 @app_commands.describe(topic="What topic should be added to the list?")
 async def rhulk_add_topic(interaction: discord.Interaction, topic: str=None):
     if topic != None:
-        topics = json.load(open('topics.json'))
+        topics = json.load(open('data/topics.json'))
         if topic not in topics['misc']["topics"]:
             topics['misc']["topics"].append(topic)
-            with open('topics.json', 'w') as f:
+            with open('data/topics.json', 'w') as f:
                 log = open('log.txt', 'a')
                 f.write(json.dumps(topics, indent=4))
                 log.write(f'Added a new topic to the list: {topic}\n\n')

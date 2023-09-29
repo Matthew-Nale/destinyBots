@@ -36,7 +36,7 @@ async def send_messages(conversation, channel):
 #* Creates the prompt for generating the random conversation
 def create_prompt(first_speaker, topic, num_additional_speakers):
     try:
-        character_info = json.load(open('src/character_info.json'))
+        character_info = json.load(open('data/character_info.json'))
         
         active_characters = {}
         
@@ -69,7 +69,7 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None, num_addition
     log = open('log.txt', 'a')
     try:
         if topic is None:
-            topics = json.load(open('topics.json'))
+            topics = json.load(open('data/topics.json'))
             weights = {}
             for _, (k, v) in enumerate(topics.items()):
                 weights[k] = v["weight"]
@@ -122,7 +122,7 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
     try:
         await interaction.response.defer()
         
-        character_info = json.load(open('src/character_info.json'))
+        character_info = json.load(open('data/character_info.json'))
         if num_additional_speakers is not None:
             num_speakers = max(1, min(num_additional_speakers, len(character_info) - 1))
         else:
@@ -147,7 +147,7 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
     try:
         await interaction.response.defer()
         
-        character_info = json.load(open('src/character_info.json'))
+        character_info = json.load(open('data/character_info.json'))
         if num_additional_speakers is not None:
             num_speakers = max(1, min(num_additional_speakers, len(character_info) - 1))
         else:
@@ -172,7 +172,7 @@ async def drifter_start_conversation(interaction: discord.Interaction, topic: st
     try:
         await interaction.response.defer()
         
-        character_info = json.load(open('src/character_info.json'))
+        character_info = json.load(open('data/character_info.json'))
         if num_additional_speakers is not None:
             num_speakers = max(1, min(num_additional_speakers, len(character_info) - 1))
         else:
@@ -199,7 +199,7 @@ async def scheduledBotConversation():
     if now.hour == 13 and now.minute == 0:
         log = open('log.txt', 'a')
         try:
-            character_info = json.load(open('src/character_info.json'))
+            character_info = json.load(open('data/character_info.json'))
             first_speaker = random.choice(list(character_info))
             num_speakers = random.randint(1, len(character_info) - 1)
             
