@@ -118,7 +118,8 @@ async def rhulk_add_topic(interaction: discord.Interaction, topic: str=None):
     if topic != None:
         topics = json.load(open('data/topics.json'))
         if topic not in topics['misc']["topics"]:
-            topics['misc']["topics"].append(topic)
+            topics['misc']["topics"][topic] = { "chosen": False,
+                                                "req_membs": ["all"]}
             with open('data/topics.json', 'w') as f:
                 log = open('log.txt', 'a')
                 f.write(json.dumps(topics, indent=4))
