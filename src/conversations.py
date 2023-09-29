@@ -40,7 +40,6 @@ def create_prompt(first_speaker, topic, other_speakers):
         with open('data/character_info.json', "r") as f:
             character_info = json.load(f)
         
-        print(other_speakers)
         if "all" in other_speakers:
             active_characters = list(character_info.keys())
             active_characters.remove(first_speaker)
@@ -54,8 +53,6 @@ def create_prompt(first_speaker, topic, other_speakers):
             active_characters = {}
             for char in other_speakers:
                 active_characters[char] = character_info[char]
-        
-        print(active_characters)
                 
         characters = "Characters: {}".format(character_info[first_speaker]["character"])
         personalities = character_info[first_speaker]["personality"]
@@ -240,7 +237,7 @@ async def scheduledBotConversation():
             
             convo, _ = generate_random_conversation(first_speaker)
             
-            send_messages(convo, channel_id)
+            await send_messages(convo, channel_id)
 
             log.write('Finished random conversation topic as scheduled.\n\n')
         except Exception as e:
