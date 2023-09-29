@@ -68,17 +68,17 @@ And here are all of the various commands used:
 
 ## Bot Command Compatability
 
-| Command                  | Rhulk    | Calus    | Drifter  |
-|--------------------------|----------|----------|----------|
-| /BOT_speak               |  &check; |  &check; |  &check;
-| /BOT_vc_speak            |  &check; |  &check; |  &check;
-| /BOT_credits             |  &check; |  &check; |  &check;
-| /BOT_chat                |  &check; |  &check; |  &check;
-| /BOT_prompt              |  &check; |  &check; |  &check;
-| /BOT_reset               |  &check; |  &check; |  &check;
-| /BOT_topics              |  &check; |  &check; |  &check;
-| /BOT_add_topic           |  &check; |  &check; |
-| /BOT_start_conversation  |  &check; |  &check; |
+| Command                  | Rhulk    | Calus    | Drifter  | Nezarec  |
+|--------------------------|----------|----------|----------|----------|
+| /BOT_speak               |  &check; |  &check; |  &check; |          |
+| /BOT_vc_speak            |  &check; |  &check; |  &check; |          |
+| /BOT_credits             |  &check; |  &check; |  &check; |          |
+| /BOT_chat                |  &check; |  &check; |  &check; |  &check; |
+| /BOT_prompt              |  &check; |  &check; |  &check; |  &check; |
+| /BOT_reset               |  &check; |  &check; |  &check; |  &check; |
+| /BOT_topics              |  &check; |  &check; |  &check; |  &check; |
+| /BOT_add_topic           |  &check; |  &check; |  &check; |          |
+| /BOT_start_conversation  |  &check; |  &check; |  &check; |          |
 
 <br />
 <br />
@@ -90,7 +90,6 @@ And here are all of the various commands used:
 
 <br />
 
-- Nezarec, Final God of Pain
 - Spongebob
 - Gabriel from Overkill
 - The Witness
