@@ -36,7 +36,7 @@ async def main():
     #* Ask user for which bots/events to run
     tasks = await get_tasks(bot_list)
 
-    #* Run required tasks until complete
+    #* Run required tasks until canceled
     await asyncio.gather(*tasks)
 
 if __name__ == "__main__":
