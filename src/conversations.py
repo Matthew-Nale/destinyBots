@@ -5,7 +5,6 @@ import pytz
 import openai
 import json
 from datetime import datetime
-from time import sleep
 from discord import app_commands
 from discord.utils import get
 from discord.ext import tasks
@@ -140,7 +139,7 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
         )
         
         convo = (completion.choices[0].message.content).splitlines()
- 
+
         log.write(f'Generated a conversation with the topic: {chosen_topic}: \n{convo}\n\n')
         
         formatted_convo = []
