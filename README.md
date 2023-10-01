@@ -91,7 +91,7 @@ And here are all of the various commands used:
 <br />
 
 - Spongebob
-- Gabriel from Overkill
+- Gabriel from ULTRAKILL
 - The Witness
 - Catgirl
 - Caiatl
