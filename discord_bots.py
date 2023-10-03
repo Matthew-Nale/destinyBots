@@ -47,6 +47,7 @@ async def main():
     tasks = await get_tasks(bot_list)
 
     #* Run required tasks until canceled
+    sys.stdout.write(f'Running chosen bots/tasks...\n')
     await asyncio.gather(*tasks)
 
 if __name__ == "__main__":

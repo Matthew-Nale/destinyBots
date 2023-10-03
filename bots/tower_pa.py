@@ -21,6 +21,21 @@ tower_pa = Bot(
 
 #? Tower Bot Commands
 
+#* Setup initial things on server join
+@tower_pa.bot.event
+async def on_guild_join(guild):
+    log = open("log.txt", "a")
+    general = discord.utils.find(lambda x: x.name == 'general', guild.text_channels)
+    if general and general.permissions_for(guild.me).send_messages:
+        await general.send("Hello Guardians. Wonderful to see you in {}!".format(guild.name))
+    log.write(f'Tower PA joined a new server: {guild.name}\n\n')
+    log.close()
+
+#* Calibration for starting of Nezarec bot
+@tower_pa.bot.event
+async def on_ready():
+    await tower_pa.on_ready()
+
 #* Shows the list of random topics to be used daily or with the /generate_conversation command
 @tower_pa.bot.tree.command(name="topics", description="View the saved topics that the bots can chat over!")
 async def topics(interaction: discord.Interaction):
@@ -28,8 +43,11 @@ async def topics(interaction: discord.Interaction):
     response = ""
     for _, (key, value) in enumerate(topics.items()):
         response += f'**{key}:**\n'
-        for v in value["topics"]:
-            response += f'{v}\n'
+        for k, v in value["topics"].items():
+            if v['chosen']:
+                response += f'~~{k}~~\n'
+            else:
+                response += f'{k}\n'
         response += '\n'
     await interaction.response.send_message(f'Guardian, we\'ve intercepted a transmission between the other bots. They will probably talk about one of these: \n\n{response}', ephemeral=True)
 

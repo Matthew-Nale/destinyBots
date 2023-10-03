@@ -204,7 +204,7 @@
                 ]
             },
             "the characters getting upset at losing at Dark Souls": {
-                "chosen": false,
+                "chosen": true,
                 "req_membs": [
                     "all"
                 ]
