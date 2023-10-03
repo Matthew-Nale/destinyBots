@@ -67,15 +67,3 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
 @nezarec.bot.tree.command(name="nezarec_reset", description="Reset the /chat_nezarec AI's memory in case he gets too far gone")
 async def nezarec_reset(interaction: discord.Interaction):
     await nezarec.text.reset(interaction)
-
-#* Shows the list of random topics to be used daily or with the /generate_conversation command
-@nezarec.bot.tree.command(name="nezarec_topics", description="View the saved topics that the bots can chat over!")
-async def topics(interaction: discord.Interaction):
-    topics = json.load(open('data/topics.json'))
-    response = ""
-    for _, (key, value) in enumerate(topics.items()):
-        response += f'**{key}:**\n'
-        for v in value["topics"]:
-            response += f'{v}\n'
-        response += '\n'
-    await interaction.response.send_message(f'Unlike you, Guardian, the others are willing to entertain me! Here is all topics they are willing to talk about: \n\n{response}', ephemeral=True)

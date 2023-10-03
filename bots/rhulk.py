@@ -98,35 +98,3 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
 @rhulk.bot.tree.command(name="rhulk_reset", description="Reset the /chat_rhulk AI's memory in case he gets too far gone")
 async def rhulk_reset(interaction: discord.Interaction):
     await rhulk.text.reset(interaction)
-
-#* Shows the list of random topics to be used daily or with the /generate_conversation command
-@rhulk.bot.tree.command(name="rhulk_topics", description="View the saved topics that the bots can chat over!")
-async def topics(interaction: discord.Interaction):
-    topics = json.load(open('data/topics.json'))
-    response = ""
-    for _, (key, value) in enumerate(topics.items()):
-        response += f'**{key}:**\n'
-        for v in value["topics"]:
-            response += f'{v}\n'
-        response += '\n'
-    await interaction.response.send_message(f'You wish to know the conversation topics for the Witness\'s Disciples? Very well, here is what we may discuss: \n\n{response}', ephemeral=True)
-
-#* Add a topic to the topic list
-@rhulk.bot.tree.command(name="rhulk_add_topic", description="Add a topic that can be used for the daily conversation!")
-@app_commands.describe(topic="What topic should be added to the list?")
-async def rhulk_add_topic(interaction: discord.Interaction, topic: str=None):
-    if topic != None:
-        topics = json.load(open('data/topics.json'))
-        if topic not in topics['misc']["topics"]:
-            topics['misc']["topics"][topic] = { "chosen": False,
-                                                "req_membs": ["all"]}
-            with open('data/topics.json', 'w') as f:
-                log = open('log.txt', 'a')
-                f.write(json.dumps(topics, indent=4))
-                log.write(f'Added a new topic to the list: {topic}\n\n')
-                log.close()
-                await interaction.response.send_message(f'Ahhhh {interaction.user.global_name}, **{topic}** does sound interesting, does it not?')
-        else:
-            await interaction.response.send_message(f'{interaction.user.global_name}, we have already discussed that matter earlier. Were you not paying attention? (Already in list)')
-    else:
-        await interaction.response.send_message(f'{interaction.user.global_name}, please do not bore me with that pitiful topic. (Must input something)')

@@ -97,35 +97,3 @@ async def chat(interaction: discord.Interaction, prompt: str, temperature: float
 @calus.bot.tree.command(name="calus_reset", description="Reset the /calus_chat AI's memory in case he gets too far gone")
 async def calus_reset(interaction: discord.Interaction):
     await calus.text.reset(interaction)
-
-#* Shows the list of random topics to be used daily or with the /generate_conversation command
-@calus.bot.tree.command(name="calus_topics", description="View the saved topics that the bots can chat over!")
-async def topics(interaction: discord.Interaction):
-    topics = json.load(open('data/topics.json'))
-    response = ""
-    for _, (key, value) in enumerate(topics.items()):
-        response += f'**{key}:**\n'
-        for v in value["topics"]:
-            response += f'{v}\n'
-        response += '\n'
-    await interaction.response.send_message(f'*(laughter)* {interaction.user.global_name}, my favorite Guardian! Here is what I was thinking of asking the others: \n\n{response}', ephemeral=True)
-
-#* Add a topic to the topic list
-@calus.bot.tree.command(name="calus_add_topic", description="Add a topic that can be used for the daily conversation!")
-@app_commands.describe(topic="What topic should be added to the list?")
-async def calus_add_topic(interaction: discord.Interaction, topic: str=None):
-    if topic != None:
-        topics = json.load(open('data/topics.json'))
-        if topic not in topics['misc']["topics"]:
-            topics['misc']["topics"][topic] = { "chosen": False,
-                                                "req_membs": ["all"]}
-            with open('data/topics.json', 'w') as f:
-                log = open('log.txt', 'a')
-                f.write(json.dumps(topics, indent=4))
-                log.write(f'Added a new topic to the list: {topic}\n\n')
-                log.close()
-                await interaction.response.send_message(f'Ohhh {interaction.user.global_name}! **{topic}** would make a fine topic!')
-        else:
-            await interaction.response.send_message(f'{interaction.user.global_name}, why not think of a more... amusing topic? (Already in list)')
-    else:
-        await interaction.response.send_message(f'Hmmm {interaction.user.global_name}. I truly wish you would see more joy in this. (Must input something)')
