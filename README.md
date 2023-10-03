@@ -93,7 +93,6 @@ And here are all of the various commands used:
 - The Witness
 - Catgirl
 - Caiatl
-- Tower PA System
 - Hyper Masculine Guy
 
 <br /> 
