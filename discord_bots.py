@@ -14,11 +14,15 @@ async def get_tasks(bot_list:dict):
     
     for name in bot_list:
         sys.stdout.write(f'Activate {name}? [Y/n] ')
-        if input().lower() == "y":
+        chosen = input().lower()
+        
+        if chosen == "y" or chosen == "":
             tasks.append(bot_list[name])
             
     sys.stdout.write(f'Enable daily bot conversations? [Y/n] ')
-    if input().lower() == "y":
+    chosen = input().lower()
+    
+    if chosen == "y" or chosen == "":
         tasks.append(scheduledBotConversation.start())
 
     return tasks

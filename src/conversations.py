@@ -12,6 +12,7 @@ from src.bot import CHAT_MODEL
 from bots.rhulk import rhulk
 from bots.calus import calus
 from bots.drifter import drifter
+from bots.nezarec import nezarec
 
 
 #? Conversation Generation
@@ -31,6 +32,11 @@ async def send_messages(conversation, channel):
             async with drifter.bot.get_channel(channel).typing():
                 await asyncio.sleep(0.05 * len(line['Drifter']))
             await drifter.bot.get_channel(channel).send(line['Drifter'])
+        elif 'Nezarec' in line:
+            async with nezarec.bot.get_channel(channel).typing():
+                await asyncio.sleep(0.05 * len(line['Nezarec']))
+            await nezarec.bot.get_channel(channel).send(line['Nezarec'])
+        
         await asyncio.sleep(round(random.uniform(1.0, 8.0), 1))
         
 #* Creates the prompt for generating the random conversation
@@ -65,9 +71,9 @@ def create_prompt(first_speaker, topic, other_speakers):
             formatting += ", {}: TEXT".format(char)
 
         prompt = ("Create dialogue set in Destiny universe. {}. {}. {}. "
-        "Topic: {}. Stay on topic. Be extremely entertaining, creative, and funny. {}. "
-        "Order of Speaking: completely random order. Limit conversation to be under 10 lines "
-        "of dialogue. {} starts.").format(characters, intros, personalities, topic, formatting, first_speaker)
+        "Stay on topic. Be extremely entertaining, creative, and funny. {}. "
+        "Characters speak in random order. Limit conversation to be 1000 characters. "
+        "Topic: {}. {} starts.").format(characters, intros, personalities, formatting, topic, first_speaker)
         return prompt
     except Exception as e:
         return e
@@ -134,8 +140,9 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
             messages=[{'role':'system', 'content': prompt}],
             n=1,
             temperature=1.1,
-            frequency_penalty=0.1,
-            max_tokens=1024
+            frequency_penalty=0.2,
+            presence_penalty=0.1,
+            max_tokens=1250
         )
         
         convo = (completion.choices[0].message.content).splitlines()
@@ -150,6 +157,8 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
                 formatted_convo.append({'Calus': line.split(': ', 1)[1]})
             elif "Drifter: " in line:
                 formatted_convo.append({'Drifter': line.split(': ', 1)[1]})
+            elif "Nezarec: " in line:
+                formatted_convo.append({'Nezarec': line.split(': ', 1)[1]})
         
         log.close()
         return formatted_convo, chosen_topic
