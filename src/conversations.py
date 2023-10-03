@@ -20,8 +20,7 @@ from bots.tower_pa import tower_pa
 #? Conversation Generation
 
 #* Sends messages from generated response
-async def send_messages(conversation, channel, topic):
-    await tower_pa.bot.get_channel(channel).send('Recieving transmission from the others. They appear to be talking about.... {topic}? Transcription available:')
+async def send_messages(conversation, channel):
     for line in conversation:
         if 'Rhulk' in line:
             async with rhulk.bot.get_channel(channel).typing():
@@ -52,12 +51,13 @@ def create_prompt(first_speaker, topic, other_speakers):
             active_characters = list(character_info.keys())
             active_characters.remove(first_speaker)
         else:
-            if len(other_speakers) == 0:
-                rand_speak_amount = random.randint(1, len(character_info) - 1)
-                while len(other_speakers) < rand_speak_amount:
-                    char = random.choice(list(character_info))
-                    if char not in other_speakers and char != first_speaker:
-                        other_speakers.append(char)
+            rand_speak_amount = random.randint(1, len(character_info) - 1)
+            
+            while len(other_speakers) < rand_speak_amount:
+                char = random.choice(list(character_info))
+                if char not in other_speakers and char != first_speaker:
+                    other_speakers.append(char)
+            
             active_characters = {}
             for char in other_speakers:
                 active_characters[char] = character_info[char]
@@ -130,6 +130,7 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
                 other_speakers.remove(first_speaker)
             
             topics[chosen_key]["topics"][chosen_topic]["chosen"] = True
+            
             with open('data/topics.json', 'w') as f:
                 f.write(json.dumps(topics, indent=4))
         else:
@@ -183,8 +184,9 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
         await interaction.response.defer()
         
         convo, chosen_topic = generate_random_conversation('Rhulk', topic)
+        await interaction.followup.send(f'*{interaction.user.display_name} wanted to hear our conversation about* ***{chosen_topic}.*** *Here is how it unfolded:*')
         
-        await send_messages(convo, interaction.channel_id, chosen_topic)
+        await send_messages(convo, interaction.channel_id)
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Rhulk: ' + e + '\n\n')
         await interaction.followup.send('Hmmm, I do not quite remember how the conversation went. (Bug Radiolorian for future fixes)')
@@ -199,8 +201,9 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
         await interaction.response.defer()
         
         convo, chosen_topic = generate_random_conversation('Calus', topic)
-
-        await send_messages(convo, interaction.channel_id, chosen_topic)
+        await interaction.followup.send(f'*{interaction.user.display_name}, my most loyal Shadow, asked Rhulk and I to talk about:* ***{chosen_topic}!*** *Here is how that went:*')
+        
+        await send_messages(convo, interaction.channel_id)
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Calus: ' + e + '\n\n')
         await interaction.followup.send('Hmmm, I do not quite remember how the conversation went. (Bug Radiolorian for future fixes)')
@@ -215,8 +218,9 @@ async def drifter_start_conversation(interaction: discord.Interaction, topic: st
         await interaction.response.defer()
         
         convo, chosen_topic = generate_random_conversation('Drifter', topic)
-
-        await send_messages(convo, interaction.channel_id, chosen_topic)
+        await interaction.followup.send(f'*My fellow crew member, Dredgen {interaction.user.display_name}, wanted to know about:* ***{chosen_topic}!*** *Well, here you go brother:*')
+        
+        await send_messages(convo, interaction.channel_id)
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Drifter: ' + e + '\n\n')
         await interaction.followup.send('Well well well, seems ol\' Drifter has done run out of ideas. (Bug Radiolorian for future fixes)')
@@ -245,7 +249,9 @@ async def scheduledBotConversation():
             
             convo, chosen_topic = generate_random_conversation(first_speaker)
             
-            await send_messages(convo, channel_id, chosen_topic)
+            await tower_pa.bot.get_channel(channel_id).send(f'Recieving transmission from the others. They appear to be talking about.... {chosen_topic}? Transcription available:')
+            
+            await send_messages(convo, channel_id)
 
             log.write('Finished random conversation topic as scheduled.\n\n')
         except Exception as e:

@@ -197,7 +197,7 @@ class TextCommands:
 
 class Bot:
     # Constructor for the class
-    def __init__(self, _name:str, _discord_token:str, _status_messages:dict, _voice_name:str=None, _voice_key:str=None,
+    def __init__(self, _name:str, _discord_token:str, _status_messages:dict=None, _voice_name:str=None, _voice_key:str=None,
                  _voice_model:str=None, _chat_prompt:str=None, _use_voice:bool=False, _use_text:bool=False):
         self.name = _name
         self.bot = commands.Bot(command_prefix=commands.when_mentioned_or('!{self.name}'), intents=discord.Intents.all())

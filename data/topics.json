@@ -134,7 +134,6 @@
             "discussing when the Guardian called BEE will get his next raid exotic": {
                 "chosen": false,
                 "req_membs": [
-                    "Rhulk",
                     "Calus",
                     "Nezarec"
                 ]
