@@ -225,6 +225,23 @@ async def drifter_start_conversation(interaction: discord.Interaction, topic: st
         log.write('Encountered an error in the Random Conversation Generation for Drifter: ' + e + '\n\n')
         await interaction.followup.send('Well well well, seems ol\' Drifter has done run out of ideas. (Bug Radiolorian for future fixes)')
     log.close()
+    
+#* Manually generate a random or specific conversation with Nezarec being the first speaker
+@nezarec.bot.tree.command(name="nezarec_start_conversation", description="Have Nezarec start a conversation with the other bots!")
+@app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.")
+async def drifter_start_conversation(interaction: discord.Interaction, topic: str=None):
+    log = open('log.txt', 'a')
+    try:
+        await interaction.response.defer()
+        
+        convo, chosen_topic = generate_random_conversation('Nezarec', topic)
+        await interaction.followup.send(f'*{interaction.user.display_name}! How I relish your desire to learn about* ***{chosen_topic}!*** *Let us ask the others shall we:*')
+        
+        await send_messages(convo, interaction.channel_id)
+    except Exception as e:
+        log.write('Encountered an error in the Random Conversation Generation for Nezarec: ' + e + '\n\n')
+        await interaction.followup.send('Guardian! Why won\'t you let me devour your fears?! (Bug Radiolorian for future fixes)')
+    log.close()
 
 
 #? Daily Conversation

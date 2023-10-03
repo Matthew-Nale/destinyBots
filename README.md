@@ -76,7 +76,7 @@ And here are all of the various commands used:
 | /BOT_chat                |  &check; |  &check; |  &check; |  &check; |
 | /BOT_prompt              |  &check; |  &check; |  &check; |  &check; |
 | /BOT_reset               |  &check; |  &check; |  &check; |  &check; |
-| /BOT_start_conversation  |  &check; |  &check; |  &check; |          |
+| /BOT_start_conversation  |  &check; |  &check; |  &check; |  &check; |
 
 <br />
 <br />
