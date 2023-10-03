@@ -12,24 +12,52 @@ from src.bot import CHAT_MODEL
 from bots.rhulk import rhulk
 from bots.calus import calus
 from bots.drifter import drifter
+from bots.nezarec import nezarec
 
+
+#? Conversation Generation
+
+#* Sends messages from generated response
+async def send_messages(conversation, channel):
+    for line in conversation:
+        if 'Rhulk' in line:
+            async with rhulk.bot.get_channel(channel).typing():
+                await asyncio.sleep(0.05 * len(line['Rhulk']))
+            await rhulk.bot.get_channel(channel).send(line['Rhulk'])
+        elif 'Calus' in line:
+            async with calus.bot.get_channel(channel).typing():
+                await asyncio.sleep(0.05 * len(line['Calus']))
+            await calus.bot.get_channel(channel).send(line['Calus'])
+        elif 'Drifter' in line:
+            async with drifter.bot.get_channel(channel).typing():
+                await asyncio.sleep(0.05 * len(line['Drifter']))
+            await drifter.bot.get_channel(channel).send(line['Drifter'])
+        elif 'Nezarec' in line:
+            async with nezarec.bot.get_channel(channel).typing():
+                await asyncio.sleep(0.05 * len(line['Nezarec']))
+            await nezarec.bot.get_channel(channel).send(line['Nezarec'])
+        
+        await asyncio.sleep(round(random.uniform(1.0, 8.0), 1))
+        
 #* Creates the prompt for generating the random conversation
-def create_prompt(first_speaker, topic, num_speakers=None):
+def create_prompt(first_speaker, topic, other_speakers):
     try:
-        character_info = json.load(open('src/conversation_info.json'))
+        with open('data/character_info.json', "r") as f:
+            character_info = json.load(f)
         
-        active_characters = {}
-        
-        if num_speakers == None:
-            num_additional_chars = random.randint(1, len(character_info) - 1)
+        if "all" in other_speakers:
+            active_characters = list(character_info.keys())
+            active_characters.remove(first_speaker)
         else:
-            num_additional_chars = num_speakers - 1
-
-        
-        while len(active_characters) < num_additional_chars:
-                k, v = random.choice(list(character_info.items()))
-                if k not in active_characters and k != first_speaker:
-                    active_characters[k] = v
+            if len(other_speakers) == 0:
+                rand_speak_amount = random.randint(1, len(character_info) - 1)
+                while len(other_speakers) < rand_speak_amount:
+                    char = random.choice(list(character_info))
+                    if char not in other_speakers and char != first_speaker:
+                        other_speakers.append(char)
+            active_characters = {}
+            for char in other_speakers:
+                active_characters[char] = character_info[char]
                 
         characters = "Characters: {}".format(character_info[first_speaker]["character"])
         personalities = character_info[first_speaker]["personality"]
@@ -38,46 +66,87 @@ def create_prompt(first_speaker, topic, num_speakers=None):
         
         for char in active_characters:
             characters += "; {}".format(character_info[char]["character"])
-            personalities += ". {}".format(character_info[char]["personality"])
             intros += "; {}".format(character_info[char]["intro"])
+            personalities += ". {}".format(character_info[char]["personality"])
             formatting += ", {}: TEXT".format(char)
-        
+
         prompt = ("Create dialogue set in Destiny universe. {}. {}. {}. "
-        "Topic: {}. Stay on topic. Be extremely entertaining, creative, and funny. {}. "
-        "Order of Speaking: completely random order. Limit conversation to be under 10 lines "
-        "of dialogue. {} starts.").format(characters, intros, personalities, topic, formatting, first_speaker)
-        
+        "Stay on topic. Be extremely entertaining, creative, and funny. {}. "
+        "Characters speak in random order. Limit conversation to be 1000 characters. "
+        "Topic: {}. {} starts.").format(characters, intros, personalities, formatting, topic, first_speaker)
         return prompt
     except Exception as e:
         return e
 
+#*Resets topic list once all topics covered
+def reset_topics():
+    with open('data/topics.json', "r") as f:
+        topics = json.load(f)
+    new_topics = {}
+    for k, v in topics.items():
+        for t in v["topics"].keys():
+            v["topics"][t]["chosen"] = False
+        topics[k] = v
+    with open('data/topics.json', 'w') as f:
+        f.write(json.dumps(topics, indent=4))
+    
+    return new_topics
+
 #* Generating the new random conversation
-def generate_random_conversation(first_speaker="Rhulk", topic=None, num_speakers=None):
+def generate_random_conversation(first_speaker="Rhulk", topic=None):
     log = open('log.txt', 'a')
     try:
-        if topic == None:
-            topics = json.load(open('topics.json'))
+        if topic is None:
+            with open('data/topics.json', "r") as f:
+                topics = json.load(f)
+            
+            available_topics = {}
+            
+            for category, info in topics.items():
+                avail_topics = [k for k, v in info["topics"].items() if v["chosen"] is False]
+                if len(avail_topics) != 0:
+                    for k in avail_topics:
+                        available_topics[category] = {"weight": info["weight"],
+                                                      "topics": {k: info["topics"][k]}}
+            
+            if len(available_topics) == 0:
+                available_topics = reset_topics()
+            
             weights = {}
-            for _, (k, v) in enumerate(topics.items()):
+            
+            for _, (k, v) in enumerate(available_topics.items()):
                 weights[k] = v["weight"]
-            chosen_key = random.choices(list(weights.keys()), weights=list(weights.values()))[0]
-            chosen_topic = topics[chosen_key]["topics"][random.randint(0, len(topics[chosen_key]["topics"]) - 1)]
+            
+            
+            chosen_key = random.choices(list(weights.keys()), weights=list(weights.values()), k=1)[0]
+            chosen_topic = random.choice(list(available_topics[chosen_key]["topics"]))
+            
+            other_speakers = available_topics[chosen_key]["topics"][chosen_topic]["req_membs"]
+
+            if first_speaker in other_speakers:
+                other_speakers.remove(first_speaker)
+            
+            topics[chosen_key]["topics"][chosen_topic]["chosen"] = True
+            with open('data/topics.json', 'w') as f:
+                f.write(json.dumps(topics, indent=4))
         else:
             chosen_topic = topic
-        prompt = create_prompt(first_speaker, chosen_topic, num_speakers)
+            other_speakers = ["all"]
+            
+        prompt = create_prompt(first_speaker, chosen_topic, other_speakers)
+        
         completion = openai.ChatCompletion.create(
             model=CHAT_MODEL,
             messages=[{'role':'system', 'content': prompt}],
             n=1,
             temperature=1.1,
-            frequency_penalty=0.1,
-            max_tokens=1024
+            frequency_penalty=0.2,
+            presence_penalty=0.1,
+            max_tokens=1250
         )
         
         convo = (completion.choices[0].message.content).splitlines()
-        while "" in convo:
-            convo.remove("")
-            
+
         log.write(f'Generated a conversation with the topic: {chosen_topic}: \n{convo}\n\n')
         
         formatted_convo = []
@@ -88,6 +157,8 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None, num_speakers
                 formatted_convo.append({'Calus': line.split(': ', 1)[1]})
             elif "Drifter: " in line:
                 formatted_convo.append({'Drifter': line.split(': ', 1)[1]})
+            elif "Nezarec: " in line:
+                formatted_convo.append({'Nezarec': line.split(': ', 1)[1]})
         
         log.close()
         return formatted_convo, chosen_topic
@@ -96,37 +167,22 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None, num_speakers
         log.close()
         return e
 
+
 #? Random Conversation Commands
+
 
 #* Manually generate a random or specific conversation with Rhulk being the first speaker
 @rhulk.bot.tree.command(name="rhulk_start_conversation", description="Have Rhulk start a conversation with the other bots!")
-@app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.", 
-                       num_speakers="How many speakers should be present? Leave empty for a random amount.")
-async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=None, num_speakers: int=None):
+@app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.")
+async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=None):
     log = open('log.txt', 'a')
     try:
         await interaction.response.defer()
         
-        character_info = json.load(open('conversation_info.json'))
-        num_speakers = max(2, min(num_speakers, len(character_info)))
+        convo, chosen_topic = generate_random_conversation('Rhulk', topic)
+        await interaction.followup.send(f'*{interaction.user.display_name} wanted to hear our conversation about* ***{chosen_topic}.*** *Here is how it unfolded:*')
         
-        convo, chosen_topic = generate_random_conversation('Rhulk', topic, num_speakers)
-        await interaction.followup.send(f'*{interaction.user.display_name} wanted to hear Calus and I\'s conversation about* ***{chosen_topic}.*** *Here is how it unfolded:*')
-        for line in convo:
-            if 'Rhulk' in line:
-                async with rhulk.bot.get_channel(interaction.channel_id).typing():
-                    await asyncio.sleep(0.03 * len(line['Rhulk']))
-                await rhulk.bot.get_channel(interaction.channel_id).send(line['Rhulk'])
-            elif 'Calus' in line:
-                async with calus.bot.get_channel(interaction.channel_id).typing():
-                    await asyncio.sleep(0.03 * len(line['Calus']))
-                await calus.bot.get_channel(interaction.channel_id).send(line['Calus'])
-            elif 'Drifter' in line:
-                async with drifter.bot.get_channel(interaction.channel_id).typing():
-                    await asyncio.sleep(0.03 * len(line['Drifter']))
-                await drifter.bot.get_channel(interaction.channel_id).send(line['Drifter'])
-            await asyncio.sleep(round(random.uniform(2.0, 8.0), 1))
-        
+        await send_messages(convo, interaction.channel_id)
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Rhulk: ' + e + '\n\n')
         await interaction.followup.send('Hmmm, I do not quite remember how the conversation went. (Bug Radiolorian for future fixes)')
@@ -134,33 +190,16 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
 
 #* Manually generate a random or specific conversation with Calus being the first speaker
 @calus.bot.tree.command(name="calus_start_conversation", description="Have Calus start a conversation with the other bots!")
-@app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.",
-                       num_speakers="How many speakers should be present? Leave empty for a random amount.")
-async def calus_start_conversation(interaction: discord.Interaction, topic: str=None, num_speakers: int=None):
+@app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.")
+async def calus_start_conversation(interaction: discord.Interaction, topic: str=None):
     log = open('log.txt', 'a')
     try:
         await interaction.response.defer()
         
-        character_info = json.load(open('conversation_info.json'))
-        num_speakers = max(2, min(num_speakers, len(character_info)))
+        convo, chosen_topic = generate_random_conversation('Calus', topic)
+        await interaction.followup.send(f'*{interaction.user.display_name}, my most loyal Shadow, asked Rhulk and I to talk about:* ***{chosen_topic}!*** *Here is how that went:*')
         
-        convo, chosen_topic = generate_random_conversation('Calus', topic, num_speakers)
-        await interaction.followup.send(f'*{interaction.user.display_name}, my most loyal Shadow, asked Rhulk and I to talk about: {chosen_topic}! Here is how that went:*')
-        for line in convo:
-            if 'Rhulk' in line:
-                async with rhulk.bot.get_channel(interaction.channel_id).typing():
-                    await asyncio.sleep(0.03 * len(line['Rhulk']))
-                await rhulk.bot.get_channel(interaction.channel_id).send(line['Rhulk'])
-            elif 'Calus' in line:
-                async with calus.bot.get_channel(interaction.channel_id).typing():
-                    await asyncio.sleep(0.03 * len(line['Calus']))
-                await calus.bot.get_channel(interaction.channel_id).send(line['Calus'])
-            elif 'Drifter' in line:
-                async with drifter.bot.get_channel(interaction.channel_id).typing():
-                    await asyncio.sleep(0.03 * len(line['Drifter']))
-                await drifter.bot.get_channel(interaction.channel_id).send(line['Drifter'])
-            await asyncio.sleep(round(random.uniform(2.0, 8.0), 1))
-        
+        await send_messages(convo, interaction.channel_id)
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Calus: ' + e + '\n\n')
         await interaction.followup.send('Hmmm, I do not quite remember how the conversation went. (Bug Radiolorian for future fixes)')
@@ -168,37 +207,24 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
 
 #* Manually generate a random or specific conversation with Drifter being the first speaker
 @drifter.bot.tree.command(name="drifter_start_conversation", description="Have Drifter start a conversation with the other bots!")
-@app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.",
-                       num_speakers="How many speakers should be present? Leave empty for a random amount.")
-async def drifter_start_conversation(interaction: discord.Interaction, topic: str=None, num_speakers: int=None):
+@app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.")
+async def drifter_start_conversation(interaction: discord.Interaction, topic: str=None):
     log = open('log.txt', 'a')
     try:
         await interaction.response.defer()
         
-        character_info = json.load(open('conversation_info.json'))
-        num_speakers = max(2, min(num_speakers, len(character_info)))
+        convo, chosen_topic = generate_random_conversation('Drifter', topic)
+        await interaction.followup.send(f'*My fellow crew member, Dredgen {interaction.user.display_name}, wanted to know about:* ***{chosen_topic}!*** *Well, here you go brother:*')
         
-        convo, chosen_topic = generate_random_conversation('Drifter', topic, num_speakers)
-        await interaction.followup.send(f'*My fellow Dredgen {interaction.user.display_name} wanted to know about:* ***{chosen_topic}!*** *Well, here you go brother:*')
-        for line in convo:
-            if 'Rhulk' in line:
-                async with rhulk.bot.get_channel(interaction.channel_id).typing():
-                    await asyncio.sleep(0.03 * len(line['Rhulk']))
-                await rhulk.bot.get_channel(interaction.channel_id).send(line['Rhulk'])
-            elif 'Calus' in line:
-                async with calus.bot.get_channel(interaction.channel_id).typing():
-                    await asyncio.sleep(0.03 * len(line['Calus']))
-                await calus.bot.get_channel(interaction.channel_id).send(line['Calus'])
-            elif 'Drifter' in line:
-                async with drifter.bot.get_channel(interaction.channel_id).typing():
-                    await asyncio.sleep(0.03 * len(line['Drifter']))
-                await drifter.bot.get_channel(interaction.channel_id).send(line['Drifter'])
-            await asyncio.sleep(round(random.uniform(2.0, 8.0), 1))
-        
+        await send_messages(convo, interaction.channel_id)
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Drifter: ' + e + '\n\n')
         await interaction.followup.send('Well well well, seems ol\' Drifter has done run out of ideas. (Bug Radiolorian for future fixes)')
     log.close()
+
+
+#? Daily Conversation
+
 
 #* Creating a new conversation at 1pm EST everyday
 @tasks.loop(seconds = 45)
@@ -207,32 +233,19 @@ async def scheduledBotConversation():
     if now.hour == 13 and now.minute == 0:
         log = open('log.txt', 'a')
         try:
-            character_info = json.load(open('src/conversation_info.json'))
+            with open('data/character_info.json', "r") as f:
+                character_info = json.load(f)
             first_speaker = random.choice(list(character_info))
-            num_speakers = len(character_info)
+            
             
             for guild in rhulk.bot.guilds:
                 if guild.name == "Victor's Little Pogchamps":
                     channel_id = get(guild.channels, name="rhulky-whulky").id
                     break
             
-            convo, _ = generate_random_conversation(first_speaker, num_speakers=num_speakers)
+            convo, _ = generate_random_conversation(first_speaker)
             
-            for line in convo:
-                if 'Rhulk' in line:
-                    async with rhulk.bot.get_channel(channel_id).typing():
-                        await asyncio.sleep(0.03 * len(line['Rhulk']))
-                    await rhulk.bot.get_channel(channel_id).send(line['Rhulk'])
-                elif 'Calus' in line:
-                    async with calus.bot.get_channel(channel_id).typing():
-                        await asyncio.sleep(0.03 * len(line['Calus']))
-                    await calus.bot.get_channel(channel_id).send(line['Calus'])
-                elif 'Drifter' in line:
-                    async with drifter.bot.get_channel(channel_id).typing():
-                        await asyncio.sleep(0.03 * len(line['Drifter']))
-                    await drifter.bot.get_channel(channel_id).send(line['Drifter'])
-                
-                await asyncio.sleep(round(random.uniform(2.0, 8.0), 1))
+            await send_messages(convo, channel_id)
 
             log.write('Finished random conversation topic as scheduled.\n\n')
         except Exception as e:

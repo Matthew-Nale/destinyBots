@@ -1,0 +1,215 @@
+{
+    "discord_members": {
+        "weight": 2.5,
+        "topics": {
+            "making fun of a Hunter from Destiny called Radiolorian": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            },
+            "making fun of a Warlock from Destiny called A Moist Sponge": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            },
+            "making fun of a Warlock from Destiny called victoriousq": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            },
+            "making fun of a Titan from Destiny called Heironymus": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            },
+            "making fun of a Titan from Destiny called PaschalGravy9": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            },
+            "making fun of a Guardian from Destiny called BEE": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            },
+            "making fun of Matthew's job of programming them as Discord bots": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            }
+        }
+    },
+    "insult": {
+        "weight": 1,
+        "topics": {
+            "making fun of each other": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            },
+            "making fun of the Hunter double jump": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            },
+            "making fun of the Warlock double jump": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            },
+            "making fun of the Titan double jump": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            },
+            "making fun of the Witness": {
+                "chosen": false,
+                "req_membs": [
+                    "Calus"
+                ]
+            }
+        }
+    },
+    "discussion": {
+        "weight": 2,
+        "topics": {
+            "discussing their favorite pokemon": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            },
+            "discussing if cats would be good warriors": {
+                "chosen": false,
+                "req_membs": [
+                    "Rhulk",
+                    "Calus"
+                ]
+            },
+            "discussing the existence of catgirls": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            },
+            "discussing what the best food is": {
+                "chosen": false,
+                "req_membs": [
+                    "Drifter"
+                ]
+            },
+            "discussing the Guardian's habits of 'tea bagging'": {
+                "chosen": false,
+                "req_membs": [
+                    "Rhulk",
+                    "Calus",
+                    "Nezarec"
+                ]
+            },
+            "discussing the dance rituals of Guardians": {
+                "chosen": false,
+                "req_membs": [
+                    "Rhulk",
+                    "Calus",
+                    "Nezarec"
+                ]
+            },
+            "coming up with bizarre new topics to discuss": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            },
+            "discussing when the Guardian called BEE will get his next raid exotic": {
+                "chosen": false,
+                "req_membs": [
+                    "Rhulk",
+                    "Calus",
+                    "Nezarec"
+                ]
+            }
+        }
+    },
+    "misc": {
+        "weight": 2.5,
+        "topics": {
+            "making bizarre plans to get rid of the Traveler and the Light": {
+                "chosen": false,
+                "req_membs": [
+                    "Rhulk",
+                    "Calus",
+                    "Nezarec"
+                ]
+            },
+            "a completely random and strange topic that makes no sense": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            },
+            "comparing catgirls to foxgirls": {
+                "chosen": false,
+                "req_membs": [
+                    "Calus"
+                ]
+            },
+            "discussing Calus's sexual history": {
+                "chosen": false,
+                "req_membs": [
+                    "Calus"
+                ]
+            },
+            "discussing Rhulk's sexual history": {
+                "chosen": false,
+                "req_membs": [
+                    "Rhulk"
+                ]
+            },
+            "discussing how Vaporeon is the most sexually compatible for human males": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            },
+            "the Guardians' bliss of licking Hive Ogre toes": {
+                "chosen": false,
+                "req_membs": [
+                    "Rhulk",
+                    "Calus",
+                    "Nezarec"
+                ]
+            },
+            "Calus attempting to get Rhulk to wear cat ears": {
+                "chosen": false,
+                "req_membs": [
+                    "Rhulk",
+                    "Calus"
+                ]
+            },
+            "Calus attempting to get Rhulk to wear a maid outfit": {
+                "chosen": false,
+                "req_membs": [
+                    "Rhulk",
+                    "Calus"
+                ]
+            },
+            "the characters getting upset at losing at Dark Souls": {
+                "chosen": false,
+                "req_membs": [
+                    "all"
+                ]
+            }
+        }
+    }
+}

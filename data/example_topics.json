@@ -1,0 +1,53 @@
+{
+    "category1": {
+        "weight": 1,
+        "topics": {
+            "topic 1": {
+                "chosen": false,
+                "req_membs": ["all"]
+            },
+            "topic 2": {
+                "chosen": false,
+                "req_membs": ["Rhulk"]
+            },
+            "topic 3": {
+                "chosen": false,
+                "req_membs": ["Rhulk", "Drifter", "Calus"]
+            }
+        }
+    },
+    "category2": {
+        "weight": 1,
+        "topics": {
+            "topic 1": {
+                "chosen": false,
+                "req_membs": ["all"]
+            },
+            "topic 2": {
+                "chosen": false,
+                "req_membs": ["Rhulk"]
+            },
+            "topic 3": {
+                "chosen": false,
+                "req_membs": ["Rhulk", "Drifter", "Calus"]
+            }
+        }
+    },
+    "category3": {
+        "weight": 1,
+        "topics": {
+            "topic 1": {
+                "chosen": false,
+                "req_membs": ["all"]
+            },
+            "topic 2": {
+                "chosen": false,
+                "req_membs": ["Rhulk"]
+            },
+            "topic 3": {
+                "chosen": false,
+                "req_membs": ["Rhulk", "Drifter", "Calus"]
+            }
+        }
+    }
+}
