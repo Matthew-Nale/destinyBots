@@ -19,7 +19,6 @@ tower_pa = Bot(
     _use_text=False
 )
 
-
 #? Tower Bot Commands
 
 #* Shows the list of random topics to be used daily or with the /generate_conversation command
@@ -48,7 +47,7 @@ async def add_topic(interaction: discord.Interaction, topic: str=None):
                 f.write(json.dumps(topics, indent=4))
                 log.write(f'Added a new topic to the list: {topic}\n\n')
                 log.close()
-                await interaction.response.send_message(f'Good choice, {interaction.user.global_name}. We\'ll inform the others to talk about **{topic}** in the future')
+                await interaction.response.send_message(f'Good choice, {interaction.user.global_name}. We\'ll inform the others to talk about **{topic}** in the future.')
         else:
             await interaction.response.send_message(f'The others will already talk about that topic, {interaction.user.global_name}. (Already in list)')
     else:

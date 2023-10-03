@@ -9,16 +9,19 @@ from discord import app_commands
 from discord.utils import get
 from discord.ext import tasks
 from src.bot import CHAT_MODEL
+
 from bots.rhulk import rhulk
 from bots.calus import calus
 from bots.drifter import drifter
 from bots.nezarec import nezarec
+from bots.tower_pa import tower_pa
 
 
 #? Conversation Generation
 
 #* Sends messages from generated response
-async def send_messages(conversation, channel):
+async def send_messages(conversation, channel, topic):
+    await tower_pa.bot.get_channel(channel).send('Recieving transmission from the others. They appear to be talking about.... {topic}? Transcription available:')
     for line in conversation:
         if 'Rhulk' in line:
             async with rhulk.bot.get_channel(channel).typing():
@@ -180,9 +183,8 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
         await interaction.response.defer()
         
         convo, chosen_topic = generate_random_conversation('Rhulk', topic)
-        await interaction.followup.send(f'*{interaction.user.display_name} wanted to hear our conversation about* ***{chosen_topic}.*** *Here is how it unfolded:*')
         
-        await send_messages(convo, interaction.channel_id)
+        await send_messages(convo, interaction.channel_id, chosen_topic)
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Rhulk: ' + e + '\n\n')
         await interaction.followup.send('Hmmm, I do not quite remember how the conversation went. (Bug Radiolorian for future fixes)')
@@ -197,9 +199,8 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
         await interaction.response.defer()
         
         convo, chosen_topic = generate_random_conversation('Calus', topic)
-        await interaction.followup.send(f'*{interaction.user.display_name}, my most loyal Shadow, asked Rhulk and I to talk about:* ***{chosen_topic}!*** *Here is how that went:*')
-        
-        await send_messages(convo, interaction.channel_id)
+
+        await send_messages(convo, interaction.channel_id, chosen_topic)
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Calus: ' + e + '\n\n')
         await interaction.followup.send('Hmmm, I do not quite remember how the conversation went. (Bug Radiolorian for future fixes)')
@@ -214,9 +215,8 @@ async def drifter_start_conversation(interaction: discord.Interaction, topic: st
         await interaction.response.defer()
         
         convo, chosen_topic = generate_random_conversation('Drifter', topic)
-        await interaction.followup.send(f'*My fellow crew member, Dredgen {interaction.user.display_name}, wanted to know about:* ***{chosen_topic}!*** *Well, here you go brother:*')
-        
-        await send_messages(convo, interaction.channel_id)
+
+        await send_messages(convo, interaction.channel_id, chosen_topic)
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Drifter: ' + e + '\n\n')
         await interaction.followup.send('Well well well, seems ol\' Drifter has done run out of ideas. (Bug Radiolorian for future fixes)')
@@ -243,9 +243,9 @@ async def scheduledBotConversation():
                     channel_id = get(guild.channels, name="rhulky-whulky").id
                     break
             
-            convo, _ = generate_random_conversation(first_speaker)
+            convo, chosen_topic = generate_random_conversation(first_speaker)
             
-            await send_messages(convo, channel_id)
+            await send_messages(convo, channel_id, chosen_topic)
 
             log.write('Finished random conversation topic as scheduled.\n\n')
         except Exception as e:
