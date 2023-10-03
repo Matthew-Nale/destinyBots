@@ -5,6 +5,7 @@ from src.conversations import scheduledBotConversation
 from bots.rhulk import rhulk
 from bots.calus import calus
 from bots.drifter import drifter
+from bots.nezarec import nezarec
 
 #? Running bots
 
@@ -31,7 +32,8 @@ async def main():
     #* Make dict of bots and names
     bot_list = {rhulk.name: rhulk.bot.start(rhulk.discord_token),
                 calus.name: calus.bot.start(calus.discord_token),
-                drifter.name: drifter.bot.start(drifter.discord_token)}
+                drifter.name: drifter.bot.start(drifter.discord_token),
+                nezarec.name: nezarec.bot.start(nezarec.discord_token)}
     
     #* Ask user for which bots/events to run
     tasks = await get_tasks(bot_list)
