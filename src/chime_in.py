@@ -49,6 +49,7 @@ class ChimeEvents(commands.Cog):
                 response = await generate_response(chosen_speaker, message.content)
                 await chosen_speaker.bot.get_channel(message.channel.id).send(response, reference=message)
                 log.write(f'Chiming-in on message {message.content} with bot: {chosen_speaker.name}. Response: {response}\n\n')
+                log.close()
         await self.bot.process_commands(message)
 
 async def setup(bot):
