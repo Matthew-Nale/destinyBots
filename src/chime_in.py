@@ -1,6 +1,6 @@
 import openai
 import random
-from src.bot import Bot, CHAT_MODEL
+from src.bot import CHAT_MODEL
 from discord import Message
 from discord.ext import commands
 

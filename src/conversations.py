@@ -74,9 +74,9 @@ def create_prompt(first_speaker, topic, other_speakers):
             formatting += ", {}: TEXT".format(char)
 
         prompt = ("Create dialogue set in Destiny universe. {}. {}. {}. "
-        "Stay on topic. Be extremely entertaining, creative, and funny. {}. "
+        "Be extremely entertaining, creative, and funny. "
         "Characters speak in random order. Limit conversation to be 1000 characters. "
-        "Use expletives like 'fuck' and 'shit' very often. Topic: {}. {} starts.").format(characters, intros, personalities, formatting, topic, first_speaker)
+        "Use expletives like 'fuck' and 'shit' very often. {}. Topic: {}. {} starts.").format(characters, intros, personalities, formatting, topic, first_speaker)
         return prompt
     except Exception as e:
         return e
@@ -143,8 +143,8 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
             model=CHAT_MODEL,
             messages=[{'role':'system', 'content': prompt}],
             n=1,
-            temperature=1.2,
-            frequency_penalty=0.2,
+            temperature=1.1,
+            frequency_penalty=0.1,
             max_tokens=1250
         )
         
