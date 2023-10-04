@@ -11,7 +11,7 @@ from bots.nezarec import nezarec
 
 
 
-RANDOM_CHANCE = 0.005
+RANDOM_CHANCE = 0.10
 
 
 #? Helper Functions
@@ -30,7 +30,6 @@ async def generate_response(chosen_speaker, user_msg: str):
                 )
             return completion.choices[0].message.content
         except Exception as e:
-            print(e)
             return e
 
 
@@ -45,9 +44,11 @@ class ChimeEvents(commands.Cog):
     async def on_message(self, message: Message):
         if not message.author.bot and not message.attachments:
             if random.random() < RANDOM_CHANCE:
+                log = open("log.txt", "a")
                 chosen_speaker = random.choice([rhulk, calus, drifter, nezarec])
                 response = await generate_response(chosen_speaker, message.content)
                 await chosen_speaker.bot.get_channel(message.channel.id).send(response, reference=message)
+                log.write(f'Chiming-in on message {message.content} with bot: {chosen_speaker.name}. Response: {response}\n\n')
         await self.bot.process_commands(message)
 
 async def setup(bot):
