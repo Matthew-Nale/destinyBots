@@ -76,7 +76,7 @@ class VoiceCommands:
         log.close()
     
     # Have the bot speak text in a VC
-    async def vc_speak(self, interaction: discord.Interaction, text: str, vc: str=None, stability: float=0.2, clarity: float=0.7, style: float=0.1):
+    async def vc_speak(self, interaction: discord.Interaction, text: str, vc: str="A Normal VC", stability: float=0.2, clarity: float=0.7, style: float=0.1):
         log = open("log.txt", "a")
         log.write(f'{interaction.user.global_name} asked {self.name} to say in the VC: `{text}`\n\n')
         await interaction.response.defer()
@@ -87,15 +87,11 @@ class VoiceCommands:
             return
         
         if interaction.user.voice is None:
-            if vc is None:
-                log.write(f'{interaction.user.global_name} was not in the VC, could not send message.\n\n')
-                await interaction.followup.send(f'{interaction.user.display_name}, do not waste my time if you are not here. (Must be in a VC or specify a valid VC)', ephemeral=True)
-                log.close()
-                return
             for c in interaction.guild.voice_channels:
                 if c.name == vc:
                     log.write("Found a valid voice channel to speak in.\n\n")
                     channel = self.bot.get_channel(c.id)
+                    break
         else:
             channel = interaction.user.voice.channel
 
