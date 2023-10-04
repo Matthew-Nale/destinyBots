@@ -14,18 +14,13 @@ from bots.nezarec import nezarec
 RANDOM_CHANCE = 0.005
 
 
-#? Random Chime-In messages Cog
+#? Helper Functions
 
-class ChimeEvents(commands.Cog):
-    
-    def __init__(self, bot):
-        self.bot = bot
-
-    async def generate_response(chosen_speaker: Bot, user_msg: str):
+async def generate_response(chosen_speaker, user_msg: str):
         try:
             completion = openai.ChatCompletion.create(
                     model=CHAT_MODEL,
-                    messages=[{"role": "system", "content": chosen_speaker.text.chat_prompt},
+                    messages=[{"role": "system", "content": "You are in a Discord server, and will be provided a user message you want to respond to. " + chosen_speaker.text.chat_prompt},
                             {"role": "user", "content": user_msg}],
                     n=1,
                     max_tokens=512,
@@ -33,18 +28,27 @@ class ChimeEvents(commands.Cog):
                     frequency_penalty=0.9,
                     presence_penalty=0.75
                 )
-            
             return completion.choices[0].message.content
         except Exception as e:
+            print(e)
             return e
 
-    @commands.Cog.listener()
+
+#? Random Chime-In messages Cog
+
+class ChimeEvents(commands.Cog):
+    
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.Cog.listener("on_message")
     async def on_message(self, message: Message):
-        if not message.author.bot:
+        if not message.author.bot and not message.attachments:
             if random.random() < RANDOM_CHANCE:
                 chosen_speaker = random.choice([rhulk, calus, drifter, nezarec])
-                response = self.generate_response(chosen_speaker, message.content)
-                await chosen_speaker.bot.get_channel(message.channel).send(response, reference=message)
+                response = await generate_response(chosen_speaker, message.content)
+                await chosen_speaker.bot.get_channel(message.channel.id).send(response, reference=message)
+        await self.bot.process_commands(message)
 
-def setup(bot):
-    bot.add_cog(ChimeEvents(bot))
+async def setup(bot):
+    await bot.add_cog(ChimeEvents(bot))

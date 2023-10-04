@@ -29,6 +29,13 @@ async def get_tasks(bot_list:dict):
 
     return tasks
 
+async def shutdown_bots():
+    await rhulk.bot.close()
+    await calus.bot.close()
+    await drifter.bot.close()
+    await nezarec.bot.close()
+    await tower_pa.bot.close()
+    
 async def main():
     #* Create log.txt and provide date of creation
     log = open("log.txt", "w")
@@ -46,8 +53,12 @@ async def main():
     tasks = await get_tasks(bot_list)
 
     #* Run required tasks until canceled
-    sys.stdout.write(f'Running chosen bots/tasks...\n')
-    await asyncio.gather(*tasks)
+    sys.stdout.write('Running chosen bots/tasks...\n')
+    try:
+        await asyncio.gather(*tasks)
+    except asyncio.CancelledError:
+        sys.stdout.write('Disabling all running bots!\n')
+        await shutdown_bots()
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -9,7 +9,6 @@ from discord import app_commands
 from discord.utils import get
 from discord.ext import tasks
 
-import chime_in
 from src.bot import CHAT_MODEL
 
 from bots.rhulk import rhulk

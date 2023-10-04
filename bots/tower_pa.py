@@ -1,6 +1,5 @@
 import os
 import json
-from chime_in import on_message
 from discord import app_commands
 from dotenv import load_dotenv
 from src.elevenlab import *
@@ -20,7 +19,6 @@ tower_pa = Bot(
     _use_text=False
 )
 
-tower_pa.bot.load_extension('src.chime_in')
 
 #? Tower Bot Commands
 
@@ -37,6 +35,7 @@ async def on_guild_join(guild):
 #* Calibration for starting of Nezarec bot
 @tower_pa.bot.event
 async def on_ready():
+    await tower_pa.bot.load_extension('src.chime_in')
     await tower_pa.on_ready()
 
 #* Shows the list of random topics to be used daily or with the /generate_conversation command
