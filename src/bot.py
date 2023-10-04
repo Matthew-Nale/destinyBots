@@ -16,6 +16,7 @@ openai.api_key = GPT_KEY
 MAX_LEN = 1024 # Setting character limit for ElevenLabs
 MAX_TOKENS = 128 # Setting token limit for ChatGPT responses
 CHAT_MODEL = "gpt-3.5-turbo" # Model for OpenAI Completions to use
+DEFAULT_VC = "A Normal VC" # Default VC for vc_speak command
 
 class VoiceCommands:
     def __init__(self, _name:str, _voice_name:str, _voice_key:str, _voice_model:str, _status_messages:dict):
@@ -76,7 +77,7 @@ class VoiceCommands:
         log.close()
     
     # Have the bot speak text in a VC
-    async def vc_speak(self, interaction: discord.Interaction, text: str, vc: str="A Normal VC", stability: float=0.2, clarity: float=0.7, style: float=0.1):
+    async def vc_speak(self, interaction: discord.Interaction, text: str, vc: str=DEFAULT_VC, stability: float=0.2, clarity: float=0.7, style: float=0.1):
         log = open("log.txt", "a")
         log.write(f'{interaction.user.global_name} asked {self.name} to say in the VC: `{text}`\n\n')
         await interaction.response.defer()
