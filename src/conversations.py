@@ -20,8 +20,13 @@ from bots.tower_pa import tower_pa
 
 #? Conversation Generation
 
-#* Sends messages from generated response
-async def send_messages(conversation, channel):
+async def send_messages(conversation: list, channel: int) -> (None):
+    """
+    Sends a generated conversation according to speakers
+
+    :param conversation (list): Generated conversation to be acted out
+    :param channel (int): Channel that the conversation should be sent to
+    """
     for line in conversation:
         if 'Rhulk' in line:
             async with rhulk.bot.get_channel(channel).typing():
@@ -42,8 +47,16 @@ async def send_messages(conversation, channel):
         
         await asyncio.sleep(round(random.uniform(1.0, 8.0), 1))
         
-#* Creates the prompt for generating the random conversation
-def create_prompt(first_speaker, topic, other_speakers):
+def create_prompt(first_speaker: str, topic: str, other_speakers: list) -> (str | Exception):
+    """
+    Creates the prompt to be fed into OpenAI API for conversation generation
+    
+    :param first_speaker (str): Name of bot to speak first in the conversation
+    :param topic (str): Topic the conversation should be about
+    :param other_speakers (list): List of names of other bots to be included in conversation
+
+    :return str: Completed prompt for text generation
+    """
     try:
         with open('data/character_info.json', "r") as f:
             character_info = json.load(f)
@@ -81,8 +94,12 @@ def create_prompt(first_speaker, topic, other_speakers):
     except Exception as e:
         return e
 
-#*Resets topic list once all topics covered
-def reset_topics():
+def reset_topics() -> (dict):
+    """
+    Resets all topics in conversation JSON
+    
+    :return dict: Reset dict of topics.json contents
+    """
     with open('data/topics.json', "r") as f:
         topics = json.load(f)
     new_topics = {}
@@ -95,8 +112,15 @@ def reset_topics():
     
     return new_topics
 
-#* Generating the new random conversation
-def generate_random_conversation(first_speaker="Rhulk", topic=None):
+def generate_random_conversation(first_speaker:str="Rhulk", topic:str=None) -> ((tuple[list, str] | Exception)):
+    """
+    Generates a conversation using OpenAI API
+    
+    :param first_speaker (str, optional): The first speaker in the conversation. Defaults to "Rhulk".
+    :param topic (_type_, optional): The topic of the conversation. Defaults to None.
+
+    :return tuple(list, str): Generated conversation in list format, and topic that conversation covers
+    """
     log = open('log.txt', 'a')
     try:
         if topic is None:
@@ -177,7 +201,7 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
 #* Manually generate a random or specific conversation with Rhulk being the first speaker
 @rhulk.bot.tree.command(name="rhulk_start_conversation", description="Have Rhulk start a conversation with the other bots!")
 @app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.")
-async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=None):
+async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=None) -> (None):
     log = open('log.txt', 'a')
     try:
         await interaction.response.defer()
@@ -194,7 +218,7 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
 #* Manually generate a random or specific conversation with Calus being the first speaker
 @calus.bot.tree.command(name="calus_start_conversation", description="Have Calus start a conversation with the other bots!")
 @app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.")
-async def calus_start_conversation(interaction: discord.Interaction, topic: str=None):
+async def calus_start_conversation(interaction: discord.Interaction, topic: str=None) -> (None):
     log = open('log.txt', 'a')
     try:
         await interaction.response.defer()
@@ -211,7 +235,7 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
 #* Manually generate a random or specific conversation with Drifter being the first speaker
 @drifter.bot.tree.command(name="drifter_start_conversation", description="Have Drifter start a conversation with the other bots!")
 @app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.")
-async def drifter_start_conversation(interaction: discord.Interaction, topic: str=None):
+async def drifter_start_conversation(interaction: discord.Interaction, topic: str=None) -> (None):
     log = open('log.txt', 'a')
     try:
         await interaction.response.defer()
@@ -228,7 +252,7 @@ async def drifter_start_conversation(interaction: discord.Interaction, topic: st
 #* Manually generate a random or specific conversation with Nezarec being the first speaker
 @nezarec.bot.tree.command(name="nezarec_start_conversation", description="Have Nezarec start a conversation with the other bots!")
 @app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.")
-async def drifter_start_conversation(interaction: discord.Interaction, topic: str=None):
+async def nezarec_start_conversation(interaction: discord.Interaction, topic: str=None) -> (None):
     log = open('log.txt', 'a')
     try:
         await interaction.response.defer()
@@ -239,7 +263,7 @@ async def drifter_start_conversation(interaction: discord.Interaction, topic: st
         await send_messages(convo, interaction.channel_id)
     except Exception as e:
         log.write('Encountered an error in the Random Conversation Generation for Nezarec: ' + e + '\n\n')
-        await interaction.followup.send('Guardian! Why won\'t you let me devour your fears?! (Bug Radiolorian for future fixes)')
+        await interaction.followup.send('Guardian! Why won\'t you let me devour your dreams?! (Bug Radiolorian for future fixes)')
     log.close()
 
 
@@ -248,7 +272,7 @@ async def drifter_start_conversation(interaction: discord.Interaction, topic: st
 
 #* Creating a new conversation at 1pm EST everyday
 @tasks.loop(seconds = 45)
-async def scheduledBotConversation():
+async def scheduledBotConversation() -> (None):
     now = datetime.now(pytz.timezone('US/Eastern'))
     if now.hour == 13 and now.minute == 0:
         log = open('log.txt', 'a')
@@ -256,7 +280,6 @@ async def scheduledBotConversation():
             with open('data/character_info.json', "r") as f:
                 character_info = json.load(f)
             first_speaker = random.choice(list(character_info))
-            
             
             for guild in rhulk.bot.guilds:
                 if guild.name == "Victor's Little Pogchamps":
