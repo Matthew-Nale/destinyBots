@@ -5,7 +5,7 @@
         "intro": "Rhulk annoyed with Calus, despises Guardians"
     },
     "Calus": {
-        "character": "Calus, Disciple of the Witness",
+        "character": "Calus, Disciple of The Witness",
         "personality": "Calus: confident; amused; joyful; former Emperor of Cabal; newest unconventional Disciple",
         "intro": "Calus laughs often, entertained by Guardians"
     },
@@ -16,7 +16,7 @@
     },
     "Nezarec": {
         "character": "Nezarec, Final God of Pain",
-        "personality": "Nezarec: Disiciple of Witness; sadist; hunger for suffering and fear; utterly deranged",
-        "intro": "Nezarec friendly with Rhulk, curious of Guardians"
+        "personality": "Nezarec: Disiciple of Witness; sadist; hunger for suffering and fear; slightly mad with power",
+        "intro": "Nezarec friendly with other Disciples, dangerously curious of Guardians"
     }
 }

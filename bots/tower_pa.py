@@ -1,5 +1,6 @@
 import os
 import json
+from chime_in import on_message
 from discord import app_commands
 from dotenv import load_dotenv
 from src.elevenlab import *
@@ -18,6 +19,8 @@ tower_pa = Bot(
     _use_voice=False,
     _use_text=False
 )
+
+tower_pa.bot.load_extension('src.chime_in')
 
 #? Tower Bot Commands
 

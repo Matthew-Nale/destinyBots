@@ -8,6 +8,8 @@ from datetime import datetime
 from discord import app_commands
 from discord.utils import get
 from discord.ext import tasks
+
+import chime_in
 from src.bot import CHAT_MODEL
 
 from bots.rhulk import rhulk
@@ -52,7 +54,6 @@ def create_prompt(first_speaker, topic, other_speakers):
             active_characters.remove(first_speaker)
         else:
             rand_speak_amount = random.randint(1, len(character_info) - 1)
-            
             while len(other_speakers) < rand_speak_amount:
                 char = random.choice(list(character_info))
                 if char not in other_speakers and char != first_speaker:
@@ -76,7 +77,7 @@ def create_prompt(first_speaker, topic, other_speakers):
         prompt = ("Create dialogue set in Destiny universe. {}. {}. {}. "
         "Stay on topic. Be extremely entertaining, creative, and funny. {}. "
         "Characters speak in random order. Limit conversation to be 1000 characters. "
-        "Topic: {}. {} starts.").format(characters, intros, personalities, formatting, topic, first_speaker)
+        "Use expletives like 'fuck' and 'shit' very often. Topic: {}. {} starts.").format(characters, intros, personalities, formatting, topic, first_speaker)
         return prompt
     except Exception as e:
         return e
@@ -143,9 +144,8 @@ def generate_random_conversation(first_speaker="Rhulk", topic=None):
             model=CHAT_MODEL,
             messages=[{'role':'system', 'content': prompt}],
             n=1,
-            temperature=1.1,
+            temperature=1.2,
             frequency_penalty=0.2,
-            presence_penalty=0.1,
             max_tokens=1250
         )
         
