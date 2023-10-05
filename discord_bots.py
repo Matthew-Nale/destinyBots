@@ -12,9 +12,15 @@ from bots.tower_pa import tower_pa
 
 #? Running bots
 
-async def get_tasks(bot_list:dict):
-    tasks = []
+async def get_tasks(bot_list:dict) -> (list):
+    """
+    Get all tasks to be run from prompting user
     
+    :param bot_list (dict): Dictionary of bots and bot start coroutines
+    
+    :return list: List of coroutines to run
+    """
+    tasks = []
     for name in bot_list:
         sys.stdout.write(f'Activate {name}? [Y/n] ')
         chosen = input().lower()
@@ -29,14 +35,17 @@ async def get_tasks(bot_list:dict):
 
     return tasks
 
-async def shutdown_bots():
+async def shutdown_bots() -> (None):
+    """
+    Disconnects all bots from Discord
+    """
     await rhulk.bot.close()
     await calus.bot.close()
     await drifter.bot.close()
     await nezarec.bot.close()
     await tower_pa.bot.close()
     
-async def main():
+async def main() -> (None):
     #* Create log.txt and provide date of creation
     log = open("log.txt", "w")
     log.write(f'Started bots at {datetime.now()}\n\n')

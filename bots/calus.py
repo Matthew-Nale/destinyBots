@@ -1,13 +1,10 @@
 import os
-import json
+import discord
 from discord import app_commands
 from dotenv import load_dotenv
-from src.elevenlab import *
-from src.bot import *
-
+from src.bot import Bot
 
 #? Initializations and global values
-
 
 load_dotenv()
 CALUS_TOKEN = os.getenv('DISCORD_TOKEN_CALUS')
@@ -35,13 +32,15 @@ calus = Bot(
     _use_text=True
 )
 
-
 #? Calus Bot Commands
 
-
-#* Send message to "general" on join
 @calus.bot.event
-async def on_guild_join(guild):
+async def on_guild_join(guild: discord.Guild) -> (None):
+    """
+    Sends entrance message to guild on join
+
+    :param guild (discord.Guild): Server that bot has joined
+    """
     log = open("log.txt", "a")
     general = discord.utils.find(lambda x: x.name == 'general', guild.text_channels)
     if general and general.permissions_for(guild.me).send_messages:
@@ -50,12 +49,10 @@ async def on_guild_join(guild):
     log.write(f'Calus joined a new server: {guild.name}.\n\n')
     log.close()
 
-#* Calibration for starting of Calus bot
 @calus.bot.event
 async def on_ready():
     await calus.on_ready()
 
-#* Slash command for text-to-speech for Calus
 @calus.bot.tree.command(name="calus_speak", description="Text-to-speech to have Calus speak some text!")
 @app_commands.describe(text="What should Calus say?",
                        stability="How stable should Calus sound? Range is 0:1.0, default 0.3",
@@ -64,7 +61,6 @@ async def on_ready():
 async def speak(interaction: discord.Interaction, text: str, stability: float=0.3, clarity: float=0.65, style: float=0.45):
     await calus.voice.speak(interaction, text, stability, clarity, style)
     
-#* Slash command for Calus VC text-to-speech
 @calus.bot.tree.command(name="calus_vc_speak", description="Text-to-speech to have Calus speak some text, and say it in the VC you are connected to!")
 @app_commands.describe(text="What should Calus say in the VC?",
                        vc="(Optional) What VC to join?",
@@ -74,17 +70,14 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
 async def calus_vc_speak(interaction: discord.Interaction, text: str, vc: str="", stability: float=0.3, clarity: float=0.65, style: float=0.45):
     await calus.voice.vc_speak(interaction, text, vc, stability, clarity, style)
 
-#* Slash command for showing remaining credits for text-to-speech for Calus
 @calus.bot.tree.command(name="calus_credits", description="Shows the credits remaining for ElevenLabs for Emperor Calus")
 async def calus_credits(interaction: discord.Interaction):
     await calus.voice.credits(interaction)
 
-#* Calus slash command to get text prompt
 @calus.bot.tree.command(name="calus_prompt", description="Show the prompt that is used to prime the /calus_chat command.")
 async def calus_prompt(interaction: discord.Interaction):
     await calus.text.prompt(interaction)
 
-#* Calus slash command for asking Calus ChatGPT a question
 @calus.bot.tree.command(name="calus_chat", description= "Ask Calus anything you want!")
 @app_commands.describe(prompt="What would you like to ask Calus?",
                        temperature="How random should the response be? Range between 0.0:2.0, default is 1.2.",
@@ -93,7 +86,6 @@ async def calus_prompt(interaction: discord.Interaction):
 async def chat(interaction: discord.Interaction, prompt: str, temperature: float=1.2, frequency_penalty: float=0.75, presence_penalty: float=0.0):
     await calus.text.chat(interaction, prompt, temperature, frequency_penalty, presence_penalty)
 
-#* Reset the Calus ChatGPT if it gets too out of hand.
 @calus.bot.tree.command(name="calus_reset", description="Reset the /calus_chat AI's memory in case he gets too far gone")
 async def calus_reset(interaction: discord.Interaction):
     await calus.text.reset(interaction)

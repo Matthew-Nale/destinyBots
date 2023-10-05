@@ -6,7 +6,9 @@ import string
 from datetime import datetime
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
-from src.elevenlab import *
+from src.elevenlab import ElevenLabs
+
+#? Initializations and global values
 
 #* Load and set env variables for API calls
 load_dotenv()
@@ -18,15 +20,16 @@ MAX_TOKENS = 128 # Setting token limit for ChatGPT responses
 CHAT_MODEL = "gpt-3.5-turbo" # Model for OpenAI Completions to use
 DEFAULT_VC = "A Normal VC" # Default VC for vc_speak command
 
+#? Bot Classes
+
 class VoiceCommands:
-    def __init__(self, _name:str, _voice_name:str, _voice_key:str, _voice_model:str, _status_messages:dict):
+    def __init__(self, _name:str, _voice_name:str, _voice_key:str, _voice_model:str, _status_messages:dict) -> (None):
         self.name = _name
         self.elevenlabs = ElevenLabs(_voice_name, _voice_key)
         self.voice_model = _voice_model
         self.status_messages = _status_messages
     
-    # Show remaining ElevenLabs credits
-    async def credits(self, interaction: discord.Interaction):
+    async def credits(self, interaction: discord.Interaction) -> (None):
         log = open("log.txt", "a")
         user = await self.elevenlabs.get_user()
         char_remaining = user['character_limit'] - user['character_count']
@@ -37,8 +40,7 @@ class VoiceCommands:
             await interaction.response.send_message('{} (Reached character quota for this month)'.format(self.status_messages['credits']))
         log.close()
     
-    # Have the bot speak a line of text
-    async def speak(self, interaction: discord.Interaction, text: str, stability: float, clarity: float, style: float):
+    async def speak(self, interaction: discord.Interaction, text: str, stability: float, clarity: float, style: float) -> (None):
         log = open("log.txt", "a")
         log.write(f'{interaction.user.global_name} asked {self.name} to say: `{text}`\n\n')
         await interaction.response.defer()
@@ -76,8 +78,7 @@ class VoiceCommands:
                                             ephemeral=True)
         log.close()
     
-    # Have the bot speak text in a VC
-    async def vc_speak(self, interaction: discord.Interaction, text: str, vc: str=DEFAULT_VC, stability: float=0.2, clarity: float=0.7, style: float=0.1):
+    async def vc_speak(self, interaction: discord.Interaction, text: str, vc: str=DEFAULT_VC, stability: float=0.2, clarity: float=0.7, style: float=0.1) -> (None):
         log = open("log.txt", "a")
         log.write(f'{interaction.user.global_name} asked {self.name} to say in the VC: `{text}`\n\n')
         await interaction.response.defer()
@@ -137,21 +138,19 @@ class VoiceCommands:
         log.close()
 
 class TextCommands:
-    def __init__(self, _name:str, _chat_prompt:str, _status_messages:dict):
+    def __init__(self, _name:str, _chat_prompt:str, _status_messages:dict) -> (None):
         self.name = _name
         self.chat_prompt = _chat_prompt
         self.memory = {}
         self.last_interaction = {}
         self.status_messages = _status_messages
         
-    # Show prompt that the bot uses
     async def prompt(self, interaction: discord.Interaction):
         log = open("log.txt", "a")
         log.write(f'{interaction.user.global_name} asked {self.name} for his ChatGPT Prompt.\n\n')
         await interaction.response.send_message("Here is the prompt used. Feel free to use this to generate text for the /speak or /vc_speak command: \n\n {}".format(self.chat_prompt), ephemeral=True)
         log.close()
-    
-    # Reset memory for bot /chat commands
+
     async def reset(self, interaction: discord.Interaction):
         log = open("log.txt", "a")
         self.memory[interaction.guild.id].clear()
@@ -160,7 +159,6 @@ class TextCommands:
         await interaction.response.send_message('{}'.format(self.status_messages['reset'].replace('{USERNAME}', interaction.user.display_name)))
         log.close()
     
-    # Obtain a GPT response from the bot
     async def chat(self, interaction: discord.Interaction, prompt: str, temperature: float, frequency_penalty: float, presence_penalty: float):
         log = open("log.txt", "a")
         await interaction.response.defer()
@@ -193,7 +191,6 @@ class TextCommands:
     
 
 class Bot:
-    # Constructor for the class
     def __init__(self, _name:str, _discord_token:str, _status_messages:dict=None, _voice_name:str=None, _voice_key:str=None,
                  _voice_model:str=None, _chat_prompt:str=None, _use_voice:bool=False, _use_text:bool=False):
         self.name = _name
@@ -202,7 +199,6 @@ class Bot:
         self.voice = VoiceCommands(_name, _voice_name, _voice_key, _voice_model, _status_messages) if _use_voice else None
         self.text = TextCommands(_name, _chat_prompt, _status_messages) if _use_text else None
     
-    # Initialization of the bot
     async def botInit(self):
         log = open("log.txt", "a")
         for server in self.bot.guilds:
@@ -211,7 +207,6 @@ class Bot:
             self.text.last_interaction[server.id] = datetime.now()
         log.close()
     
-    # Memory cleaning function for /chat commands
     @tasks.loop(hours = 6)
     async def cleanMemories(self):
         log = open("log.txt", "a")
@@ -224,7 +219,6 @@ class Bot:
                 self.text.last_interaction[server.id] = datetime.now()
         log.close()
     
-    # On ready command to run on startup
     async def on_ready(self):
         log = open("log.txt", "a")
         log.write(f'{self.bot.user} has connected to Discord!\n\n')

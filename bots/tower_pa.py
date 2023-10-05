@@ -1,13 +1,11 @@
 import os
 import json
+import discord
 from discord import app_commands
 from dotenv import load_dotenv
-from src.elevenlab import *
-from src.bot import *
-
+from src.bot import Bot
 
 #? Initializations and global values
-
 
 load_dotenv()
 TOWER_TOKEN = os.getenv('DISCORD_TOKEN_TOWER')
@@ -19,12 +17,15 @@ tower_pa = Bot(
     _use_text=False
 )
 
-
 #? Tower Bot Commands
 
-#* Setup initial things on server join
 @tower_pa.bot.event
-async def on_guild_join(guild):
+async def on_guild_join(guild: discord.Guild) -> (None):
+    """
+    Sends entrance message to guild on join
+
+    :param guild (discord.Guild): Server that bot has joined
+    """
     log = open("log.txt", "a")
     general = discord.utils.find(lambda x: x.name == 'general', guild.text_channels)
     if general and general.permissions_for(guild.me).send_messages:
@@ -32,13 +33,11 @@ async def on_guild_join(guild):
     log.write(f'Tower PA joined a new server: {guild.name}\n\n')
     log.close()
 
-#* Calibration for starting of Nezarec bot
 @tower_pa.bot.event
 async def on_ready():
     await tower_pa.bot.load_extension('src.chime_in')
     await tower_pa.on_ready()
 
-#* Shows the list of random topics to be used daily or with the /generate_conversation command
 @tower_pa.bot.tree.command(name="topics", description="View the saved topics that the bots can chat over!")
 async def topics(interaction: discord.Interaction):
     topics = json.load(open('data/topics.json'))
@@ -53,7 +52,6 @@ async def topics(interaction: discord.Interaction):
         response += '\n'
     await interaction.response.send_message(f'Guardian, we\'ve intercepted a transmission between the other bots. They will probably talk about one of these: \n\n{response}', ephemeral=True)
 
-#* Add a topic to the topic list
 @tower_pa.bot.tree.command(name="add_topic", description="Add a topic that can be used for the daily conversation!")
 @app_commands.describe(topic="What topic should be added to the list?")
 async def add_topic(interaction: discord.Interaction, topic: str=None):

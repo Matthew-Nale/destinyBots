@@ -1,13 +1,10 @@
 import os
-import json
+import discord
 from discord import app_commands
 from dotenv import load_dotenv
-from src.elevenlab import *
-from src.bot import *
-
+from src.bot import Bot
 
 #? Initializations and global values
-
 
 load_dotenv()
 DRIFTER_TOKEN = os.getenv('DISCORD_TOKEN_DRIFTER')
@@ -36,12 +33,14 @@ drifter = Bot(
     _use_text=True
 )
 
-
 #? Drifter Bot Commands
 
+async def on_guild_join(guild: discord.Guild) -> (None):
+    """
+    Sends entrance message to guild on join
 
-#* Setup initial things on server join
-async def on_guild_join(guild):
+    :param guild (discord.Guild): Server that bot has joined
+    """
     log = open("log.txt", "a")
     general = discord.utils.find(lambda x: x.name == 'general', guild.text_channels)
     if general and general.permissions_for(guild.me).send_messages:
@@ -50,12 +49,10 @@ async def on_guild_join(guild):
     log.write(f'Drifter joined a new server: {guild.name}\n\n')
     log.close()
 
-#* Calibration for starting of Drifter bot
 @drifter.bot.event
 async def on_ready():
     await drifter.on_ready()
 
-#* Slash command for text-to-speech for Rhulk
 @drifter.bot.tree.command(name="drifter_speak", description="Text-to-speech to have Drifter speak some text!")
 @app_commands.describe(text="What should Drifter say?",
                        stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.25",
@@ -64,7 +61,6 @@ async def on_ready():
 async def speak(interaction: discord.Interaction, text: str, stability: float=0.25, clarity: float=0.8, style: float=0.75):
     await drifter.voice.speak(interaction, text, stability, clarity, style)
 
-#* Slash command for Drifter VC text-to-speech
 @drifter.bot.tree.command(name="drifter_vc_speak", description="Text-to-speech to have Drifter speak some text, and say it in the VC you are connected to!")
 @app_commands.describe(text="What should Drifter say in the VC?",
                        vc="(Optional) What VC to join?",
@@ -74,17 +70,14 @@ async def speak(interaction: discord.Interaction, text: str, stability: float=0.
 async def drifter_vc_speak(interaction: discord.Interaction, text: str, vc: str="", stability: float=0.25, clarity: float=0.8, style: float=0.75):
     await drifter.voice.vc_speak(interaction, text, vc, stability, clarity, style)
 
-#* Slash command for showing remaining credits for text-to-speech
 @drifter.bot.tree.command(name="drifter_credits", description="Shows the credits remaining for ElevenLabs for The Drifter")
 async def drifter_credits(interaction: discord.Interaction):
     await drifter.voice.credits(interaction)
 
-#* Slash command to get text prompt for Drifter
 @drifter.bot.tree.command(name="drifter_prompt", description="Show the prompt that is used to prime the /drifter_chat command.")
 async def drifter_prompt(interaction: discord.Interaction):
     await drifter.text.prompt(interaction)
 
-#* Slash command for asking Drifter ChatGPT a question
 @drifter.bot.tree.command(name="drifter_chat", description= "Ask Drifter anything you want!")
 @app_commands.describe(prompt="What would you like to ask Drifter?",
                        temperature="How random should the response be? Range between 0.0:2.0, default is 1.2.",
@@ -93,7 +86,6 @@ async def drifter_prompt(interaction: discord.Interaction):
 async def chat(interaction: discord.Interaction, prompt: str, temperature: float=1.2, frequency_penalty: float=0.9, presence_penalty: float=0.75):
     await drifter.text.chat(interaction, prompt, temperature, frequency_penalty, presence_penalty)
 
-#* Reset the Drifter ChatGPT if it gets too out of hand.
 @drifter.bot.tree.command(name="drifter_reset", description="Reset the /drifter_chat AI's memory in case he gets too far gone")
 async def drifter_reset(interaction: discord.Interaction):
     await drifter.text.reset(interaction)

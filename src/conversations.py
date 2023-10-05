@@ -194,11 +194,8 @@ def generate_random_conversation(first_speaker:str="Rhulk", topic:str=None) -> (
         log.close()
         return e
 
-
 #? Random Conversation Commands
 
-
-#* Manually generate a random or specific conversation with Rhulk being the first speaker
 @rhulk.bot.tree.command(name="rhulk_start_conversation", description="Have Rhulk start a conversation with the other bots!")
 @app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.")
 async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=None) -> (None):
@@ -215,7 +212,6 @@ async def rhulk_start_conversation(interaction: discord.Interaction, topic: str=
         await interaction.followup.send('Hmmm, I do not quite remember how the conversation went. (Bug Radiolorian for future fixes)')
     log.close()
 
-#* Manually generate a random or specific conversation with Calus being the first speaker
 @calus.bot.tree.command(name="calus_start_conversation", description="Have Calus start a conversation with the other bots!")
 @app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.")
 async def calus_start_conversation(interaction: discord.Interaction, topic: str=None) -> (None):
@@ -232,7 +228,6 @@ async def calus_start_conversation(interaction: discord.Interaction, topic: str=
         await interaction.followup.send('Hmmm, I do not quite remember how the conversation went. (Bug Radiolorian for future fixes)')
     log.close()
 
-#* Manually generate a random or specific conversation with Drifter being the first speaker
 @drifter.bot.tree.command(name="drifter_start_conversation", description="Have Drifter start a conversation with the other bots!")
 @app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.")
 async def drifter_start_conversation(interaction: discord.Interaction, topic: str=None) -> (None):
@@ -249,7 +244,6 @@ async def drifter_start_conversation(interaction: discord.Interaction, topic: st
         await interaction.followup.send('Well well well, seems ol\' Drifter has done run out of ideas. (Bug Radiolorian for future fixes)')
     log.close()
     
-#* Manually generate a random or specific conversation with Nezarec being the first speaker
 @nezarec.bot.tree.command(name="nezarec_start_conversation", description="Have Nezarec start a conversation with the other bots!")
 @app_commands.describe(topic="What should the topic be about? Leave empty for a randomly picked one.")
 async def nezarec_start_conversation(interaction: discord.Interaction, topic: str=None) -> (None):
@@ -266,11 +260,8 @@ async def nezarec_start_conversation(interaction: discord.Interaction, topic: st
         await interaction.followup.send('Guardian! Why won\'t you let me devour your dreams?! (Bug Radiolorian for future fixes)')
     log.close()
 
-
 #? Daily Conversation
 
-
-#* Creating a new conversation at 1pm EST everyday
 @tasks.loop(seconds = 45)
 async def scheduledBotConversation() -> (None):
     now = datetime.now(pytz.timezone('US/Eastern'))
