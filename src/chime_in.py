@@ -13,19 +13,23 @@ RANDOM_CHANCE = 0.025
 
 #? Helper Functions
 
-async def generate_response(chosen_speaker: Bot, user_msg: str) -> (str | Exception):
+async def generate_response(chosen_speaker: Bot, user_msgs: list) -> (str | Exception):
     """
     Generates a response to a single user message
     
     :param chosen_speaker (Bot): The bot that is to send the message
+    :param user_msgs (list): The list of 5 most recent discord.Messages
 
     :return (str): Message to send in response
     """
     try:
+        messages = [{"role": "system", "content": "You are in a Discord server, and will be provided with a series of messages you want to respond to. Only respond in character. " + chosen_speaker.text.chat_prompt}]
+        for msg in user_msgs:
+            messages.append({"role": "user", "content": msg.content})
+            
         completion = openai.ChatCompletion.create(
                 model=CHAT_MODEL,
-                messages=[{"role": "system", "content": "You are in a Discord server, and will be provided a user message you want to respond to. " + chosen_speaker.text.chat_prompt},
-                        {"role": "user", "content": user_msg}],
+                messages=messages,
                 n=1,
                 max_tokens=512,
                 temperature=1.2,
@@ -51,13 +55,16 @@ class ChimeEvents(commands.Cog):
         
         :param self (Self@ChimeEvents): Self reference to ChimeEvents class
         """
+        print('Triggered chime-in')
         if not message.author.bot and not message.attachments:
-            if random.random() < RANDOM_CHANCE:
+            if random.random() <= RANDOM_CHANCE:
                 log = open("log.txt", "a")
-                chosen_speaker = random.choice([bot] for bot in [rhulk, calus, drifter, nezarec] if bot.bot.is_ready())
-                response = await generate_response(chosen_speaker, message.content)
+                chosen_speaker = random.choice([b for b in [rhulk, calus, drifter, nezarec] if b.bot.is_ready()])
+                past_messages = [m async for m in message.channel.history(limit=5)]
+                past_messages.reverse()
+                response = await generate_response(chosen_speaker, past_messages)
                 await chosen_speaker.bot.get_channel(message.channel.id).send(response, reference=message)
-                log.write(f'Chiming-in on message {message.content} with bot: {chosen_speaker.name}. Response: {response}\n\n')
+                log.write(f'Chiming-in on previous messages {[msg.content for msg in past_messages]} with bot: {chosen_speaker.name}.\nResponse: {response}\n\n')
                 log.close()
         await self.bot.process_commands(message)
 
