@@ -59,12 +59,11 @@ class ChimeEvents(commands.Cog):
         if not message.author.bot and not message.attachments:
             if random.random() <= RANDOM_CHANCE:
                 log = open("log.txt", "a")
-                chosen_speaker = random.choice([b for b in [rhulk, calus, drifter, nezarec] if b.bot.is_ready()])
                 past_messages = [m async for m in message.channel.history(limit=5)]
                 past_messages.reverse()
-                response = await generate_response(chosen_speaker, past_messages)
-                await chosen_speaker.bot.get_channel(message.channel.id).send(response, reference=message)
-                log.write(f'Chiming-in on previous messages {[msg.content for msg in past_messages]} with bot: {chosen_speaker.name}.\nResponse: {response}\n\n')
+                response = await generate_response(self.bot, past_messages)
+                await self.bot.get_channel(message.channel.id).send(response, reference=message)
+                log.write(f'Chiming-in on previous messages {[msg.content for msg in past_messages]} with bot: {self.bot.name}.\nResponse: {response}\n\n')
                 log.close()
         await self.bot.process_commands(message)
 

@@ -35,7 +35,6 @@ async def on_guild_join(guild: discord.Guild) -> (None):
 
 @tower_pa.bot.event
 async def on_ready():
-    await tower_pa.bot.load_extension('src.chime_in')
     await tower_pa.on_ready()
 
 @tower_pa.bot.tree.command(name="topics", description="View the saved topics that the bots can chat over!")

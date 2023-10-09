@@ -47,7 +47,7 @@ async def send_messages(conversation: list, channel: int) -> (None):
         
         await asyncio.sleep(round(random.uniform(1.0, 8.0), 1))
         
-def create_prompt(first_speaker: str, topic: str, other_speakers: list) -> (str | Exception):
+def create_prompt(first_speaker: str, topic: str, other_speakers: list) -> (str):
     """
     Creates the prompt to be fed into OpenAI API for conversation generation
     
@@ -87,9 +87,10 @@ def create_prompt(first_speaker: str, topic: str, other_speakers: list) -> (str 
             formatting += ", {}: TEXT".format(char)
 
         prompt = ("Create dialogue set in Destiny universe. {}. {}. {}. "
-        "Be extremely entertaining, creative, and funny. "
-        "Characters speak in random order. Limit conversation to be 1000 characters. "
-        "Use expletives like 'fuck' and 'shit' very often. {}. Topic: {}. {} starts.").format(characters, intros, personalities, formatting, topic, first_speaker)
+        "Be extremely creative and funny. Characters speak in random order. "
+        "Limit conversation to 1000 characters. Include expletives like 'fuck' and "
+        "'shit' for all characters very often. {}. Topic: {}. Only discuss the provided topic, staying completely on topic. "
+        "{} speaks first.").format(characters, intros, personalities, formatting, topic, first_speaker)
         return prompt
     except Exception as e:
         return e
@@ -112,7 +113,7 @@ def reset_topics() -> (dict):
     
     return new_topics
 
-def generate_random_conversation(first_speaker:str="Rhulk", topic:str=None) -> ((tuple[list, str] | Exception)):
+def generate_random_conversation(first_speaker:str="Rhulk", topic:str=None) -> (tuple[list, str]):
     """
     Generates a conversation using OpenAI API
     
@@ -144,9 +145,8 @@ def generate_random_conversation(first_speaker:str="Rhulk", topic:str=None) -> (
             for _, (k, v) in enumerate(available_topics.items()):
                 weights[k] = v["weight"]
             
-            
             chosen_key = random.choices(list(weights.keys()), weights=list(weights.values()), k=1)[0]
-            chosen_topic = random.choice(list(available_topics[chosen_key]["topics"]))
+            chosen_topic = random.choice(list(available_topics[chosen_key]["topics"].keys()))
             
             other_speakers = available_topics[chosen_key]["topics"][chosen_topic]["req_membs"]
 
@@ -167,7 +167,7 @@ def generate_random_conversation(first_speaker:str="Rhulk", topic:str=None) -> (
             model=CHAT_MODEL,
             messages=[{'role':'system', 'content': prompt}],
             n=1,
-            temperature=1.1,
+            temperature=1.25,
             frequency_penalty=0.1,
             max_tokens=1250
         )
