@@ -51,6 +51,7 @@ async def on_guild_join(guild: discord.Guild) -> (None):
 
 @drifter.bot.event
 async def on_ready():
+    await drifter.bot.load_extension('src.chime_in')
     await drifter.on_ready()
 
 @drifter.bot.tree.command(name="drifter_speak", description="Text-to-speech to have Drifter speak some text!")

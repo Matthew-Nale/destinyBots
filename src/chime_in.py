@@ -4,11 +4,6 @@ from src.bot import Bot, CHAT_MODEL
 from discord import Message
 from discord.ext import commands
 
-from bots.rhulk import rhulk
-from bots.calus import calus
-from bots.drifter import drifter
-from bots.nezarec import nezarec
-
 RANDOM_CHANCE = 0.025
 
 #? Helper Functions

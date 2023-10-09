@@ -51,6 +51,7 @@ async def on_guild_join(guild: discord.Guild) -> (None):
 
 @calus.bot.event
 async def on_ready():
+    await calus.bot.load_extension('src.chime_in')
     await calus.on_ready()
 
 @calus.bot.tree.command(name="calus_speak", description="Text-to-speech to have Calus speak some text!")

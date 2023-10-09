@@ -45,6 +45,7 @@ async def on_guild_join(guild: discord.Guild) -> (None):
 
 @nezarec.bot.event
 async def on_ready():
+    await nezarec.bot.load_extension('src.chime_in')
     await nezarec.on_ready()
 
 @nezarec.bot.tree.command(name="nezarec_prompt", description="Show the prompt that is used to prime the /nezarec_chat command.")

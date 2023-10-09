@@ -52,6 +52,7 @@ async def on_guild_join(guild: discord.Guild) -> (None):
 
 @rhulk.bot.event
 async def on_ready():
+    await rhulk.bot.load_extension('src.chime_in') 
     await rhulk.on_ready()
 
 @rhulk.bot.tree.command(name="rhulk_speak", description="Text-to-speech to have Rhulk speak some text!")
