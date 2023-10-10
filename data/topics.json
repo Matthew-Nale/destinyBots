@@ -85,7 +85,7 @@
         "weight": 2,
         "topics": {
             "discussing their favorite pokemon": {
-                "chosen": false,
+                "chosen": true,
                 "req_membs": [
                     "all"
                 ]
@@ -121,8 +121,7 @@
                 "chosen": false,
                 "req_membs": [
                     "Rhulk",
-                    "Calus",
-                    "Nezarec"
+                    "Calus"
                 ]
             },
             "coming up with bizarre new topics to discuss": {

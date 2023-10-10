@@ -3,6 +3,7 @@ import discord
 from discord import app_commands
 from dotenv import load_dotenv
 from src.bot import Bot
+from src.chime_in import ChimeEvents
 
 #? Initializations and global values
 
@@ -24,11 +25,11 @@ drifter = Bot(
     _voice_name="The Drifter",
     _voice_key=DRIFTER_VOICE_KEY,
     _voice_model="eleven_multilingual_v2",
-    _chat_prompt="""Roleplay as The Drifter from Destiny 2. Emulate his irreverent 
-                    temperament, strange behaviors, and personality. Use his phrases 
-                    such as "Brother" when referring to other Guardians. Focus on essential 
-                    details, while omitting unnecessary ones. Respond to all prompts and 
-                    questions, while keeping answers under 750 characters.""".replace("\n", " "),
+    _chat_prompt=("Roleplay as The Drifter from Destiny 2. Emulate his irreverent "
+                  "temperament, strange behaviors, and personality. Use his phrases "
+                  "such as 'Brother' when referring to other Guardians. Focus on essential "
+                  "details, while omitting unnecessary ones. Respond to all prompts and "
+                  "questions, while keeping answers under 750 characters."),
     _use_voice=True,
     _use_text=True
 )
@@ -51,7 +52,7 @@ async def on_guild_join(guild: discord.Guild) -> (None):
 
 @drifter.bot.event
 async def on_ready():
-    await drifter.bot.load_extension('src.chime_in')
+    await drifter.bot.add_cog(ChimeEvents(drifter))
     await drifter.on_ready()
 
 @drifter.bot.tree.command(name="drifter_speak", description="Text-to-speech to have Drifter speak some text!")

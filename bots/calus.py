@@ -3,6 +3,7 @@ import discord
 from discord import app_commands
 from dotenv import load_dotenv
 from src.bot import Bot
+from src.chime_in import ChimeEvents
 
 #? Initializations and global values
 
@@ -24,10 +25,10 @@ calus = Bot(
     _voice_name="Calus, Emperor of the Cabal",
     _voice_key=CALUS_VOICE_KEY, 
     _voice_model="eleven_english_v2",
-    _chat_prompt="""Roleplay as Calus, the Cabal Emperor from Destiny 2. Emulate his hedonistic,
-                    narcissistic, and adoration personality. Use phrases like 'My Shadow' and occasional laughter when
-                    relevant. Focus on essential details, omitting unnecessary ones about Darkness and Light. Respond
-                    to all prompts and questions, while keeping answers under 1000 characters""".replace("\n", " "),
+    _chat_prompt=("Roleplay as Calus, the Cabal Emperor from Destiny 2. Emulate his hedonistic, "
+                  "narcissistic, and adoration personality. Use phrases like 'My Shadow' and occasional laughter when "
+                  "relevant. Focus on essential details, omitting unnecessary ones about Darkness and Light. Respond "
+                  "to all prompts and questions, while keeping answers under 1000 characters."),
     _use_voice=True,
     _use_text=True
 )
@@ -51,7 +52,7 @@ async def on_guild_join(guild: discord.Guild) -> (None):
 
 @calus.bot.event
 async def on_ready():
-    await calus.bot.load_extension('src.chime_in')
+    await calus.bot.add_cog(ChimeEvents(calus))
     await calus.on_ready()
 
 @calus.bot.tree.command(name="calus_speak", description="Text-to-speech to have Calus speak some text!")

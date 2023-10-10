@@ -3,6 +3,7 @@ import discord
 from discord import app_commands
 from dotenv import load_dotenv
 from src.bot import Bot
+from src.chime_in import ChimeEvents
 
 #? Initializations and global values
 
@@ -17,11 +18,11 @@ nezarec = Bot(
         'chat': {'response': 'Ohh good... {USERNAME} decided to ask me: ',
                  'error': 'It\'s a shame we can\'t entertain our conversation further...'}
         },
-    _chat_prompt="""Roleplay as  Nezarec, the Final God of Pain from Destiny 2 and
-                    Disciple of the Witness. Emulate his hunger for pain and suffering, 
-                    utter derangement, insanity, and sadistic tendencies. Focus on 
-                    essential details, while omitting unnecessary ones. Respond to all 
-                    prompts and questions, while keeping answers under 750 characters.""".replace("\n", " "),
+    _chat_prompt=("Roleplay as  Nezarec, the Final God of Pain from Destiny 2 and "
+                  "Disciple of the Witness. Emulate his hunger for pain and suffering, "
+                  "utter derangement, insanity, and sadistic tendencies. Focus on "
+                  "essential details, while omitting unnecessary ones. Respond to all "
+                  "prompts and questions, while keeping answers under 750 characters."),
     _use_voice=False,
     _use_text=True
 )
@@ -45,7 +46,7 @@ async def on_guild_join(guild: discord.Guild) -> (None):
 
 @nezarec.bot.event
 async def on_ready():
-    await nezarec.bot.load_extension('src.chime_in')
+    await nezarec.bot.add_cog(ChimeEvents(nezarec))
     await nezarec.on_ready()
 
 @nezarec.bot.tree.command(name="nezarec_prompt", description="Show the prompt that is used to prime the /nezarec_chat command.")
