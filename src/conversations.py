@@ -133,9 +133,10 @@ def generate_random_conversation(first_speaker:str="Rhulk", topic:str=None) -> (
             for category, info in topics.items():
                 avail_topics = [k for k, v in info["topics"].items() if v["chosen"] is False]
                 if len(avail_topics) != 0:
+                    available_topics[category] = {"weight": info["weight"],
+                                                  "topics": {}}
                     for k in avail_topics:
-                        available_topics[category] = {"weight": info["weight"],
-                                                      "topics": {k: info["topics"][k]}}
+                        available_topics[category]["topics"][k] = info["topics"][k]
             
             if len(available_topics) == 0:
                 available_topics = reset_topics()
