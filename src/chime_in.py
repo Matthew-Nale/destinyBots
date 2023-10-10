@@ -9,7 +9,7 @@ RANDOM_CHANCE = 0.05
 
 #? Helper Functions
 
-async def generate_response(chosen_speaker: Bot, user_msgs: list) -> (str | Exception):
+async def generate_response(chosen_speaker: Bot, user_msgs: list) -> (str):
     """
     Generates a response to a single user message
     
