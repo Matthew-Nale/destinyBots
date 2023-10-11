@@ -53,11 +53,11 @@ And here are all of the various commands used:
 
 ### */BOT_topics*
 
-  View the list of random topics that can happen between the other bots, sorted by category.
+  View the list of random topics that can happen between the other bots, sorted by category. Usable only through the Tower PA bot.
 
 ### */BOT_add_topic*
 
-  Adds a new topic to the random topics, causing the daily random conversation to potentially be the topic. The topic will be added inside of the 'misc' category of 'topics.json'.
+  Adds a new topic to the random topics, causing the daily random conversation to potentially be the topic. The topic will be added inside of the 'misc' category of 'topics.json'. Usable only through the Tower PA bot.
 
 ### */BOT_start_conversation*
 
@@ -76,9 +76,7 @@ And here are all of the various commands used:
 | /BOT_chat                |  &check; |  &check; |  &check; |  &check; |
 | /BOT_prompt              |  &check; |  &check; |  &check; |  &check; |
 | /BOT_reset               |  &check; |  &check; |  &check; |  &check; |
-| /BOT_topics              |  &check; |  &check; |  &check; |  &check; |
-| /BOT_add_topic           |  &check; |  &check; |  &check; |          |
-| /BOT_start_conversation  |  &check; |  &check; |  &check; |          |
+| /BOT_start_conversation  |  &check; |  &check; |  &check; |  &check; |
 
 <br />
 <br />
@@ -95,7 +93,6 @@ And here are all of the various commands used:
 - The Witness
 - Catgirl
 - Caiatl
-- Tower PA System
 - Hyper Masculine Guy
 
 <br /> 

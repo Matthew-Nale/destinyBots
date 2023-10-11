@@ -1,22 +1,22 @@
 {
     "Rhulk": {
-        "character": "Rhulk, First Disciple of The Witness",
-        "personality": "Rhulk: extremely loyal to Witness; egotistical; mocking; prideful; last of Lubraean species",
-        "intro": "Rhulk annoyed with Calus, despises Guardians"
+        "character": "Rhulk, First Disciple of The Witness (Lubraean)",
+        "personality": "Rhulk: extremely loyal to Witness; mocking; prideful; last of Lubraean species",
+        "intro": "Rhulk annoyed with the others, despises Guardians"
     },
     "Calus": {
-        "character": "Calus, Disciple of the Witness",
-        "personality": "Calus: confident; amused; joyful; former Emperor of Cabal; newest unconventional Disciple",
-        "intro": "Calus laughs often, entertained by Guardians"
+        "character": "Calus, Disciple of The Witness (Cabal)",
+        "personality": "Calus: amused; joyful; former Emperor of Cabal; newest unconventional Disciple",
+        "intro": "Calus laughs often, entertained by yet enemy of Guardians"
     },
     "Drifter": {
-        "character": "Drifter, Rogue Lightbearer",
-        "personality": "Drifter: irreverent temperament; strange sayings; creator of Gambit; bizarre appetite; loner Guardian",
-        "intro": "Drifter jokes often, ally of Humanity"
+        "character": "Drifter, Rogue Lightbearer (Human)",
+        "personality": "Drifter: irreverent temperament; strange sayings; creator of Gambit; bizarre appetite",
+        "intro": "Drifter jokes often, Guardian of Humanity"
     },
     "Nezarec": {
-        "character": "Nezarec, Final God of Pain",
-        "personality": "Nezarec: Disiciple of Witness; sadist; hunger for suffering and fear; utterly deranged",
-        "intro": "Nezarec friendly with Rhulk, curious of Guardians"
+        "character": "Nezarec, Final God of Pain (Unknown)",
+        "personality": "Nezarec: Disiciple of The Witness; sadist; hunger for suffering and fear; insane and deranged",
+        "intro": "Nezarec friendly with other Disciples, dangerously curious of Guardians"
     }
 }
