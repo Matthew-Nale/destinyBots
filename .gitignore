@@ -1,6 +1,4 @@
 /.env
-/dalle_images
-/image_generation.py
 /log.txt
 /__pycache__
 /bots/__pycache__
