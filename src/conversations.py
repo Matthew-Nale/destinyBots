@@ -9,8 +9,6 @@ from discord import app_commands
 from discord.utils import get
 from discord.ext import tasks
 
-from src.bot import CHAT_MODEL
-
 from bots.rhulk import rhulk
 from bots.calus import calus
 from bots.drifter import drifter
@@ -46,7 +44,31 @@ async def send_messages(conversation: list, channel: int) -> (None):
             await nezarec.bot.get_channel(channel).send(line['Nezarec'])
         
         await asyncio.sleep(round(random.uniform(1.0, 8.0), 1))
-        
+
+def parse_relations(characters: dict) -> (str):
+    """
+    Parses the relations of the bots, in order to only obtain relevent character relations
+    
+    Args:
+    :param first_speaker (list): List of all speaker names in conversation
+    
+    :return str: Completed str for character relations
+    """
+    relations = ""
+    char_info = get_character_data()
+    for char in characters:
+        relations += "{}: ".format(char)
+        for c, relation in char_info[char]["relations"].items():
+            if c in characters:
+                relations += relation + "; "
+        relations = relations[:-2] + ". "
+    
+    return relations[:-2]
+
+def get_character_data() -> (dict):
+    with open('data/character_info.json', 'r') as f:
+        return json.load(f)
+
 def create_prompt(first_speaker: str, topic: str, other_speakers: list) -> (str):
     """
     Creates the prompt to be fed into OpenAI API for conversation generation
@@ -58,8 +80,7 @@ def create_prompt(first_speaker: str, topic: str, other_speakers: list) -> (str)
     :return str: Completed prompt for text generation
     """
     try:
-        with open('data/character_info.json', "r") as f:
-            character_info = json.load(f)
+        character_info = get_character_data()
         
         if "all" in other_speakers:
             active_characters = list(character_info.keys())
@@ -71,26 +92,25 @@ def create_prompt(first_speaker: str, topic: str, other_speakers: list) -> (str)
                 if char not in other_speakers and char != first_speaker:
                     other_speakers.append(char)
             
-            active_characters = {}
+            active_characters = []
             for char in other_speakers:
-                active_characters[char] = character_info[char]
+                active_characters.append(char)
                 
         characters = "Characters: {}".format(character_info[first_speaker]["character"])
         personalities = character_info[first_speaker]["personality"]
-        intros = character_info[first_speaker]["intro"]
         formatting = "Format as {}: TEXT".format(first_speaker)
         
         for char in active_characters:
             characters += "; {}".format(character_info[char]["character"])
-            intros += "; {}".format(character_info[char]["intro"])
             personalities += ". {}".format(character_info[char]["personality"])
             formatting += ", {}: TEXT".format(char)
+        relations = parse_relations([first_speaker] + active_characters)
 
         prompt = ("Create dialogue set in Destiny universe. {}. {}. {}. "
         "Be extremely creative and funny. Characters speak in random order. "
-        "Limit conversation to 1000 characters. Include expletives like 'fuck' and "
-        "'shit' for all characters very often. {}. Topic: {}. Only discuss the provided topic, staying completely on topic. "
-        "{} speaks first.").format(characters, intros, personalities, formatting, topic, first_speaker)
+        "Aim for 1000 characters. Include expletives like 'fuck' and 'shit' "
+        "for all characters very often. {}. Topic: {}. Only discuss the provided topic, staying completely on topic. "
+        "{} speaks first.").format(characters, relations, personalities, formatting, topic, first_speaker)
         return prompt
     except Exception as e:
         return e
@@ -103,15 +123,57 @@ def reset_topics() -> (dict):
     """
     with open('data/topics.json', "r") as f:
         topics = json.load(f)
-    new_topics = {}
+        
     for k, v in topics.items():
-        for t in v["topics"].keys():
-            v["topics"][t]["chosen"] = False
+        for topic in v["topics"].keys():
+            v["topics"][topic]["chosen"] = False
         topics[k] = v
+        
     with open('data/topics.json', 'w') as f:
         f.write(json.dumps(topics, indent=4))
     
-    return new_topics
+    return topics
+
+def choose_topic(first_speaker:str="Rhulk") -> (tuple[str, list]):
+    """
+    Chooses a topic from the topic list randomly
+    
+    :return str: Topic chosen from the list
+    :return list: Other speakers present in the conversation
+    """
+    with open('data/topics.json', 'r') as f:
+        topics = json.load(f)
+    available_topics = {}
+    
+    for category, info in topics.items():
+        avail_topics = [k for k, v in info["topics"].items() if v["chosen"] is False]
+        if len(avail_topics) != 0:
+            available_topics[category] = {"weight": info["weight"],
+                                            "topics": {}}
+            for k in avail_topics:
+                available_topics[category]["topics"][k] = info["topics"][k]
+    if len(available_topics) == 0:
+        available_topics = reset_topics()
+    
+    weights = {}
+    
+    for _, (k, v) in enumerate(available_topics.items()):
+        weights[k] = v["weight"]
+    
+    chosen_key = random.choices(list(weights.keys()), weights=list(weights.values()), k=1)[0]
+    chosen_topic = random.choice(list(available_topics[chosen_key]["topics"].keys()))
+    
+    other_speakers = available_topics[chosen_key]["topics"][chosen_topic]["req_membs"]
+
+    if first_speaker in other_speakers:
+        other_speakers.remove(first_speaker)
+    
+    topics[chosen_key]["topics"][chosen_topic]["chosen"] = True
+    
+    with open('data/topics.json', 'w') as f:
+        f.write(json.dumps(topics, indent=4))
+    
+    return chosen_topic, other_speakers
 
 def generate_random_conversation(first_speaker:str="Rhulk", topic:str=None) -> (tuple[list, str]):
     """
@@ -125,51 +187,16 @@ def generate_random_conversation(first_speaker:str="Rhulk", topic:str=None) -> (
     log = open('log.txt', 'a')
     try:
         if topic is None:
-            with open('data/topics.json', "r") as f:
-                topics = json.load(f)
-            
-            available_topics = {}
-            
-            for category, info in topics.items():
-                avail_topics = [k for k, v in info["topics"].items() if v["chosen"] is False]
-                if len(avail_topics) != 0:
-                    available_topics[category] = {"weight": info["weight"],
-                                                  "topics": {}}
-                    for k in avail_topics:
-                        available_topics[category]["topics"][k] = info["topics"][k]
-            
-            if len(available_topics) == 0:
-                available_topics = reset_topics()
-            
-            weights = {}
-            
-            for _, (k, v) in enumerate(available_topics.items()):
-                weights[k] = v["weight"]
-            
-            chosen_key = random.choices(list(weights.keys()), weights=list(weights.values()), k=1)[0]
-            chosen_topic = random.choice(list(available_topics[chosen_key]["topics"].keys()))
-            
-            other_speakers = available_topics[chosen_key]["topics"][chosen_topic]["req_membs"]
-
-            if first_speaker in other_speakers:
-                other_speakers.remove(first_speaker)
-            
-            topics[chosen_key]["topics"][chosen_topic]["chosen"] = True
-            
-            with open('data/topics.json', 'w') as f:
-                f.write(json.dumps(topics, indent=4))
+            chosen_topic, other_speakers = choose_topic(first_speaker)
         else:
             chosen_topic = topic
             other_speakers = ["all"]
-            
-        prompt = create_prompt(first_speaker, chosen_topic, other_speakers)
         
+        prompt = create_prompt(first_speaker, chosen_topic, other_speakers)
         completion = openai.ChatCompletion.create(
-            model=CHAT_MODEL,
+            model="gpt-4-0613",
             messages=[{'role':'system', 'content': prompt}],
             n=1,
-            temperature=1.25,
-            frequency_penalty=0.1,
             max_tokens=1250
         )
         
