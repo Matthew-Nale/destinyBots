@@ -5,7 +5,7 @@ from src.bot import Bot, CHAT_MODEL
 from discord import Message
 from discord.ext import commands
 
-RANDOM_CHANCE = 0.005
+RANDOM_CHANCE = 0.01
 
 #? Helper Functions
 
