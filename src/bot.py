@@ -23,7 +23,7 @@ CHAT_MODEL = "gpt-3.5-turbo" # Model for OpenAI Completions to use
 #? Bot Classes
 
 class VoiceCommands:
-    def __init__(self, _name:str, _voice_name:str, _voice_key:str, _voice_model:str, _status_messages:dict) -> (None):
+    def __init__(self, _name:str, _voice_name:str, _voice_key:str, _voice_model:str, _status_messages:dict):
         self.name = _name
         self.elevenlabs = ElevenLabs(_voice_name, _voice_key)
         self.voice_model = _voice_model
@@ -89,6 +89,7 @@ class VoiceCommands:
                                             ephemeral=True)
         log.close()
     
+    
     async def vc_speak(self, interaction: discord.Interaction, text: str, vc: str=DEFAULT_VC, stability: float=0.2, clarity: float=0.7, style: float=0.1) -> (None):
         log = open("log.txt", "a")
         log.write(f'{interaction.user.global_name} asked {self.name} to say in the VC: `{text}`\n\n')
@@ -148,33 +149,47 @@ class VoiceCommands:
                 
         log.close()
 
+
 class TextCommands:
-    def __init__(self, _name:str, _chat_prompt:str, _status_messages:dict) -> (None):
+    memory = {}
+    last_interaction = {}
+    
+    
+    def __init__(self, _name:str, _chat_prompt:str, _status_messages:dict):
         self.name = _name
         self.chat_prompt = _chat_prompt
-        self.memory = {}
-        self.last_interaction = {}
         self.status_messages = _status_messages
+        
         
     async def prompt(self, interaction: discord.Interaction):
         log = open("log.txt", "a")
         log.write(f'{interaction.user.global_name} asked {self.name} for his ChatGPT Prompt.\n\n')
+        
         await interaction.response.send_message("Here is the prompt used. Feel free to use this to generate text for the /speak or /vc_speak command: \n\n {}".format(self.chat_prompt), ephemeral=True)
+        
         log.close()
+
 
     async def reset(self, interaction: discord.Interaction):
         log = open("log.txt", "a")
+        
         self.memory[interaction.guild.id].clear()
         self.memory[interaction.guild.id].append({"role": "system", "content": self.chat_prompt})
+        
         log.write(f'{interaction.user.global_name} cleared {self.name}\'s memory.\n\n')
         await interaction.response.send_message('{}'.format(self.status_messages['reset'].replace('{USERNAME}', interaction.user.display_name)))
+        
         log.close()
+    
     
     async def chat(self, interaction: discord.Interaction, prompt: str, temperature: float, frequency_penalty: float, presence_penalty: float):
         log = open("log.txt", "a")
+        
         await interaction.response.defer()
+        
         try:
             self.memory[interaction.guild.id].append({"role": "user", "content": prompt})
+            
             completion = openai.ChatCompletion.create(
                 model=CHAT_MODEL,
                 messages=self.memory[interaction.guild.id],
@@ -184,7 +199,9 @@ class TextCommands:
                 frequency_penalty=frequency_penalty,
                 presence_penalty=presence_penalty
             )
+            
             log.write(f'/chat for {self.name} prompt and user: \n{prompt}. From {interaction.user.global_name}.\n\n/chat output: \n{completion}\n\n')
+            
             if completion.usage.total_tokens > 500:
                 removed_user = self.memory[interaction.guild.id].pop(1)
                 removed_assistant = self.memory[interaction.guild.id].pop(1)
@@ -198,6 +215,7 @@ class TextCommands:
         except Exception as e:
             log.write(f'/chat for {self.name} error: \n{e}\n\n')
             await interaction.followup.send("{} (Something went wrong)".format(self.status_messages['chat']['error']))
+            
         log.close()
     
 
@@ -209,6 +227,7 @@ class Bot:
         self.discord_token = _discord_token
         self.voice = VoiceCommands(_name, _voice_name, _voice_key, _voice_model, _status_messages) if _use_voice else None
         self.text = TextCommands(_name, _chat_prompt, _status_messages) if _use_text else None
+        
         
     async def on_ready(self):
         log = open("log.txt", "a")
@@ -225,6 +244,7 @@ class Bot:
             await self.botInit()
             await self.cleanMemories.start()
     
+    
     async def botInit(self):
         log = open("log.txt", "a")
         
@@ -235,16 +255,13 @@ class Bot:
             
         log.close()
     
+    
     @tasks.loop(hours = 6)
     async def cleanMemories(self):
-        log = open("log.txt", "a")
         currentTime = datetime.now()
         
         for server in self.bot.guilds:
             time_diff = currentTime - self.text.last_interaction[server.id]
             if time_diff.days > 0 or (time_diff.seconds / 3600) >= 6:
-                log.write(f'No interaction for {self.name} in {server.name} during past 6 hours, clearing the memory.\n\n')
                 self.text.memory[server.id] = [{"role": "system", "content": self.text.chat_prompt}]
                 self.text.last_interaction[server.id] = datetime.now()
-                
-        log.close()
