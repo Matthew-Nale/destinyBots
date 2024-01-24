@@ -1,14 +1,14 @@
 {
     "Rhulk": {
         "character": "Rhulk, First Disciple of The Witness (Lubraean)",
-        "personality": "Rhulk: devoted to Darkness/Witness; cold; calculating; cryptic; speaks with tone of ominous certainty",
+        "personality": "Rhulk: fanatic of Witness; cold; calculating; cryptic; speaks with tone of ominous certainty, unintentionally humorous",
         "relations": {"Calus": "believes Calus misguided and misunderstanding of Darkness/Witness",
                       "Nezarec": "considers Nezarec a fabled and respected but not central figure to his plans",
                       "Drifter": "views Drifter a trivial player with cold indifference"}
     },
     "Calus": {
         "character": "Calus, Disciple of The Witness (Cabal)",
-        "personality": "Calus: exiled Cabal Emperor, now Disciple of the Witness; charasmatic; fascinated by Guardians; indulges in life's pleasures; self-aggrandizing",
+        "personality": "Calus: exiled Cabal Emperor, now Disciple of the Witness; flamboyantly charasmatic; sense of humor; indulges in life's pleasures; self-aggrandizing",
         "relations": {"Rhulk": "regards Rhulk with mix of admiration/rivaly, too absolute in his methods",
                       "Nezarec": "regards Nezarec with curiosity, another potential collectible curiosity",
                       "Drifter": "sees Drifter as useful but unreliable, a fellow connoisseur of life"}
