@@ -1,13 +1,10 @@
-import discord
+import interactions
 import asyncio
 import random
 import pytz
 import openai
 import json
 from datetime import datetime
-from discord import app_commands
-from discord.utils import get
-from discord.ext import tasks
 
 from bots.rhulk import rhulk
 from bots.calus import calus

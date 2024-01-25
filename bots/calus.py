@@ -1,9 +1,8 @@
 import os
-import discord
-from discord import app_commands
+import interactions
 from dotenv import load_dotenv
 from src.bot import Bot
-from src.chime_in import ChimeEvents
+from interactions import slash_command, slash_option, OptionType
 
 #? Initializations and global values
 
@@ -11,83 +10,79 @@ load_dotenv()
 CALUS_TOKEN = os.getenv('DISCORD_TOKEN_CALUS')
 CALUS_VOICE_KEY = os.getenv('ELEVEN_TOKEN_CALUS')
 
-calus = Bot(
-    _name='Calus', 
-    _discord_token=CALUS_TOKEN, 
-    _status_messages = {
-        'credits': 'When the end comes, I reserve the right to be the last.',
-        'reset': 'Ah {USERNAME}, my favorite Guardian! Come, let us enjoy ourselves!',
-        'chat': {'response': '{USERNAME} has asked your generous Emperor of the Cabal: ',
-                 'error' : 'My Shadow... what has gotten into you?'},
-        'speak': {'too_long': 'My Shadow, we do not have time before the end of all things to do this.',
-                  'error': 'Arghhh, Cemaili!'}
-        },
-    _voice_name="Calus, Emperor of the Cabal",
-    _voice_key=CALUS_VOICE_KEY, 
-    _voice_model="eleven_english_v2",
-    _chat_prompt=("Roleplay as Calus, the Cabal Emperor from Destiny 2. Emulate his hedonistic, "
-                  "narcissistic, and adoration personality. Use phrases like 'My Shadow' and occasional laughter when "
-                  "relevant. Focus on essential details, omitting unnecessary ones about Darkness and Light. Respond "
-                  "to all prompts and questions, while keeping answers under 1000 characters."),
-    _use_voice=True,
-    _use_text=True
-)
-
 #? Calus Bot Commands
 
-@calus.bot.event
-async def on_guild_join(guild: discord.Guild) -> (None):
-    """
-    Sends entrance message to guild on join
-
-    :param guild (discord.Guild): Server that bot has joined
-    """
-    log = open("log.txt", "a")
-    general = discord.utils.find(lambda x: x.name == 'general', guild.text_channels)
-    if general and general.permissions_for(guild.me).send_messages:
-        await general.send("Ah. Finally found you. You busy little Lights.")
-    await calus.botInit()
-    log.write(f'Calus joined a new server: {guild.name}.\n\n')
-    log.close()
-
-@calus.bot.event
-async def on_ready():
-    await calus.bot.add_cog(ChimeEvents(calus))
-    await calus.on_ready()
-
-@calus.bot.tree.command(name="calus_speak", description="Text-to-speech to have Calus speak some text!")
-@app_commands.describe(text="What should Calus say?",
-                       stability="How stable should Calus sound? Range is 0:1.0, default 0.3",
-                       clarity="How similar to the in-game voice should it be? Range is 0:1.0, default 0.65",
-                       style="(Optional) How exaggerated should the text be read? Float from 0-1.0, default is 0.45")
-async def speak(interaction: discord.Interaction, text: str, stability: float=0.3, clarity: float=0.65, style: float=0.45):
-    await calus.voice.speak(interaction, text, stability, clarity, style)
+class CalusBot:
     
-@calus.bot.tree.command(name="calus_vc_speak", description="Text-to-speech to have Calus speak some text, and say it in the VC you are connected to!")
-@app_commands.describe(text="What should Calus say in the VC?",
-                       vc="(Optional) What VC to join?",
-                       stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.3.",
-                       clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.65",
-                       style="(Optional) How exaggerated should the text be read? Float from 0-1.0, default is 0.45")
-async def calus_vc_speak(interaction: discord.Interaction, text: str, vc: str="", stability: float=0.3, clarity: float=0.65, style: float=0.45):
-    await calus.voice.vc_speak(interaction, text, vc, stability, clarity, style)
+    client = Bot(
+        _name='Calus', 
+        _discord_token=CALUS_TOKEN, 
+        _status_messages = {
+            'credits': 'When the end comes, I reserve the right to be the last.',
+            'reset': 'Ah {USERNAME}, my favorite Guardian! Come, let us enjoy ourselves!',
+            'chat': {'response': '{USERNAME} has asked your generous Emperor of the Cabal: ',
+                    'error' : 'My Shadow... what has gotten into you?'},
+            'speak': {'too_long': 'My Shadow, we do not have time before the end of all things to do this.',
+                    'error': 'Arghhh, Cemaili!'}
+            },
+        _voice_name="Calus, Emperor of the Cabal",
+        _voice_key=CALUS_VOICE_KEY, 
+        _voice_model="eleven_english_v2",
+        _chat_prompt=("Roleplay as Calus, the Cabal Emperor from Destiny 2. Emulate his hedonistic, "
+                    "narcissistic, and adoration personality. Use phrases like 'My Shadow' and occasional laughter when "
+                    "relevant. Focus on essential details, omitting unnecessary ones about Darkness and Light. Respond "
+                    "to all prompts and questions, while keeping answers under 1000 characters."),
+        _use_voice=True,
+        _use_text=True
+    )
+    
+    def __init__(self):
+        self.setup_calus_bot()
 
-@calus.bot.tree.command(name="calus_credits", description="Shows the credits remaining for ElevenLabs for Emperor Calus")
-async def calus_credits(interaction: discord.Interaction):
-    await calus.voice.credits(interaction)
+    @client.bot.listen()
+    async def on_ready(self):
+        await self.client.bot.load_extension("chime_in")
+        await self.client.on_ready()
 
-@calus.bot.tree.command(name="calus_prompt", description="Show the prompt that is used to prime the /calus_chat command.")
-async def calus_prompt(interaction: discord.Interaction):
-    await calus.text.prompt(interaction)
+    @slash_command(name="calus_speak", description="Text-to-speech to have Calus speak some text!")
+    @slash_option(name="text", description="What should Calus say?", required=True, opt_type=OptionType.STRING)
+    @slash_option(name="stability", description="How stable should Calus sound? Default is 0.3", required=False, min_value=0, max_value=1, opt_type=OptionType.NUMBER)
+    @slash_option(name="clarity", description="How similar to the in-game void should it be? Default is 0.65", required=False, min_value=0, max_value=1, opt_type=OptionType.NUMBER)
+    @slash_option(name="style", description="(Optional) How exaggerated should the text be read? Default is 0.45", required=False, min_value=0, max_value=1, opt_type=OptionType.NUMBER)
+    async def speak(self, ctx: interactions.SlashContext, text: str, stability: float=0.3, clarity: float=0.65, style: float=0.45):
+        await self.client.voice.speak(ctx, text, stability, clarity, style)
 
-@calus.bot.tree.command(name="calus_chat", description= "Ask Calus anything you want!")
-@app_commands.describe(prompt="What would you like to ask Calus?",
-                       temperature="How random should the response be? Range between 0.0:2.0, default is 1.2.",
-                       frequency_penalty="How likely to repeat the same line? Range between -2.0:2.0, default is 0.75.",
-                       presence_penalty="How likely to introduce new topics? Range between -2.0:2.0, default is 0.0.")
-async def chat(interaction: discord.Interaction, prompt: str, temperature: float=1.2, frequency_penalty: float=0.75, presence_penalty: float=0.0):
-    await calus.text.chat(interaction, prompt, temperature, frequency_penalty, presence_penalty)
+    @slash_command(name="calus_vc_speak", description="Text-to-speech to have Calus speak some text in the VC!")
+    @slash_option(name="text", description="What should Calus say?", required=True, opt_type=OptionType.STRING)
+    @slash_option(name="vc", description="The VC for the bot to speak in. Leave empty for your current VC.", required=False, opt_type=OptionType.STRING)
+    @slash_option(name="stability", description="How stable should Calus sound? Default is 0.3", required=False, min_value=0, max_value=1, opt_type=OptionType.NUMBER)
+    @slash_option(name="clarity", description="How similar to the in-game void should it be? Default is 0.65", required=False, min_value=0, max_value=1, opt_type=OptionType.NUMBER)
+    @slash_option(name="style", description="(Optional) How exaggerated should the text be read? Default is 0.45", required=False, min_value=0, max_value=1, opt_type=OptionType.NUMBER)
+    async def calus_vc_speak(self, ctx: interactions.SlashContext, text: str, vc: str="", stability: float=0.3, clarity: float=0.65, style: float=0.45):
+        await self.client.voice.vc_speak(ctx, text, vc, stability, clarity, style)
 
-@calus.bot.tree.command(name="calus_reset", description="Reset the /calus_chat AI's memory in case he gets too far gone")
-async def calus_reset(interaction: discord.Interaction):
-    await calus.text.reset(interaction)
+    @slash_command(name="calus_credits", description="Shows the credits remaining for ElevenLabs for Emperor Calus.")
+    async def calus_credits(self, ctx: interactions.SlashContext):
+        await self.client.voice.credits(ctx)
+
+    @slash_command(name="calus_prompt", description="Show the prompt that is used to prime the /calus_chat command.")
+    async def calus_prompt(self, ctx: interactions.SlashContext):
+        await self.client.text.prompt(ctx)
+
+    @slash_command(name="calus_chat", description= "Ask Calus anything you want!")
+    @slash_option(name="prompt", description="What would you like to ask Calus?", required=True, opt_type=OptionType.STRING)
+    async def chat(self, ctx: interactions.SlashContext, prompt: str, temperature: float=1.2, frequency_penalty: float=0.75, presence_penalty: float=0.0):
+        await self.client.text.chat(ctx, prompt, temperature, frequency_penalty, presence_penalty)
+
+    @slash_command(name="calus_reset", description="Reset the /calus_chat AI's memory in case he gets too far gone")
+    async def calus_reset(self, ctx: interactions.SlashContext):
+        await self.client.text.reset(ctx)
+        
+    def setup_calus_bot(self):
+        self.client.bot.add_listener(self.on_ready)
+        self.client.bot.add_interaction(self.speak)
+        self.client.bot.add_interaction(self.calus_vc_speak)
+        self.client.bot.add_interaction(self.calus_credits)
+        self.client.bot.add_interaction(self.calus_prompt)
+        self.client.bot.add_interaction(self.chat)
+        self.client.bot.add_interaction(self.calus_reset)

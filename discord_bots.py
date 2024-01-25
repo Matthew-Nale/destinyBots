@@ -4,11 +4,11 @@ from datetime import datetime
 
 from src.conversations import scheduledBotConversation
 
-from bots.rhulk import rhulk
-from bots.calus import calus
-from bots.drifter import drifter
-from bots.nezarec import nezarec
-from bots.tower_pa import tower_pa
+from bots.rhulk import RhulkBot
+from bots.calus import CalusBot
+from bots.drifter import DrifterBot
+from bots.nezarec import NezarecBot
+from bots.tower_pa import TowerBot
 
 #? Running bots
 
@@ -35,15 +35,12 @@ async def get_tasks(bot_list:dict) -> (list):
 
     return tasks
 
-async def shutdown_bots() -> (None):
+async def shutdown_bots(bots) -> (None):
     """
     Disconnects all bots from Discord
     """
-    await rhulk.bot.close()
-    await calus.bot.close()
-    await drifter.bot.close()
-    await nezarec.bot.close()
-    await tower_pa.bot.close()
+    for b in bots:
+        b.bot.close()
     
 async def main() -> (None):
     #* Create log.txt and provide date of creation
@@ -52,11 +49,11 @@ async def main() -> (None):
     log.close()
 
     #* Make dict of bots and names
-    bot_list = {rhulk.name: rhulk.bot.start(rhulk.discord_token),
-                calus.name: calus.bot.start(calus.discord_token),
-                drifter.name: drifter.bot.start(drifter.discord_token),
-                nezarec.name: nezarec.bot.start(nezarec.discord_token),
-                tower_pa.name: tower_pa.bot.start(tower_pa.discord_token)}
+    bot_list = {'Rhulk': RhulkBot,
+                'Calus': CalusBot,
+                'Drifter': DrifterBot,
+                'Nezarec': NezarecBot,
+                'Tower PA': TowerBot}
     
     #* Ask user for which bots/events to run
     tasks = await get_tasks(bot_list)

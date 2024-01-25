@@ -1,9 +1,8 @@
 import os
-import discord
-from discord import app_commands
+import interactions
 from dotenv import load_dotenv
 from src.bot import Bot
-from src.chime_in import ChimeEvents
+from interactions import slash_command, slash_option, OptionType
 
 #? Initializations and global values
 
@@ -11,83 +10,80 @@ load_dotenv()
 DRIFTER_TOKEN = os.getenv('DISCORD_TOKEN_DRIFTER')
 DRIFTER_VOICE_KEY = os.getenv('ELEVEN_TOKEN_DRIFTER')
 
-drifter = Bot(
-    _name="Drifter",
-    _discord_token=DRIFTER_TOKEN,
-    _status_messages={
-        'credits': 'Ooooh, you hate to see that one!',
-        'reset': "Scanning bio-metrics, AHHHH I\'m just kiddin\', you know you\'re authorized!!",
-        'chat': {'response': 'Good ol\' {USERNAME} decided to ask me: ',
-                 'error': 'It happens. Well, head on back and take the gambit again.'},
-        'speak': {'too_long': 'Brother, we don\'t have time for this. Those motes are needing banked!',
-                  'error': 'Hey, don\'t feel too bad. The best thing about Gambit is it never ends. Look me up anytime.'}
-        },
-    _voice_name="The Drifter",
-    _voice_key=DRIFTER_VOICE_KEY,
-    _voice_model="eleven_multilingual_v2",
-    _chat_prompt=("Roleplay as The Drifter from Destiny 2. Emulate his irreverent "
-                  "temperament, strange behaviors, and personality. Use his phrases "
-                  "such as 'Brother' when referring to other Guardians. Focus on essential "
-                  "details, while omitting unnecessary ones. Respond to all prompts and "
-                  "questions, while keeping answers under 750 characters."),
-    _use_voice=True,
-    _use_text=True
-)
-
 #? Drifter Bot Commands
 
-async def on_guild_join(guild: discord.Guild) -> (None):
-    """
-    Sends entrance message to guild on join
+class DrifterBot:
+    
+    client = Bot(
+        _name="Drifter",
+        _discord_token=DRIFTER_TOKEN,
+        _status_messages={
+            'credits': 'Ooooh, you hate to see that one!',
+            'reset': "Scanning bio-metrics, AHHHH I\'m just kiddin\', you know you\'re authorized!!",
+            'chat': {'response': 'Good ol\' {USERNAME} decided to ask me: ',
+                    'error': 'It happens. Well, head on back and take the gambit again.'},
+            'speak': {'too_long': 'Brother, we don\'t have time for this. Those motes are needing banked!',
+                    'error': 'Hey, don\'t feel too bad. The best thing about Gambit is it never ends. Look me up anytime.'}
+            },
+        _voice_name="The Drifter",
+        _voice_key=DRIFTER_VOICE_KEY,
+        _voice_model="eleven_multilingual_v2",
+        _chat_prompt=("Roleplay as The Drifter from Destiny 2. Emulate his irreverent "
+                    "temperament, strange behaviors, and personality. Use his phrases "
+                    "such as 'Brother' when referring to other Guardians. Focus on essential "
+                    "details, while omitting unnecessary ones. Respond to all prompts and "
+                    "questions, while keeping answers under 750 characters."),
+        _use_voice=True,
+        _use_text=True
+    )
+    
+    def __init__(self):
+        self.setup_drifter_bot()
 
-    :param guild (discord.Guild): Server that bot has joined
-    """
-    log = open("log.txt", "a")
-    general = discord.utils.find(lambda x: x.name == 'general', guild.text_channels)
-    if general and general.permissions_for(guild.me).send_messages:
-        await general.send("Alright alright alright! Let\'s see what we got! {} on the field\'!".format(guild.name))
-    await drifter.botInit()
-    log.write(f'Drifter joined a new server: {guild.name}\n\n')
-    log.close()
+    @client.bot.listen()
+    async def on_ready(self):
+        await self.client.bot.load_extension("chime_in")
+        await self.client.on_ready()
 
-@drifter.bot.event
-async def on_ready():
-    await drifter.bot.add_cog(ChimeEvents(drifter))
-    await drifter.on_ready()
+    @slash_command(name="drifter_speak", description="Text-to-speech to have Drifter speak some text!")
+    @slash_option(name="text", description="What should Drifter say?", required=True, opt_type=OptionType.STRING)
+    @slash_option(name="stability", description="How stable should Drifter sound? Default is 0.25", required=False, min_value=0, max_value=1, opt_type=OptionType.NUMBER)
+    @slash_option(name="clarity", description="How similar to the in-game void should it be? Default is 0.8", required=False, min_value=0, max_value=1, opt_type=OptionType.NUMBER)
+    @slash_option(name="style", description="(Optional) How exaggerated should the text be read? Default is 0.75", required=False, min_value=0, max_value=1, opt_type=OptionType.NUMBER)
+    async def speak(self, ctx: interactions.SlashContext, text: str, stability: float=0.25, clarity: float=0.8, style: float=0.75):
+        await self.client.voice.speak(ctx, text, stability, clarity, style)
 
-@drifter.bot.tree.command(name="drifter_speak", description="Text-to-speech to have Drifter speak some text!")
-@app_commands.describe(text="What should Drifter say?",
-                       stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.25",
-                       clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.8",
-                       style="(Optional) How exaggerated should the text be read? Float from 0-1.0, default is 0.75")
-async def speak(interaction: discord.Interaction, text: str, stability: float=0.25, clarity: float=0.8, style: float=0.75):
-    await drifter.voice.speak(interaction, text, stability, clarity, style)
+    @slash_command(name="drifter_vc_speak", description="Text-to-speech to have Drifter speak some text in the VC!")
+    @slash_option(name="text", description="What should Drifter say?", required=True, opt_type=OptionType.STRING)
+    @slash_option(name="vc", description="The VC for the bot to speak in. Leave empty for your current VC.", required=False, opt_type=OptionType.STRING)
+    @slash_option(name="stability", description="How stable should Drifter sound? Default is 0.25", required=False, min_value=0, max_value=1, opt_type=OptionType.NUMBER)
+    @slash_option(name="clarity", description="How similar to the in-game void should it be? Default is 0.8", required=False, min_value=0, max_value=1, opt_type=OptionType.NUMBER)
+    @slash_option(name="style", description="(Optional) How exaggerated should the text be read? Default is 0.75", required=False, min_value=0, max_value=1, opt_type=OptionType.NUMBER)
+    async def drifter_vc_speak(self, ctx: interactions.SlashContext, text: str, vc: str="", stability: float=0.25, clarity: float=0.8, style: float=0.75):
+        await self.client.voice.vc_speak(ctx, text, vc, stability, clarity, style)
 
-@drifter.bot.tree.command(name="drifter_vc_speak", description="Text-to-speech to have Drifter speak some text, and say it in the VC you are connected to!")
-@app_commands.describe(text="What should Drifter say in the VC?",
-                       vc="(Optional) What VC to join?",
-                       stability="(Optional) How expressive should it be said? Float from 0-1.0, default is 0.25",
-                       clarity="(Optional) How similar to the in-game voice should it be? Float from 0-1.0, default is 0.8",
-                       style="(Optional) How exaggerated should the text be read? Float from 0-1.0, default is 0.75")
-async def drifter_vc_speak(interaction: discord.Interaction, text: str, vc: str="", stability: float=0.25, clarity: float=0.8, style: float=0.75):
-    await drifter.voice.vc_speak(interaction, text, vc, stability, clarity, style)
+    @slash_command(name="drifter_credits", description="Shows the credits remaining for ElevenLabs for The Drifter")
+    async def drifter_credits(self, ctx: interactions.SlashContext):
+        await self.client.voice.credits(ctx)
 
-@drifter.bot.tree.command(name="drifter_credits", description="Shows the credits remaining for ElevenLabs for The Drifter")
-async def drifter_credits(interaction: discord.Interaction):
-    await drifter.voice.credits(interaction)
+    @slash_command(name="drifter_prompt", description="Show the prompt that is used to prime the /drifter_chat command.")
+    async def drifter_prompt(self, ctx: interactions.SlashContext):
+        await self.client.text.prompt(ctx)
 
-@drifter.bot.tree.command(name="drifter_prompt", description="Show the prompt that is used to prime the /drifter_chat command.")
-async def drifter_prompt(interaction: discord.Interaction):
-    await drifter.text.prompt(interaction)
+    @slash_command(name="drifter_chat", description= "Ask Drifter anything you want!")
+    @slash_option(name="prompt", description="What would you like to ask Drifter?", required=True, opt_type=OptionType.STRING)
+    async def chat(self, ctx: interactions.SlashContext, prompt: str, temperature: float=1.2, frequency_penalty: float=0.9, presence_penalty: float=0.75):
+        await self.client.text.chat(ctx, prompt, temperature, frequency_penalty, presence_penalty)
 
-@drifter.bot.tree.command(name="drifter_chat", description= "Ask Drifter anything you want!")
-@app_commands.describe(prompt="What would you like to ask Drifter?",
-                       temperature="How random should the response be? Range between 0.0:2.0, default is 1.2.",
-                       frequency_penalty="How likely to repeat the same line? Range between -2.0:2.0, default is 0.9.",
-                       presence_penalty="How likely to introduce new topics? Range between -2.0:2.0, default is 0.75.")
-async def chat(interaction: discord.Interaction, prompt: str, temperature: float=1.2, frequency_penalty: float=0.9, presence_penalty: float=0.75):
-    await drifter.text.chat(interaction, prompt, temperature, frequency_penalty, presence_penalty)
+    @slash_command(name="drifter_reset", description="Reset the /drifter_chat AI's memory in case he gets too far gone")
+    async def drifter_reset(self, ctx: interactions.SlashContext):
+        await self.client.text.reset(ctx)
 
-@drifter.bot.tree.command(name="drifter_reset", description="Reset the /drifter_chat AI's memory in case he gets too far gone")
-async def drifter_reset(interaction: discord.Interaction):
-    await drifter.text.reset(interaction)
+    def setup_drifter_bot(self):
+        self.client.bot.add_listener(self.on_ready)
+        self.client.bot.add_interaction(self.speak)
+        self.client.bot.add_interaction(self.drifter_vc_speak)
+        self.client.bot.add_interaction(self.drifter_credits)
+        self.client.bot.add_interaction(self.drifter_prompt)
+        self.client.bot.add_interaction(self.chat)
+        self.client.bot.add_interaction(self.drifter_reset)

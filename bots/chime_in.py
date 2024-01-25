@@ -1,9 +1,9 @@
 import openai
 import random
 import datetime
+import interactions
 from src.bot import Bot, CHAT_MODEL
-from discord import Message
-from discord.ext import commands
+from interactions import Extension
 
 RANDOM_CHANCE = 0.01
 
@@ -39,33 +39,33 @@ async def generate_response(chosen_speaker: Bot, user_msgs: list) -> (str):
 
 #? Random Chime-In messages Cog
 
-class ChimeEvents(commands.Cog):
+class ChimeEvents(Extension):
     
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    @commands.Cog.listener("on_message")
-    async def on_message(self, message: Message) -> (None):
+    @interactions.listen()
+    async def on_message_create(self, message: interactions.Message) -> (None):
         """
         Event that triggers on messages, potentially having a bot send a reply
         
         :param self (Self@ChimeEvents): Self reference to ChimeEvents class
         """
-        if not message.author.bot and not message.attachments:
+        if not message.message.author.bot and not message.message.attachments:
             if random.random() <= RANDOM_CHANCE:
                 log = open("log.txt", "a")
-                past_messages = [m async for m in message.channel.history(after=datetime.datetime.now() - datetime.timedelta(hours=12), limit=5)]
+                past_messages = [m async for m in message.message.channel.history(after=datetime.datetime.now() - datetime.timedelta(hours=12), limit=5)]
                 past_messages.reverse()
                 response = await generate_response(self.bot, past_messages)
                 log.write(f'Chiming-in on previous messages {[msg.content for msg in past_messages]} with bot: {self.bot.name}.\nResponse: {response}\n\n')
-                await self.bot.bot.get_channel(message.channel.id).send(response, reference=message)
+                await self.bot.bot.get_channel(message.message.channel.id).send(response, reference=message.message)
                 log.close()
         await self.bot.process_commands(message)
 
-async def setup(bot: Bot) -> (None):
+def setup(bot) -> (None):
     """
-    Setup for ChimeEvents Cog
+    Setup for ChimeEvents Extension
 
-    :param bot (Bot): Bot for ChimeEvents to be enabled on
+    :param bot: Client for ChimeEvents to be enabled on
     """
-    await bot.add_cog(ChimeEvents(bot))
+    ChimeEvents(bot)

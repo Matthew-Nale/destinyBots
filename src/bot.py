@@ -1,10 +1,10 @@
 import os
-import discord
+import interactions
 import openai
 import asyncio
 import string
 from datetime import datetime
-from discord.ext import commands, tasks
+from interactions.api.voice.audio import AudioVolume
 from dotenv import load_dotenv
 from src.elevenlab import ElevenLabs
 
@@ -30,30 +30,30 @@ class VoiceCommands:
         self.status_messages = _status_messages
     
     
-    async def credits(self, interaction: discord.Interaction) -> (None):
+    async def credits(self, ctx: interactions.SlashContext) -> (None):
         log = open("log.txt", "a")
-        log.write(f'{interaction.user.global_name} asked {self.name} for his ElevenLabs credits remaining.\n\n')
+        log.write(f'{ctx.user.global_name} asked {self.name} for his ElevenLabs credits remaining.\n\n')
         
         user = await self.elevenlabs.get_user()
         char_remaining = user['character_limit'] - user['character_count']
         
         if char_remaining:
-            await interaction.response.send_message(f'I will still speak {char_remaining} characters. Use them wisely.', ephemeral=True)
+            await ctx.send(f'I will still speak {char_remaining} characters. Use them wisely.', ephemeral=True)
         else:
-            await interaction.response.send_message('{} (Reached character quota for this month)'.format(self.status_messages['credits']))
+            await ctx.send('{} (Reached character quota for this month)'.format(self.status_messages['credits']), ephemeral=True)
             
         log.close()
     
     
-    async def speak(self, interaction: discord.Interaction, text: str, stability: float, clarity: float, style: float) -> (None):
+    async def speak(self, ctx: interactions.SlashContext, text: str, stability: float, clarity: float, style: float) -> (None):
         log = open("log.txt", "a")
-        log.write(f'{interaction.user.global_name} asked {self.name} to say: `{text}`\n\n')
+        log.write(f'{ctx.user.global_name} asked {self.name} to say: `{text}`\n\n')
         
-        await interaction.response.defer()
+        await ctx.defer()
         
         if len(text) > MAX_LEN:
             log.write(f'Size of request was too long for /speak\n\n')
-            await interaction.followup.send('{} Please limit your text to below {} characters. You are currently at {} characters.'.format(self.status_messages['speak']['too_long'], MAX_LEN, len(text)))
+            await ctx.send('{} Please limit your text to below {} characters. You are currently at {} characters.'.format(self.status_messages['speak']['too_long'], MAX_LEN, len(text)))
             log.close()
             return
         
@@ -79,33 +79,33 @@ class VoiceCommands:
                 
             with open(filename, "wb") as f:
                     f.write(audio)
-            await interaction.followup.send(file=discord.File(filename))
+            await ctx.send(file=interactions.File(file=filename))
             
             log.write(f'/speak for {self.name}: Sent .mp3 titled `{filename}`.\n\n')
             os.remove(filename)
         except Exception as e:
             log.write(f'Error in /speak for {self.name}: \n{e}\n\n')
-            await interaction.followup.send("{} (Something went wrong with that request)".format(self.status_messages['speak']['error']),
-                                            ephemeral=True)
+            await ctx.send("{} (Something went wrong with that request)".format(self.status_messages['speak']['error']),
+                          ephemeral=True)
         log.close()
     
     
-    async def vc_speak(self, interaction: discord.Interaction, text: str, vc: str=DEFAULT_VC, stability: float=0.2, clarity: float=0.7, style: float=0.1) -> (None):
+    async def vc_speak(self, ctx: interactions.SlashContext, text: str, vc: str=DEFAULT_VC, stability: float=0.2, clarity: float=0.7, style: float=0.1) -> (None):
         log = open("log.txt", "a")
-        log.write(f'{interaction.user.global_name} asked {self.name} to say in the VC: `{text}`\n\n')
+        log.write(f'{ctx.user.global_name} asked {self.name} to say in the VC: `{text}`\n\n')
         
-        await interaction.response.defer()
+        await ctx.defer()
         
         if len(text) > MAX_LEN:
             log.write(f'Size of request was too long for /vc_speak\n\n')
-            await interaction.followup.send('{} Please limit your text to below {} characters. You are currently at {} characters.'.format(self.status_messages['speak']['too_long'], MAX_LEN, len(text)))
+            await ctx.send('{} Please limit your text to below {} characters. You are currently at {} characters.'.format(self.status_messages['speak']['too_long'], MAX_LEN, len(text)))
             log.close()
             return
         
-        if interaction.user.voice is None:
+        if ctx.author.voice is None:
             channel = self.bot.get_channel(DEFAULT_VC)
         else:
-            channel = interaction.user.voice.channel
+            channel = ctx.author.voice.channel
 
         try:
             audio = await self.elevenlabs.generate(
@@ -132,20 +132,23 @@ class VoiceCommands:
             
             vc = await channel.connect()
             await asyncio.sleep(1.5)
-            vc.play(discord.FFmpegPCMAudio(source=filename))
-            while vc.is_playing():
+            
+            audio = await AudioVolume(src=filename)
+            ctx.voice_state.play(audio)
+            
+            while vc.playing:
                 await asyncio.sleep(1.5)
             vc.stop()
             await vc.disconnect()
             
-            await interaction.followup.send(file=discord.File(filename))
+            await ctx.send(file=interactions.File(file=filename))
             log.write(f'/vc_speak for {self.name}: Sent .mp3 titled `{filename}`.\n\n')
             os.remove(filename)
         except Exception as e:
             log.write(f'Error in /vc_speak for {self.name}: \n{e}\n\n')
             await vc.disconnect()
-            await interaction.followup.send("{} (Something went wrong with that request)".format(self.status_messages['speak']['error']),
-                                        ephemeral=True)
+            await ctx.send("{} (Something went wrong with that request)".format(self.status_messages['speak']['error']),
+                          ephemeral=True)
                 
         log.close()
 
@@ -161,38 +164,38 @@ class TextCommands:
         self.status_messages = _status_messages
         
         
-    async def prompt(self, interaction: discord.Interaction):
+    async def prompt(self, ctx: interactions.SlashContext):
         log = open("log.txt", "a")
-        log.write(f'{interaction.user.global_name} asked {self.name} for his ChatGPT Prompt.\n\n')
+        log.write(f'{ctx.user.global_name} asked {self.name} for his ChatGPT Prompt.\n\n')
         
-        await interaction.response.send_message("Here is the prompt used. Feel free to use this to generate text for the /speak or /vc_speak command: \n\n {}".format(self.chat_prompt), ephemeral=True)
+        await ctx.send("Here is the prompt used. Feel free to use this to generate text for the /speak or /vc_speak command: \n\n {}".format(self.chat_prompt), ephemeral=True)
         
         log.close()
 
 
-    async def reset(self, interaction: discord.Interaction):
+    async def reset(self, ctx: interactions.SlashContext):
         log = open("log.txt", "a")
         
-        self.memory[interaction.guild.id].clear()
-        self.memory[interaction.guild.id].append({"role": "system", "content": self.chat_prompt})
+        self.memory[ctx.guild_id].clear()
+        self.memory[ctx.guild_id].append({"role": "system", "content": self.chat_prompt})
         
-        log.write(f'{interaction.user.global_name} cleared {self.name}\'s memory.\n\n')
-        await interaction.response.send_message('{}'.format(self.status_messages['reset'].replace('{USERNAME}', interaction.user.display_name)))
+        log.write(f'{ctx.user.global_name} cleared {self.name}\'s memory.\n\n')
+        await ctx.send('{}'.format(self.status_messages['reset'].replace('{USERNAME}', ctx.user.display_name)))
         
         log.close()
     
     
-    async def chat(self, interaction: discord.Interaction, prompt: str, temperature: float, frequency_penalty: float, presence_penalty: float):
+    async def chat(self, ctx: interactions.SlashContext, prompt: str, temperature: float, frequency_penalty: float, presence_penalty: float):
         log = open("log.txt", "a")
-        
-        await interaction.response.defer()
-        
+
+        await ctx.defer()
+
         try:
-            self.memory[interaction.guild.id].append({"role": "user", "content": prompt})
-            
+            self.memory[ctx.guild_id].append({"role": "user", "content": prompt})
+
             completion = openai.ChatCompletion.create(
                 model=CHAT_MODEL,
-                messages=self.memory[interaction.guild.id],
+                messages=self.memory[ctx.guild_id],
                 n=1,
                 max_tokens=MAX_TOKENS,
                 temperature=temperature,
@@ -200,21 +203,22 @@ class TextCommands:
                 presence_penalty=presence_penalty
             )
             
-            log.write(f'/chat for {self.name} prompt and user: \n{prompt}. From {interaction.user.global_name}.\n\n/chat output: \n{completion}\n\n')
+            log.write(f'/chat for {self.name} prompt and user: \n{prompt}. From {ctx.user.global_name}.\n\n/chat output: \n{completion}\n\n')
             
             if completion.usage.total_tokens > 500:
-                removed_user = self.memory[interaction.guild.id].pop(1)
-                removed_assistant = self.memory[interaction.guild.id].pop(1)
+                removed_user = self.memory[ctx.guild_id].pop(1)
+                removed_assistant = self.memory[ctx.guild_id].pop(1)
                 log.write(f'/chat for {self.name} token limit reached. Removed the user prompt: {removed_user}, and the assistant answer: {removed_assistant}\n\n')
             
-            self.memory[interaction.guild.id].append({"role": "assistant", "content": completion.choices[0].message.content})
-            await interaction.followup.send('{} *"{}"* \n\n{}'.format(self.status_messages['chat']['response'].replace('{USERNAME}', interaction.user.display_name),
+            self.memory[ctx.guild_id].append({"role": "assistant", "content": completion.choices[0].message.content})
+            
+            await ctx.send('{} *"{}"* \n\n{}'.format(self.status_messages['chat']['response'].replace('{USERNAME}', ctx.user.display_name),
                                                                                                            prompt,
                                                                                                            completion.choices[0].message.content))
-            self.last_interaction[interaction.guild.id] = datetime.now()
+            self.last_interaction[ctx.guild_id] = datetime.now()
         except Exception as e:
             log.write(f'/chat for {self.name} error: \n{e}\n\n')
-            await interaction.followup.send("{} (Something went wrong)".format(self.status_messages['chat']['error']))
+            await ctx.send("{} (Something went wrong)".format(self.status_messages['chat']['error']))
             
         log.close()
     
@@ -223,7 +227,7 @@ class Bot:
     def __init__(self, _name:str, _discord_token:str, _status_messages:dict=None, _voice_name:str=None, _voice_key:str=None,
                  _voice_model:str=None, _chat_prompt:str=None, _use_voice:bool=False, _use_text:bool=False):
         self.name = _name
-        self.bot = commands.Bot(command_prefix=commands.when_mentioned_or('!{self.name}'), intents=discord.Intents.all())
+        self.bot = interactions.Client(intents=interactions.Intents.ALL)
         self.discord_token = _discord_token
         self.voice = VoiceCommands(_name, _voice_name, _voice_key, _voice_model, _status_messages) if _use_voice else None
         self.text = TextCommands(_name, _chat_prompt, _status_messages) if _use_text else None
@@ -234,7 +238,7 @@ class Bot:
         log.write(f'{self.bot.user} has connected to Discord!\n\n')
         
         try:
-            synced = await self.bot.tree.sync()
+            synced = await self.bot.sync_interactions()
             log.write(f'Synced {len(synced)} commands for {self.bot.user}!\n\n')
         except Exception as e:
             log.write(f'{self.bot.user} on_ready error: \n{e}\n\n')
@@ -256,7 +260,7 @@ class Bot:
         log.close()
     
     
-    @tasks.loop(hours = 6)
+    @interactions.Task.create(interactions.IntervalTrigger(hours=6))
     async def cleanMemories(self):
         currentTime = datetime.now()
         
