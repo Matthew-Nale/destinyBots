@@ -1,12 +1,8 @@
 import os
 import json
 import discord
-import wave
 
 from discord import app_commands
-from discord.ext import voice_recv
-from discord.ext import commands
-
 from dotenv import load_dotenv
 from src.bot import Bot
 
@@ -40,7 +36,6 @@ async def on_guild_join(guild: discord.Guild) -> (None):
 
 @tower_pa.bot.event
 async def on_ready():
-    await tower_pa.bot.add_cog(VoiceRecording(tower_pa))
     await tower_pa.on_ready()
 
 @tower_pa.bot.tree.command(name="topics", description="View the saved topics that the bots can chat over!")
@@ -75,32 +70,3 @@ async def add_topic(interaction: discord.Interaction, topic: str=None):
             await interaction.response.send_message(f'The others will already talk about that topic, {interaction.user.global_name}. (Already in list)')
     else:
         await interaction.response.send_message(f'{interaction.user.global_name}? Come in {interaction.user.global_name}! (Must input something)')
-
-
-class VoiceRecording(commands.Cog):
-
-    voice_packets = []
-    def __init__(self, bot):
-        self.bot = bot
-
-    @app_commands.command(name="start")
-    async def start(self, ctx: discord.Interaction):
-        def callback(user, data: voice_recv.VoiceData):
-            print(f'Got packet from {data.source.display_name}')
-            self.voice_packets.append(data.pcm)
-            
-        vc = await ctx.user.voice.channel.connect(cls=voice_recv.VoiceRecvClient)
-        vc.listen(voice_recv.BasicSink(callback))
-
-    @app_commands.command(name="stop")
-    async def stop(self, ctx: discord.Interaction):
-        await ctx.guild.voice_client.disconnect()
-        
-        with wave.open('test.wav', 'wb') as file:
-            file.setparams((2, 2, 44100, 0, 'NONE', 'NONE'))
-            print('Set params')
-            for data in self.voice_packets:
-                print('Writing packet')
-                file.writeframes(data)
-            print('Wrote data')
-        print('Done')

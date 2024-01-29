@@ -2,8 +2,10 @@ import os
 import discord
 from discord import app_commands
 from dotenv import load_dotenv
+
 from src.bot import Bot
 from src.chime_in import ChimeEvents
+from src.voice_recognition import VoiceRecording
 
 #? Initializations and global values
 
@@ -25,11 +27,10 @@ rhulk = Bot(
     _voice_name="Rhulk, Disciple of the Witness",
     _voice_key=RHULK_VOICE_KEY,
     _voice_model="eleven_english_v2",
-    _chat_prompt=("Roleplay as Rhulk, the Disciple of the Witness from Destiny 2 and "
-                  "antagonist to the Light and Guardians. Emulate his personality, use phrases "
-                  "like 'Children of the Light' and 'My Witness.' Focus on essential details, avoid "
-                  "unnecessary information about Darkness and Light unless essential. Respond to all user "
-                  "prompts and questions, while keeping responses under 1000 characters."),
+    _chat_prompt=("Roleplay as Rhulk, the Disciple of the Witness from Destiny 2. " 
+                  "Emulate his cold, unintentionally humorous, and ominous personality. "
+                  "Use phrases like 'Children of the Light' and 'My Witness.' Focus on "
+                  "essential details. Use expletives like 'fuck' and 'shit' often."),
     _use_voice=True,
     _use_text=True
 )
@@ -54,6 +55,7 @@ async def on_guild_join(guild: discord.Guild) -> (None):
 @rhulk.bot.event
 async def on_ready():
     await rhulk.bot.add_cog(ChimeEvents(rhulk))
+    await rhulk.bot.add_cog(VoiceRecording(rhulk))
     await rhulk.on_ready()
 
 @rhulk.bot.tree.command(name="rhulk_speak", description="Text-to-speech to have Rhulk speak some text!")

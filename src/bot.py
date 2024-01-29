@@ -3,10 +3,11 @@ import discord
 import openai
 import asyncio
 import string
+
 from datetime import datetime
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
-from src.elevenlab import ElevenLabs
+from src.external_api import ElevenLabs
 
 #? Initializations and global values
 
@@ -190,7 +191,7 @@ class TextCommands:
         try:
             self.memory[interaction.guild.id].append({"role": "user", "content": prompt})
             
-            completion = openai.ChatCompletion.create(
+            completion = openai.chat.completions.create(
                 model=CHAT_MODEL,
                 messages=self.memory[interaction.guild.id],
                 n=1,
