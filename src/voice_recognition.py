@@ -23,7 +23,7 @@ INSTRUCTION_PROMPT = ("You are in a Discord call with other members, and you wil
 
 MAX_LISTENS = 4
 MIN_LISTENS = 2
-LISTEN_TIME = 7
+LISTEN_TIME = 10
 JOIN_CHANCE = 0.05
 COOLDOWN_TIME_HOURS = 3
 
@@ -116,6 +116,7 @@ class VoiceRecording(commands.Cog):
 
         return True
         
+        
     async def get_active_vc(self) -> discord.VoiceChannel | None:
         with open('data/voice_conversations.json', "r") as f:
             registered_users = json.load(f)["registered_users"]
@@ -162,6 +163,7 @@ class VoiceRecording(commands.Cog):
                     file=file
                 ).text})
     
+    
     async def cleanup(self):
         self.voice_packets = {}
         for file in self.audio_files.values():
@@ -191,6 +193,7 @@ class VoiceRecording(commands.Cog):
         self.transcription.append({self.bot.name: response})
         
         return response
+
 
     async def create_audio(self, response):
         
