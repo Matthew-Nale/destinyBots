@@ -59,11 +59,11 @@ async def topics(interaction: discord.Interaction):
 @app_commands.describe(topic="What topic should be added to the list?")
 async def add_topic(interaction: discord.Interaction, topic: str=None):
     if topic != None:
-        topics = json.load(open('data/topics.json'))
-        if topic not in topics['misc']["topics"]:
-            topics['misc']["topics"][topic] = { "chosen": False,
+        topics = json.load(open('data/text_conversations.json'))
+        if topic not in topics["topics"]['misc']["topics"]:
+            topics["topics"]['misc']["topics"][topic] = { "chosen": False,
                                                 "req_membs": ["all"]}
-            with open('data/topics.json', 'w') as f:
+            with open('data/text_conversations.json', 'w') as f:
                 log = open('log.txt', 'a')
                 f.write(json.dumps(topics, indent=4))
                 log.write(f'Added a new topic to the list: {topic}\n\n')
@@ -74,8 +74,8 @@ async def add_topic(interaction: discord.Interaction, topic: str=None):
     else:
         await interaction.response.send_message(f'{interaction.user.global_name}? Come in {interaction.user.global_name}! (Must input something)')
 
-@tower_pa.bot.tree.command(name="test", description="Testing")
-async def enable_voice(interaction: discord.Interaction):
+@tower_pa.bot.tree.command(name="voice_opt_in", description="Manually opt in for voice chat interaction with the bots")
+async def voice_opt_in(interaction: discord.Interaction):
     try:
         registered_users = json.load(open('data/voice_conversations.json'))
         if interaction.user.id in registered_users["registered_users"]:
@@ -85,5 +85,10 @@ async def enable_voice(interaction: discord.Interaction):
             with open('data/voice_conversations.json', "w") as f:
                 f.write(json.dumps(registered_users, indent=4))
             await interaction.response.send_message("Registered for voice conversations!", ephemeral=True)
-    except Exception as e:
-        print(e)
+    except:
+        interaction.response.send_message('Encountered an unknown error with registering, please try again later.', ephemeral=True)
+        
+@tower_pa.bot.tree.command(name="updates", description="View the most recent update to the bots")
+async def updates(interaction: discord.Interaction):
+    with open("UPDATES.md", "r") as f:
+        await interaction.response.send_message(content=f.read())

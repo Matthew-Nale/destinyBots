@@ -66,8 +66,8 @@ def parse_relations(characters: dict) -> (str):
     return relations[:-2]
 
 def get_character_data() -> (dict):
-    with open('data/character_info.json', 'r') as f:
-        return json.load(f)
+    with open('data/text_conversations.json', 'r') as f:
+        return json.load(f)["characters"]
 
 def create_prompt(first_speaker: str, topic: str, other_speakers: list) -> (str):
     """
@@ -121,18 +121,18 @@ def reset_topics() -> (dict):
     
     :return dict: Reset dict of topics.json contents
     """
-    with open('data/topics.json', "r") as f:
+    with open('data/text_conversations.json', "r") as f:
         topics = json.load(f)
         
-    for k, v in topics.items():
+    for k, v in topics["topics"].items():
         for topic in v["topics"].keys():
             v["topics"][topic]["chosen"] = False
-        topics[k] = v
+        topics["topics"][k] = v
         
-    with open('data/topics.json', 'w') as f:
+    with open('data/text_conversations.json', 'w') as f:
         f.write(json.dumps(topics, indent=4))
     
-    return topics
+    return topics["topics"]
 
 def choose_topic(first_speaker:str="Rhulk") -> (tuple[str, list]):
     """
@@ -141,11 +141,11 @@ def choose_topic(first_speaker:str="Rhulk") -> (tuple[str, list]):
     :return str: Topic chosen from the list
     :return list: Other speakers present in the conversation
     """
-    with open('data/topics.json', 'r') as f:
+    with open('data/text_conversations.json', 'r') as f:
         topics = json.load(f)
     available_topics = {}
     
-    for category, info in topics.items():
+    for category, info in topics["topics"].items():
         avail_topics = [k for k, v in info["topics"].items() if v["chosen"] is False]
         if len(avail_topics) != 0:
             available_topics[category] = {"weight": info["weight"],
@@ -168,9 +168,9 @@ def choose_topic(first_speaker:str="Rhulk") -> (tuple[str, list]):
     if first_speaker in other_speakers:
         other_speakers.remove(first_speaker)
     
-    topics[chosen_key]["topics"][chosen_topic]["chosen"] = True
+    topics["topics"][chosen_key]["topics"][chosen_topic]["chosen"] = True
     
-    with open('data/topics.json', 'w') as f:
+    with open('data/text_conversations.json', 'w') as f:
         f.write(json.dumps(topics, indent=4))
     
     return chosen_topic, other_speakers
@@ -296,8 +296,8 @@ async def scheduledBotConversation() -> (None):
     if now.hour == 13 and now.minute == 0:
         log = open('log.txt', 'a')
         try:
-            with open('data/character_info.json', "r") as f:
-                character_info = json.load(f)
+            with open('data/text_conversations.json', "r") as f:
+                character_info = json.load(f)["characters"]
             first_speaker = random.choice(list(character_info))
             
             for guild in rhulk.bot.guilds:
