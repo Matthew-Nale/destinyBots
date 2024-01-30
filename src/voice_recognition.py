@@ -13,6 +13,7 @@ import json
 
 from src.bot import Bot
 from discord.opus import Encoder
+from discord import app_commands
 from datetime import datetime
 from discord.ext import voice_recv, commands, tasks
 
@@ -26,6 +27,7 @@ MIN_LISTENS = 2
 LISTEN_TIME = 10
 JOIN_CHANCE = 0.05
 COOLDOWN_TIME_HOURS = 3
+MAX_JOIN_LIMIT = 3
 
 class StreamingAudio(discord.AudioSource):
     def __init__(self, source, *, executable='ffmpeg', pipe=False, stderr=None, before_options=None, options=None):
@@ -71,12 +73,48 @@ class VoiceRecording(commands.Cog):
     audio_files = {}
     transcription = []
     voice_channel = None
+    bot : Bot = None
+    daily_manual_joins = 0
     
     def __init__(self, bot: Bot):
         self.bot = bot
         self.join_conversation.start()
         self.last_join = datetime(2000, 1, 1)
 
+
+    @app_commands.command(name="voice_chat", description="Manually force the bot to join your VC for a chat")
+    async def force_join(self, interaction: discord.Interaction):
+        interaction.response.defer()
+        
+        if self.daily_manual_joins > MAX_JOIN_LIMIT:
+            await interaction.followup.send("Already joined 3 times today, please wait a day.", ephemeral=True)
+            return
+            
+        with open("data/voice_conversations.json", "r") as f:
+            registered_users = json.load(f)["registered_users"]
+        
+        if interaction.user.id not in registered_users:
+            await interaction.followup.send("You must be a voice registered user to perform this command. Please register first")
+            return
+        
+        self.last_join = datetime.now()
+        self.voice_channel = await interaction.user.voice.channel.connect(cls=voice_recv.VoiceRecvClient)
+        
+        for _ in range(0, 3):
+            await self.listen_for(LISTEN_TIME)
+            self.voice_channel.stop_listening()
+            
+            await self.transcribe_audio()
+            response = await self.generate_response()
+            await self.create_audio(response)
+        
+        await self.voice_channel.disconnect()
+        await self.cleanup()
+        self.voice_channel = None
+        self.transcription = []
+        
+        interaction.followup.delete()
+        
 
     @tasks.loop(minutes=15)
     async def join_conversation(self):

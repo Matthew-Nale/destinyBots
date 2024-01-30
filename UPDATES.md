@@ -13,7 +13,7 @@
  * Sends the most recent patch notes for viewing.
 
 ### All Voice Bots (Rhulk, Calus, Drifter)
-- /BOT_voice_chat
+- /voice_chat
  * Manually summons the specified bot, instead of waiting for the random event.
  * Limited per day, due to somewhat heft cost of text generation.
     * This limit does not affect the random chance

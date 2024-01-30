@@ -86,7 +86,7 @@ async def voice_opt_in(interaction: discord.Interaction):
                 f.write(json.dumps(registered_users, indent=4))
             await interaction.response.send_message("Registered for voice conversations!", ephemeral=True)
     except:
-        interaction.response.send_message('Encountered an unknown error with registering, please try again later.', ephemeral=True)
+        await interaction.response.send_message('Encountered an unknown error with registering, please try again later.', ephemeral=True)
         
 @tower_pa.bot.tree.command(name="updates", description="View the most recent update to the bots")
 async def updates(interaction: discord.Interaction):
