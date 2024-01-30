@@ -18,13 +18,13 @@ from datetime import datetime
 from discord.ext import voice_recv, commands, tasks
 
 INSTRUCTION_PROMPT = ("You are in a Discord call with other members, and you will be provided "
-                     "the different users as well as what they said in a 5 second timeframe. "
+                     "the different users as well as what they said. Address the person you are speaking to. "
                      "The ordering of the sentences and users may not correspond with the actual "
                      "spoken order. Only respond with any input you may have, limiting your response to under 250 characters.")
 
-MAX_LISTENS = 4
-MIN_LISTENS = 2
-LISTEN_TIME = 10
+MAX_LISTENS = 5
+MIN_LISTENS = 3
+LISTEN_TIME = 4
 JOIN_CHANCE = 0.05
 COOLDOWN_TIME_HOURS = 3
 MAX_JOIN_LIMIT = 3
@@ -75,6 +75,7 @@ class VoiceRecording(commands.Cog):
     voice_channel = None
     bot : Bot = None
     daily_manual_joins = 0
+    registered_users = []
     
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -84,7 +85,7 @@ class VoiceRecording(commands.Cog):
 
     @app_commands.command(name="voice_chat", description="Manually force the bot to join your VC for a chat")
     async def force_join(self, interaction: discord.Interaction):
-        interaction.response.defer()
+        await interaction.response.defer()
         
         if self.daily_manual_joins > MAX_JOIN_LIMIT:
             await interaction.followup.send("Already joined 3 times today, please wait a day.", ephemeral=True)
@@ -102,18 +103,18 @@ class VoiceRecording(commands.Cog):
         
         for _ in range(0, 3):
             await self.listen_for(LISTEN_TIME)
-            self.voice_channel.stop_listening()
             
             await self.transcribe_audio()
             response = await self.generate_response()
             await self.create_audio(response)
+            self.voice_channel.stop_listening()
         
         await self.voice_channel.disconnect()
         await self.cleanup()
         self.voice_channel = None
         self.transcription = []
         
-        interaction.followup.delete()
+        await interaction.followup.delete()
         
 
     @tasks.loop(minutes=15)
@@ -122,24 +123,25 @@ class VoiceRecording(commands.Cog):
             active_voice_channel = await self.get_active_vc()
             if not await self.can_join(active_voice_channel):
                 return
+        
+            self.last_join = datetime.now()
+            self.voice_channel = await active_voice_channel.connect(cls=voice_recv.VoiceRecvClient)
+            
+            for _ in range(0, random.randint(MIN_LISTENS, MAX_LISTENS)):
+                await self.listen_for(LISTEN_TIME)
+                
+                await self.transcribe_audio()
+                response = await self.generate_response()
+                await self.create_audio(response)
+                self.voice_channel.stop_listening()
+            
+            self.voice_channel.stop_listening()
+            await self.voice_channel.disconnect()
+            await self.cleanup()
+            self.voice_channel = None
+            self.transcription = []
         except Exception as e:
             print(e)
-        
-        self.last_join = datetime.now()
-        self.voice_channel = await active_voice_channel.connect(cls=voice_recv.VoiceRecvClient)
-        
-        for _ in range(0, random.randint(MIN_LISTENS, MAX_LISTENS)):
-            await self.listen_for(LISTEN_TIME)
-            self.voice_channel.stop_listening()
-            
-            await self.transcribe_audio()
-            response = await self.generate_response()
-            await self.create_audio(response)
-        
-        await self.voice_channel.disconnect()
-        await self.cleanup()
-        self.voice_channel = None
-        self.transcription = []
     
     
     async def can_join(self, active_voice_channel) -> bool:
@@ -149,13 +151,13 @@ class VoiceRecording(commands.Cog):
         if random.random() > JOIN_CHANCE:
             return False
         
-        if (self.last_join - datetime.now()).total_seconds() < COOLDOWN_TIME_HOURS * 3600:
+        if (datetime.now() - self.last_join).total_seconds() < COOLDOWN_TIME_HOURS * 3600:
             return False
 
         return True
         
         
-    async def get_active_vc(self) -> discord.VoiceChannel | None:
+    async def get_active_vc(self):
         with open('data/voice_conversations.json', "r") as f:
             registered_users = json.load(f)["registered_users"]
             
@@ -168,8 +170,12 @@ class VoiceRecording(commands.Cog):
 
 
     async def listen_for(self, t):
+        with open('data/voice_conversations.json', 'r') as f:
+            registered_users = json.load(f)["registered_users"]
+            
         def save(user, data: voice_recv.VoiceData):
-            self.voice_packets[data.source.display_name].append(data)
+            if data.source.id in registered_users:
+                self.voice_packets[data.source.display_name].append(data)
         
         for member in self.voice_channel.channel.members:
             self.voice_packets[member.display_name] = []
@@ -184,7 +190,8 @@ class VoiceRecording(commands.Cog):
         translator = str.maketrans('', '', string.punctuation)
         
         for member, packets in packets_to_process.items():
-            if len(packets) > 0:
+            self.voice_packets[member] = self.voice_packets[member][len(packets):]
+            if len(packets) > 5:
                 cleaned_words = [word.translate(translator) for word in member.split()]
                 filename = ''.join(cleaned_words) + '.wav'
                 
@@ -220,17 +227,21 @@ class VoiceRecording(commands.Cog):
                 else:
                     messages.append({"role": "assistant", "content": text})
         
-        print(messages)
-        
         response = openai.chat.completions.create(
                 model="gpt-4-0613",
                 messages=messages,
-                n=1
-            ).choices[0].message.content
+                n=1,
+                stream=True
+            )
         
-        self.transcription.append({self.bot.name: response})
+        response_text = ""
+        for chunk in response:
+            if chunk.choices[0].delta.content is not None:
+                response_text += chunk.choices[0].delta.content
+                
+        self.transcription.append({self.bot.name: response_text})
         
-        return response
+        return response_text
 
 
     async def create_audio(self, response):
@@ -238,7 +249,7 @@ class VoiceRecording(commands.Cog):
         try:
             body = {'text': response,
                     'model_id': self.bot.voice.voice_model,
-                    'voice_settings': {'stability': 0.2,
+                    'voice_settings': {'stability': 0.15,
                                     'similarity_boost': 0.7,
                                     'style': 0.1,
                                     'use_speaker_boost': True
@@ -246,14 +257,14 @@ class VoiceRecording(commands.Cog):
                     }
             
             async with aiohttp.ClientSession() as session:
-                async with session.post(url='https://api.elevenlabs.io/v1/text-to-speech/' + self.bot.voice.elevenlabs.voice['voice_id'] + '/stream?optimize_streaming_latency=2',
+                async with session.post(url='https://api.elevenlabs.io/v1/text-to-speech/' + self.bot.voice.elevenlabs.voice['voice_id'] + '/stream?optimize_streaming_latency=4',
                                         headers={'XI-API-KEY': self.bot.voice.elevenlabs.api_key},
                                         json=body) as r:
                     content = io.BytesIO(await r.read())
                     self.voice_channel.play(StreamingAudio(content.read(), pipe=True))
             
             while self.voice_channel.is_playing():
-                await asyncio.sleep(1.5)
+                await asyncio.sleep(1)
                 
         except Exception as e:
             print(f'Found an exception: {e}')
