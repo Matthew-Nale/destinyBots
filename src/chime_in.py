@@ -5,11 +5,11 @@ from src.bot import Bot, CHAT_MODEL
 from discord import Message
 from discord.ext import commands
 
-RANDOM_CHANCE = 0.05
+RANDOM_CHANCE = 0.015
 
 #? Helper Functions
 
-async def generate_response(chosen_speaker: Bot, user_msgs: list) -> (str | Exception):
+async def generate_response(chosen_speaker: Bot, user_msgs: list) -> (str):
     """
     Generates a response to a single user message
     
@@ -46,14 +46,11 @@ class ChimeEvents(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def on_message(self, message: Message) -> (None):
-        """
-        Event that triggers on messages, potentially having a bot send a reply
-        
-        :param self (Self@ChimeEvents): Self reference to ChimeEvents class
-        """
         if not message.author.bot and not message.attachments:
             if random.random() <= RANDOM_CHANCE:
                 log = open("log.txt", "a")
+                
+                # Get past messages in order
                 past_messages = [m async for m in message.channel.history(after=datetime.datetime.now() - datetime.timedelta(hours=12), limit=5)]
                 past_messages.reverse()
                 response = await generate_response(self.bot, past_messages)
@@ -63,9 +60,4 @@ class ChimeEvents(commands.Cog):
         await self.bot.process_commands(message)
 
 async def setup(bot: Bot) -> (None):
-    """
-    Setup for ChimeEvents Cog
-
-    :param bot (Bot): Bot for ChimeEvents to be enabled on
-    """
     await bot.add_cog(ChimeEvents(bot))
