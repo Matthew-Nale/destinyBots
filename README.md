@@ -51,11 +51,11 @@ And here are all of the various commands used:
 
   This resets the specified bot's memory of the server's interaction. In case the bot becomes ilegible or very broken, this command can be used to fix it.
 
-### */BOT_topics*
+### */topics*
 
   View the list of random topics that can happen between the other bots, sorted by category. Usable only through the Tower PA bot.
 
-### */BOT_add_topic*
+### */add_topic*
 
   Adds a new topic to the random topics, causing the daily random conversation to potentially be the topic. The topic will be added inside of the 'misc' category of 'topics.json'. Usable only through the Tower PA bot.
 
